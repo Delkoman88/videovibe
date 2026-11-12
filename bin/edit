@@ -1,0 +1,284 @@
+#!/usr/bin/env python3
+"""Orquestador del pipeline: avanza una pieza hasta la siguiente pausa (revisión A, storyboard,
+revisión B, copy/portada) y dice qué hacer a continuación. Idempotente: solo rehace lo desactualizado.
+
+Uso:
+  bin/edit <canal>/<pieza>                  avanza hasta la siguiente pausa
+  bin/edit <canal>/<pieza> --from-stage <etapa>  rehace desde esa etapa (y las siguientes)
+  bin/edit <canal>/<pieza> --until-stage <etapa>  se detiene tras esa etapa
+  bin/edit <canal>/<pieza> --plan           muestra qué haría, sin ejecutar
+  bin/edit <canal>/<pieza> --json           sin resumen legible (solo el JSON final)
+
+Etapas: ingesta, transcripcion, corte-en-papel, corte-aplicado, subtitulos, composicion, check,
+revision, render, entrega. Nunca toma decisiones creativas ni se salta las aprobaciones A y B.
+Progreso en stderr; JSON final en stdout. Exit 0 pausa o fin, 1 falla una etapa, 2 error de uso.
+"""
+import argparse
+import json
+import os
+import shutil
+import subprocess
+import sys
+import time
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(ROOT))
+from scripts.core import editlib  # noqa: E402
+from scripts.core import oslib  # noqa: E402
+from scripts.pipeline import storyboard  # noqa: E402
+from scripts.core import reviewlib  # noqa: E402
+
+PY = str(ROOT / ".venv" / "bin" / "python")
+HF = str(ROOT / "node_modules" / ".bin" / "hyperframes")
+
+
+class StageError(Exception):
+    pass
+
+
+def log(msg, quiet):
+    if not quiet:
+        print(msg, file=sys.stderr, flush=True)
+
+
+def load_status(P):
+    f = P / "status.json"
+    return oslib.read_json(f) if f.exists() else {"stage": None, "history": [], "approvals": {}, "renders": {}}
+
+
+def save_status_fields(P, **fields):
+    st = load_status(P)
+    for k, v in fields.items():
+        if k == "fingerprints":
+            st.setdefault("fingerprints", {}).update(v)
+        else:
+            st[k] = v
+    oslib.write_json(P / "status.json", st)
+
+
+def run(cmd, P, cwd=None, json_out=True):
+    t0 = time.time()
+    r = subprocess.run(cmd, cwd=cwd or ROOT, capture_output=True, text=True)
+    with open(P / "work" / "edit.log", "a", encoding="utf-8") as f:
+        f.write(f"{time.strftime('%Y-%m-%d %H:%M:%S')} rc={r.returncode} {time.time() - t0:.1f}s "
+                f"{' '.join(str(c) for c in cmd)}\n")
+    out = None
+    if json_out and r.stdout.strip():
+        txt = r.stdout[r.stdout.find("{"):]
+        try:
+            out = json.loads(txt)
+        except json.JSONDecodeError:
+            out = None
+    if r.returncode not in (0,):
+        detail = (out or {}).get("error") or (out or {}).get("failed") or r.stderr[-1200:] or r.stdout[-1200:]
+        raise StageError(f"{Path(str(cmd[1] if cmd[0] == PY else cmd[0])).name} falló: {detail}")
+    return out
+
+
+def check_report(P, since):
+    reports = sorted((P / "hf" / ".hyperframes" / "artifacts" / "checks").glob("*.json"), key=os.path.getmtime)
+    reports = [r for r in reports if os.path.getmtime(r) >= since - 1]
+    if not reports:
+        raise StageError("hyperframes check no dejó informe")
+    d = oslib.read_json(reports[-1])
+    errors = sum((d.get(k) or {}).get("errorCount", 0) or 0
+                 for k in ("lint", "runtime", "layout", "motion", "contrast", "craft", "audio"))
+    found = []
+
+    def walk(o):
+        if isinstance(o, dict):
+            if o.get("severity") == "error":
+                found.append(f'{o.get("code") or o.get("rule")}: {str(o.get("message", ""))[:160]}')
+            for v in o.values():
+                walk(v)
+        elif isinstance(o, list):
+            for x in o:
+                walk(x)
+    walk(d)
+    return errors, sorted(set(found))[:15]
+
+
+def do_stage(stage, P, pid, plats, sb, quiet):
+    pj = ["--project", str(P)]
+    if stage == "ingesta":
+        return run([PY, "-m", "scripts.pipeline.ingest", *pj], P)
+    if stage == "transcripcion":
+        return run([PY, "-m", "scripts.pipeline.transcribe", *pj, "--force"], P)
+    if stage == "corte-en-papel":
+        return run([PY, "-m", "scripts.pipeline.paper_cut", *pj, *(["--platform", plats[0]] if plats else [])], P)
+    if stage == "corte-aplicado":
+        return run([PY, "-m", "scripts.pipeline.apply_cut", *pj, *(["--platform", plats[0]] if plats else [])], P)
+    if stage == "subtitulos":
+        manual = editlib.newer(P / "transcript" / "master-cut.json", P / "captions" / "captions.json") and \
+            not editlib.newer(P / "cut" / "master-cut.mp4", P / "captions" / "captions.json")
+        return run([PY, "-m", "scripts.pipeline.captions", *pj, *(["--from-transcript"] if manual else [])], P)
+    if stage == "composicion":
+        args = [a for p in plats for a in ("--platform", p)]
+        return run([PY, "-m", "scripts.pipeline.compose", *pj, *args], P)
+    if stage == "check":
+        t0 = time.time()
+        subprocess.run([HF, "check", "--json"], cwd=P / "hf", capture_output=True, text=True)
+        errors, found = check_report(P, t0)
+        if errors:
+            raise StageError(f"hyperframes check: {errors} errores — " + " | ".join(found))
+        save_status_fields(P, fingerprints={"check": editlib.hf_fingerprint(P)})
+        return {"errors": 0}
+    if stage == "revision":
+        dur = oslib.read_json(P / "cut" / "cut-map.json")["duration_s"] + sb.get("tail_s", 0)
+        times = editlib.review_times(sb, dur)
+        shutil.rmtree(P / "snaps", ignore_errors=True)
+        log(f"   hoja de revisión: {len(times)} momentos", quiet)
+        run([HF, "snapshot", "--at", ",".join(str(t) for t in times), "--no-end", "-o", "../snaps", "--json"],
+            P, cwd=P / "hf", json_out=False)
+        (P / "renders").mkdir(exist_ok=True)
+        log(f"   render borrador ({plats[0]})…", quiet)
+        run([HF, "render", "-q", "draft", "--sdr", "--variables-file", f"variables/{plats[0]}.json",
+             "-o", f"../renders/draft-{plats[0]}.mp4"], P, cwd=P / "hf", json_out=False)
+        phone = run([PY, "-m", "scripts.pipeline.phone_preview", *pj,
+                     "--draft", f"renders/draft-{plats[0]}.mp4"], P)
+        save_status_fields(P, fingerprints={"revision": editlib.hf_fingerprint(P)})
+        return {"snaps": "snaps/", "draft": f"renders/draft-{plats[0]}.mp4", "times": times,
+                "phone_frames": phone["frames"]}
+    if stage == "render":
+        st = load_status(P)
+        done = []
+        for p in plats:  # solo las plataformas cuyo contenido cambió (editlib.platform_fingerprint)
+            h = editlib.platform_fingerprint(P, p)
+            if st.get("fingerprints", {}).get(f"render:{p}") == h and (P / "renders" / f"{p}.mp4").exists():
+                continue
+            log(f"   render final {p}…", quiet)
+            run([HF, "render", "-q", "delivery", "--sdr", "--variables-file", f"variables/{p}.json",
+                 "-o", f"../renders/{p}.mp4"], P, cwd=P / "hf", json_out=False)
+            save_status_fields(P, fingerprints={f"render:{p}": h})
+            done.append(p)
+        return {"rendered": done}
+    if stage == "entrega":
+        master = P / "captions" / "master.srt"
+        for p in plats:
+            dst = P / "captions" / f"{p}.srt"
+            if master.exists() and (not dst.exists() or editlib.newer(master, dst)):
+                shutil.copy(master, dst)
+        out = run([PY, "-m", "scripts.pipeline.verify", *pj, *[a for p in plats for a in ("--platform", p)]], P)
+        # finales verificados → carpeta de entregas fácil de encontrar (deliveries/<canal>/<fecha> <pieza>/)
+        dl = run([PY, "-m", "scripts.pipeline.deliver", *pj, *[a for p in plats for a in ("--platform", p)]], P)
+        rf = editlib.delivery_fingerprint(P, plats)
+        save_status_fields(P, fingerprints={"entrega": rf})
+        return {"verified": plats, "ok": out.get("ok") if out else None, "delivery": (dl or {}).get("dir"),
+                "delivery_method": (dl or {}).get("method")}
+    raise KeyError(stage)
+
+
+def main():
+    ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    ap.add_argument("project")
+    ap.add_argument("--from-stage")
+    ap.add_argument("--until-stage")
+    ap.add_argument("--plan", action="store_true")
+    ap.add_argument("--json", action="store_true")
+    args = ap.parse_args()
+    quiet = args.json
+
+    P = oslib.project_dir(args.project)
+    ch = oslib.load_channel(P)
+    pid = f'{ch["id"]}/{P.name}'
+    try:
+        forced = set(editlib.forced_from(args.from_stage)) if args.from_stage else set()
+        if args.until_stage:
+            editlib.forced_from(args.until_stage)
+    except KeyError as e:
+        oslib.die(str(e))
+    (P / "work").mkdir(exist_ok=True)
+
+    def piece_state():
+        sb = oslib.read_json(P / "storyboard.json") if (P / "storyboard.json").exists() else {}
+        return sb, editlib.platforms(sb, ch["config"]), load_status(P)
+
+    if args.plan:
+        sb, plats, st = piece_state()
+        act = editlib.next_action(P, st, plats, forced)
+        oslib.emit({"ok": True, "piece": pid, "platforms": plats, "plan": True, "next_action": act,
+                    "stage": st.get("stage"), "approvals": sorted(st.get("approvals", {}))})
+
+    lock = P / "work" / "edit.lock"
+    if lock.exists():
+        try:
+            os.kill(int(lock.read_text()), 0)
+            oslib.die(f"otra ejecución de bin/edit está trabajando en {pid} (work/edit.lock)")
+        except (ProcessLookupError, ValueError):
+            pass  # bloqueo huérfano
+    lock.write_text(str(os.getpid()))
+
+    ran, result = [], None
+    try:
+        while True:
+            sb, plats, st = piece_state()
+            if not plats:
+                result = {"ok": False, "error": "sin plataformas: define storyboard.platforms o channel.json → platforms"}
+                break
+            act = editlib.next_action(P, st, plats, forced)
+            if "run" in act and args.until_stage and editlib.STAGES.index(act["run"]) > editlib.STAGES.index(args.until_stage):
+                result = {"ok": True, "stopped": f"--until-stage {args.until_stage}",
+                          "next": f"Siguiente etapa pendiente: {act['run']} ({act['why']})."}
+                break
+            if "run" in act:
+                stage = act["run"]
+                log(f"▶ {stage} — {act['why']}", quiet)
+                t0 = time.time()
+                try:
+                    out = do_stage(stage, P, pid, plats, sb, quiet)
+                except StageError as e:
+                    result = {"ok": False, "failed_stage": stage, "error": str(e),
+                              "next": "Corrige el problema (ver work/edit.log) y vuelve a correr bin/edit."}
+                    break
+                forced.discard(stage)
+                ran.append({"stage": stage, "s": round(time.time() - t0, 1)})
+                log(f"  ✓ {stage} ({time.time() - t0:.0f} s)", quiet)
+                if args.until_stage == stage:
+                    result = {"ok": True, "stopped": f"--until-stage {stage}"}
+                    break
+                continue
+            if "pause" in act:
+                g = act["pause"]
+                save_status_fields(P, pending=g["pending"])
+                result = {"ok": True, "paused": g["pending"], "reason": g["reason"],
+                          "next": g["next"].replace("<pieza>", pid)}
+                if g["pending"] in ("aprobación A", "aprobación B"):
+                    review = reviewlib.present(P, g["pending"][-1],
+                                               simulated=os.environ.get("VIDEOVIBE_DEMO") == "1")
+                    result["review"] = review
+                    log(reviewlib.format_packet(review), quiet)
+                if g["pending"] == "aprobación B":
+                    _, warnings = storyboard.validate(sb, storyboard.context(P, ch))
+                    if warnings:
+                        result["warnings"] = warnings
+                        log("  Avisos del storyboard: " + " | ".join(warnings), quiet)
+                break
+            save_status_fields(P, pending=None)
+            delivery = load_status(P).get("delivery")
+            result = {"ok": True, "done": True, "delivery": delivery,
+                      "next": f"Videos finales listos en: {delivery}" if delivery else
+                              "Pieza entregable: renders/, copy/, covers/, captions/."}
+            if delivery and any(r.get("stage") == "entrega" for r in ran) \
+                    and os.environ.get("VIDEOVIBE_DEMO") != "1":
+                result["opened"] = reviewlib.open_files([delivery])[0]  # abre la carpeta para la persona
+            break
+    finally:
+        lock.unlink(missing_ok=True)
+
+    sb, plats, st = piece_state()
+    result.update({"piece": pid, "ran": ran, "stage": st.get("stage"), "approvals": sorted(st.get("approvals", {})),
+                   "platforms": plats})
+    if not ran and result.get("ok"):
+        result["up_to_date"] = True
+    if not quiet:
+        head = "✗ FALLÓ " + result.get("failed_stage", "") if not result.get("ok") else \
+            ("⏸ PAUSA: " + result["paused"] if result.get("paused") else
+             ("■ " + result["stopped"] if result.get("stopped") else "✔ ENTREGABLE"))
+        print(f"\n{head}\n  {result.get('reason') or result.get('error') or ''}\n  → {result.get('next', '')}\n",
+              file=sys.stderr)
+    oslib.emit(result, 0 if result.get("ok") else 1)
+
+
+if __name__ == "__main__":
+    main()

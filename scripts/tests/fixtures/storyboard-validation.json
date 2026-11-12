@@ -1,0 +1,3692 @@
+[
+  {
+    "storyboard": {
+      "version": 1,
+      "video": "cut/master-cut.mp4",
+      "tail_s": 1.5,
+      "camera": {
+        "origin": "50% 30%",
+        "moves": [
+          {
+            "type": "punch",
+            "t": 2.0,
+            "scale": 1.08,
+            "until": 4.0
+          }
+        ]
+      },
+      "emphasis": {
+        "w1": "keyword"
+      },
+      "overlays": [
+        {
+          "id": "hook",
+          "type": "title",
+          "in": 0.15,
+          "out": 3.0,
+          "text": "Hola",
+          "role": "keyword"
+        },
+        {
+          "id": "cta",
+          "type": "cta",
+          "in": 18.0,
+          "out": 21.5,
+          "text": "Sígueme",
+          "role": "punchline"
+        }
+      ],
+      "scenes": [
+        {
+          "id": "s-dna",
+          "format": "dna-helix",
+          "in": 8.0,
+          "out": 10.0,
+          "params": {
+            "label": "ADN"
+          },
+          "sfx": "click"
+        }
+      ],
+      "platforms": {
+        "tiktok": {
+          "cta_text": "Sígueme"
+        }
+      },
+      "audio": {
+        "music": {
+          "track": "pista",
+          "ads": "quiza"
+        },
+        "sfx_auto": {
+          "scenes": "variado",
+          "overlays": "click",
+          "exits": "whoosh"
+        },
+        "sfx": [
+          {
+            "at": 5.0,
+            "sound": "click",
+            "db": -20
+          }
+        ]
+      },
+      "voice": {
+        "strength": "natural"
+      }
+    },
+    "expected": [
+      [],
+      []
+    ]
+  },
+  {
+    "storyboard": {},
+    "expected": [
+      [],
+      []
+    ]
+  },
+  {
+    "storyboard": [],
+    "expected": [
+      [
+        "storyboard.json debe ser un objeto JSON"
+      ],
+      []
+    ]
+  },
+  {
+    "storyboard": {
+      "tail_s": 4
+    },
+    "expected": [
+      [
+        "tail_s: número entre 0 y 3 (segundos de último cuadro congelado)"
+      ],
+      []
+    ]
+  },
+  {
+    "storyboard": {
+      "version": 1,
+      "video": "cut/master-cut.mp4",
+      "tail_s": 1.5,
+      "camera": {
+        "origin": "50% 30%",
+        "moves": [
+          {
+            "type": "punch",
+            "t": 2.0,
+            "scale": 1.08,
+            "until": 4.0
+          }
+        ]
+      },
+      "emphasis": {
+        "w1": "keyword"
+      },
+      "overlays": [
+        {
+          "id": "hook",
+          "type": "title",
+          "in": 0.15,
+          "out": 3.0,
+          "text": "Hola",
+          "role": "keyword"
+        },
+        {
+          "id": "cta",
+          "type": "cta",
+          "in": 18.0,
+          "out": 21.5,
+          "text": "Sígueme",
+          "role": "punchline"
+        }
+      ],
+      "scenes": [
+        {
+          "id": "s-dna",
+          "format": "dna-helix",
+          "in": 8.0,
+          "out": 10.0,
+          "params": {
+            "label": "ADN"
+          },
+          "sfx": "click"
+        }
+      ],
+      "platforms": {
+        "tiktok": {
+          "cta_text": "Sígueme"
+        }
+      },
+      "audio": {
+        "music": {
+          "track": "pista",
+          "ads": "quiza"
+        },
+        "sfx_auto": {
+          "scenes": "variado",
+          "overlays": "click",
+          "exits": "whoosh"
+        },
+        "sfx": [
+          {
+            "at": 5.0,
+            "sound": "click",
+            "db": -20
+          }
+        ]
+      },
+      "voice": {
+        "strength": "natural"
+      },
+      "unexpected": true
+    },
+    "expected": [
+      [],
+      [
+        "unexpected: clave desconocida (se ignora; válidas: audio, broll, camera, emphasis, grading, overlays, platforms, scenes, tail_s, version, video, voice)"
+      ]
+    ]
+  },
+  {
+    "storyboard": {
+      "version": 1,
+      "video": "cut/master-cut.mp4",
+      "tail_s": 1.5,
+      "camera": {
+        "origin": "50% 30%",
+        "moves": [
+          {
+            "type": "punch",
+            "t": 2.0,
+            "scale": 1.08,
+            "until": 4.0
+          }
+        ]
+      },
+      "emphasis": {
+        "w1": "keyword"
+      },
+      "overlays": [],
+      "scenes": [
+        {
+          "id": "s-dna",
+          "format": "dna-helix",
+          "in": 8.0,
+          "out": 10.0,
+          "params": {
+            "label": "ADN"
+          },
+          "sfx": "click"
+        }
+      ],
+      "platforms": {
+        "tiktok": {
+          "cta_text": "Sígueme"
+        }
+      },
+      "audio": {
+        "music": {
+          "track": "pista",
+          "ads": "quiza"
+        },
+        "sfx_auto": {
+          "scenes": "variado",
+          "overlays": "click",
+          "exits": "whoosh"
+        },
+        "sfx": [
+          {
+            "at": 5.0,
+            "sound": "click",
+            "db": -20
+          }
+        ]
+      },
+      "voice": {
+        "strength": "natural"
+      }
+    },
+    "expected": [
+      [],
+      []
+    ]
+  },
+  {
+    "storyboard": {
+      "version": 1,
+      "video": "cut/master-cut.mp4",
+      "tail_s": 1.5,
+      "camera": {
+        "origin": "50% 30%",
+        "moves": [
+          {
+            "type": "punch",
+            "t": 2.0,
+            "scale": 1.08,
+            "until": 4.0
+          }
+        ]
+      },
+      "emphasis": {
+        "w1": "keyword"
+      },
+      "overlays": {},
+      "scenes": [
+        {
+          "id": "s-dna",
+          "format": "dna-helix",
+          "in": 8.0,
+          "out": 10.0,
+          "params": {
+            "label": "ADN"
+          },
+          "sfx": "click"
+        }
+      ],
+      "platforms": {
+        "tiktok": {
+          "cta_text": "Sígueme"
+        }
+      },
+      "audio": {
+        "music": {
+          "track": "pista",
+          "ads": "quiza"
+        },
+        "sfx_auto": {
+          "scenes": "variado",
+          "overlays": "click",
+          "exits": "whoosh"
+        },
+        "sfx": [
+          {
+            "at": 5.0,
+            "sound": "click",
+            "db": -20
+          }
+        ]
+      },
+      "voice": {
+        "strength": "natural"
+      }
+    },
+    "expected": [
+      [
+        "overlays: debe ser una lista"
+      ],
+      []
+    ]
+  },
+  {
+    "storyboard": {
+      "version": 1,
+      "video": "cut/master-cut.mp4",
+      "tail_s": 1.5,
+      "camera": {
+        "origin": "50% 30%",
+        "moves": [
+          {
+            "type": "punch",
+            "t": 2.0,
+            "scale": 1.08,
+            "until": 4.0
+          }
+        ]
+      },
+      "emphasis": {
+        "w1": "keyword"
+      },
+      "overlays": null,
+      "scenes": [
+        {
+          "id": "s-dna",
+          "format": "dna-helix",
+          "in": 8.0,
+          "out": 10.0,
+          "params": {
+            "label": "ADN"
+          },
+          "sfx": "click"
+        }
+      ],
+      "platforms": {
+        "tiktok": {
+          "cta_text": "Sígueme"
+        }
+      },
+      "audio": {
+        "music": {
+          "track": "pista",
+          "ads": "quiza"
+        },
+        "sfx_auto": {
+          "scenes": "variado",
+          "overlays": "click",
+          "exits": "whoosh"
+        },
+        "sfx": [
+          {
+            "at": 5.0,
+            "sound": "click",
+            "db": -20
+          }
+        ]
+      },
+      "voice": {
+        "strength": "natural"
+      }
+    },
+    "expected": [
+      [
+        "overlays: debe ser una lista"
+      ],
+      []
+    ]
+  },
+  {
+    "storyboard": {
+      "version": 1,
+      "video": "cut/master-cut.mp4",
+      "tail_s": 1.5,
+      "camera": {
+        "origin": "50% 30%",
+        "moves": [
+          {
+            "type": "punch",
+            "t": 2.0,
+            "scale": 1.08,
+            "until": 4.0
+          }
+        ]
+      },
+      "emphasis": {
+        "w1": "keyword"
+      },
+      "overlays": "invalid",
+      "scenes": [
+        {
+          "id": "s-dna",
+          "format": "dna-helix",
+          "in": 8.0,
+          "out": 10.0,
+          "params": {
+            "label": "ADN"
+          },
+          "sfx": "click"
+        }
+      ],
+      "platforms": {
+        "tiktok": {
+          "cta_text": "Sígueme"
+        }
+      },
+      "audio": {
+        "music": {
+          "track": "pista",
+          "ads": "quiza"
+        },
+        "sfx_auto": {
+          "scenes": "variado",
+          "overlays": "click",
+          "exits": "whoosh"
+        },
+        "sfx": [
+          {
+            "at": 5.0,
+            "sound": "click",
+            "db": -20
+          }
+        ]
+      },
+      "voice": {
+        "strength": "natural"
+      }
+    },
+    "expected": [
+      [
+        "overlays: debe ser una lista"
+      ],
+      []
+    ]
+  },
+  {
+    "storyboard": {
+      "version": 1,
+      "video": "cut/master-cut.mp4",
+      "tail_s": 1.5,
+      "camera": {
+        "origin": "50% 30%",
+        "moves": [
+          {
+            "type": "punch",
+            "t": 2.0,
+            "scale": 1.08,
+            "until": 4.0
+          }
+        ]
+      },
+      "emphasis": {
+        "w1": "keyword"
+      },
+      "overlays": [
+        {
+          "id": "hook",
+          "type": "title",
+          "in": 0.15,
+          "out": 3.0,
+          "text": "Hola",
+          "role": "keyword"
+        },
+        {
+          "id": "cta",
+          "type": "cta",
+          "in": 18.0,
+          "out": 21.5,
+          "text": "Sígueme",
+          "role": "punchline"
+        }
+      ],
+      "scenes": [],
+      "platforms": {
+        "tiktok": {
+          "cta_text": "Sígueme"
+        }
+      },
+      "audio": {
+        "music": {
+          "track": "pista",
+          "ads": "quiza"
+        },
+        "sfx_auto": {
+          "scenes": "variado",
+          "overlays": "click",
+          "exits": "whoosh"
+        },
+        "sfx": [
+          {
+            "at": 5.0,
+            "sound": "click",
+            "db": -20
+          }
+        ]
+      },
+      "voice": {
+        "strength": "natural"
+      }
+    },
+    "expected": [
+      [],
+      []
+    ]
+  },
+  {
+    "storyboard": {
+      "version": 1,
+      "video": "cut/master-cut.mp4",
+      "tail_s": 1.5,
+      "camera": {
+        "origin": "50% 30%",
+        "moves": [
+          {
+            "type": "punch",
+            "t": 2.0,
+            "scale": 1.08,
+            "until": 4.0
+          }
+        ]
+      },
+      "emphasis": {
+        "w1": "keyword"
+      },
+      "overlays": [
+        {
+          "id": "hook",
+          "type": "title",
+          "in": 0.15,
+          "out": 3.0,
+          "text": "Hola",
+          "role": "keyword"
+        },
+        {
+          "id": "cta",
+          "type": "cta",
+          "in": 18.0,
+          "out": 21.5,
+          "text": "Sígueme",
+          "role": "punchline"
+        }
+      ],
+      "scenes": {},
+      "platforms": {
+        "tiktok": {
+          "cta_text": "Sígueme"
+        }
+      },
+      "audio": {
+        "music": {
+          "track": "pista",
+          "ads": "quiza"
+        },
+        "sfx_auto": {
+          "scenes": "variado",
+          "overlays": "click",
+          "exits": "whoosh"
+        },
+        "sfx": [
+          {
+            "at": 5.0,
+            "sound": "click",
+            "db": -20
+          }
+        ]
+      },
+      "voice": {
+        "strength": "natural"
+      }
+    },
+    "expected": [
+      [
+        "scenes: debe ser una lista"
+      ],
+      []
+    ]
+  },
+  {
+    "storyboard": {
+      "version": 1,
+      "video": "cut/master-cut.mp4",
+      "tail_s": 1.5,
+      "camera": {
+        "origin": "50% 30%",
+        "moves": [
+          {
+            "type": "punch",
+            "t": 2.0,
+            "scale": 1.08,
+            "until": 4.0
+          }
+        ]
+      },
+      "emphasis": {
+        "w1": "keyword"
+      },
+      "overlays": [
+        {
+          "id": "hook",
+          "type": "title",
+          "in": 0.15,
+          "out": 3.0,
+          "text": "Hola",
+          "role": "keyword"
+        },
+        {
+          "id": "cta",
+          "type": "cta",
+          "in": 18.0,
+          "out": 21.5,
+          "text": "Sígueme",
+          "role": "punchline"
+        }
+      ],
+      "scenes": null,
+      "platforms": {
+        "tiktok": {
+          "cta_text": "Sígueme"
+        }
+      },
+      "audio": {
+        "music": {
+          "track": "pista",
+          "ads": "quiza"
+        },
+        "sfx_auto": {
+          "scenes": "variado",
+          "overlays": "click",
+          "exits": "whoosh"
+        },
+        "sfx": [
+          {
+            "at": 5.0,
+            "sound": "click",
+            "db": -20
+          }
+        ]
+      },
+      "voice": {
+        "strength": "natural"
+      }
+    },
+    "expected": [
+      [
+        "scenes: debe ser una lista"
+      ],
+      []
+    ]
+  },
+  {
+    "storyboard": {
+      "version": 1,
+      "video": "cut/master-cut.mp4",
+      "tail_s": 1.5,
+      "camera": {
+        "origin": "50% 30%",
+        "moves": [
+          {
+            "type": "punch",
+            "t": 2.0,
+            "scale": 1.08,
+            "until": 4.0
+          }
+        ]
+      },
+      "emphasis": {
+        "w1": "keyword"
+      },
+      "overlays": [
+        {
+          "id": "hook",
+          "type": "title",
+          "in": 0.15,
+          "out": 3.0,
+          "text": "Hola",
+          "role": "keyword"
+        },
+        {
+          "id": "cta",
+          "type": "cta",
+          "in": 18.0,
+          "out": 21.5,
+          "text": "Sígueme",
+          "role": "punchline"
+        }
+      ],
+      "scenes": "invalid",
+      "platforms": {
+        "tiktok": {
+          "cta_text": "Sígueme"
+        }
+      },
+      "audio": {
+        "music": {
+          "track": "pista",
+          "ads": "quiza"
+        },
+        "sfx_auto": {
+          "scenes": "variado",
+          "overlays": "click",
+          "exits": "whoosh"
+        },
+        "sfx": [
+          {
+            "at": 5.0,
+            "sound": "click",
+            "db": -20
+          }
+        ]
+      },
+      "voice": {
+        "strength": "natural"
+      }
+    },
+    "expected": [
+      [
+        "scenes: debe ser una lista"
+      ],
+      []
+    ]
+  },
+  {
+    "storyboard": {
+      "version": 1,
+      "video": "cut/master-cut.mp4",
+      "tail_s": 1.5,
+      "camera": {
+        "origin": "50% 30%",
+        "moves": [
+          {
+            "type": "punch",
+            "t": 2.0,
+            "scale": 1.08,
+            "until": 4.0
+          }
+        ]
+      },
+      "emphasis": [],
+      "overlays": [
+        {
+          "id": "hook",
+          "type": "title",
+          "in": 0.15,
+          "out": 3.0,
+          "text": "Hola",
+          "role": "keyword"
+        },
+        {
+          "id": "cta",
+          "type": "cta",
+          "in": 18.0,
+          "out": 21.5,
+          "text": "Sígueme",
+          "role": "punchline"
+        }
+      ],
+      "scenes": [
+        {
+          "id": "s-dna",
+          "format": "dna-helix",
+          "in": 8.0,
+          "out": 10.0,
+          "params": {
+            "label": "ADN"
+          },
+          "sfx": "click"
+        }
+      ],
+      "platforms": {
+        "tiktok": {
+          "cta_text": "Sígueme"
+        }
+      },
+      "audio": {
+        "music": {
+          "track": "pista",
+          "ads": "quiza"
+        },
+        "sfx_auto": {
+          "scenes": "variado",
+          "overlays": "click",
+          "exits": "whoosh"
+        },
+        "sfx": [
+          {
+            "at": 5.0,
+            "sound": "click",
+            "db": -20
+          }
+        ]
+      },
+      "voice": {
+        "strength": "natural"
+      }
+    },
+    "expected": [
+      [
+        "emphasis: debe ser un objeto {id_de_palabra: rol}"
+      ],
+      []
+    ]
+  },
+  {
+    "storyboard": {
+      "version": 1,
+      "video": "cut/master-cut.mp4",
+      "tail_s": 1.5,
+      "camera": {
+        "origin": "50% 30%",
+        "moves": [
+          {
+            "type": "punch",
+            "t": 2.0,
+            "scale": 1.08,
+            "until": 4.0
+          }
+        ]
+      },
+      "emphasis": {},
+      "overlays": [
+        {
+          "id": "hook",
+          "type": "title",
+          "in": 0.15,
+          "out": 3.0,
+          "text": "Hola",
+          "role": "keyword"
+        },
+        {
+          "id": "cta",
+          "type": "cta",
+          "in": 18.0,
+          "out": 21.5,
+          "text": "Sígueme",
+          "role": "punchline"
+        }
+      ],
+      "scenes": [
+        {
+          "id": "s-dna",
+          "format": "dna-helix",
+          "in": 8.0,
+          "out": 10.0,
+          "params": {
+            "label": "ADN"
+          },
+          "sfx": "click"
+        }
+      ],
+      "platforms": {
+        "tiktok": {
+          "cta_text": "Sígueme"
+        }
+      },
+      "audio": {
+        "music": {
+          "track": "pista",
+          "ads": "quiza"
+        },
+        "sfx_auto": {
+          "scenes": "variado",
+          "overlays": "click",
+          "exits": "whoosh"
+        },
+        "sfx": [
+          {
+            "at": 5.0,
+            "sound": "click",
+            "db": -20
+          }
+        ]
+      },
+      "voice": {
+        "strength": "natural"
+      }
+    },
+    "expected": [
+      [],
+      []
+    ]
+  },
+  {
+    "storyboard": {
+      "version": 1,
+      "video": "cut/master-cut.mp4",
+      "tail_s": 1.5,
+      "camera": {
+        "origin": "50% 30%",
+        "moves": [
+          {
+            "type": "punch",
+            "t": 2.0,
+            "scale": 1.08,
+            "until": 4.0
+          }
+        ]
+      },
+      "emphasis": null,
+      "overlays": [
+        {
+          "id": "hook",
+          "type": "title",
+          "in": 0.15,
+          "out": 3.0,
+          "text": "Hola",
+          "role": "keyword"
+        },
+        {
+          "id": "cta",
+          "type": "cta",
+          "in": 18.0,
+          "out": 21.5,
+          "text": "Sígueme",
+          "role": "punchline"
+        }
+      ],
+      "scenes": [
+        {
+          "id": "s-dna",
+          "format": "dna-helix",
+          "in": 8.0,
+          "out": 10.0,
+          "params": {
+            "label": "ADN"
+          },
+          "sfx": "click"
+        }
+      ],
+      "platforms": {
+        "tiktok": {
+          "cta_text": "Sígueme"
+        }
+      },
+      "audio": {
+        "music": {
+          "track": "pista",
+          "ads": "quiza"
+        },
+        "sfx_auto": {
+          "scenes": "variado",
+          "overlays": "click",
+          "exits": "whoosh"
+        },
+        "sfx": [
+          {
+            "at": 5.0,
+            "sound": "click",
+            "db": -20
+          }
+        ]
+      },
+      "voice": {
+        "strength": "natural"
+      }
+    },
+    "expected": [
+      [
+        "emphasis: debe ser un objeto {id_de_palabra: rol}"
+      ],
+      []
+    ]
+  },
+  {
+    "storyboard": {
+      "version": 1,
+      "video": "cut/master-cut.mp4",
+      "tail_s": 1.5,
+      "camera": {
+        "origin": "50% 30%",
+        "moves": [
+          {
+            "type": "punch",
+            "t": 2.0,
+            "scale": 1.08,
+            "until": 4.0
+          }
+        ]
+      },
+      "emphasis": "invalid",
+      "overlays": [
+        {
+          "id": "hook",
+          "type": "title",
+          "in": 0.15,
+          "out": 3.0,
+          "text": "Hola",
+          "role": "keyword"
+        },
+        {
+          "id": "cta",
+          "type": "cta",
+          "in": 18.0,
+          "out": 21.5,
+          "text": "Sígueme",
+          "role": "punchline"
+        }
+      ],
+      "scenes": [
+        {
+          "id": "s-dna",
+          "format": "dna-helix",
+          "in": 8.0,
+          "out": 10.0,
+          "params": {
+            "label": "ADN"
+          },
+          "sfx": "click"
+        }
+      ],
+      "platforms": {
+        "tiktok": {
+          "cta_text": "Sígueme"
+        }
+      },
+      "audio": {
+        "music": {
+          "track": "pista",
+          "ads": "quiza"
+        },
+        "sfx_auto": {
+          "scenes": "variado",
+          "overlays": "click",
+          "exits": "whoosh"
+        },
+        "sfx": [
+          {
+            "at": 5.0,
+            "sound": "click",
+            "db": -20
+          }
+        ]
+      },
+      "voice": {
+        "strength": "natural"
+      }
+    },
+    "expected": [
+      [
+        "emphasis: debe ser un objeto {id_de_palabra: rol}"
+      ],
+      []
+    ]
+  },
+  {
+    "storyboard": {
+      "version": 1,
+      "video": "cut/master-cut.mp4",
+      "tail_s": 1.5,
+      "camera": {
+        "origin": "50% 30%",
+        "moves": [
+          {
+            "type": "punch",
+            "t": 2.0,
+            "scale": 1.08,
+            "until": 4.0
+          }
+        ]
+      },
+      "emphasis": {
+        "w1": "keyword"
+      },
+      "overlays": [
+        {
+          "id": "hook",
+          "type": "title",
+          "in": 0.15,
+          "out": 3.0,
+          "text": "Hola",
+          "role": "keyword"
+        },
+        {
+          "id": "cta",
+          "type": "cta",
+          "in": 18.0,
+          "out": 21.5,
+          "text": "Sígueme",
+          "role": "punchline"
+        }
+      ],
+      "scenes": [
+        {
+          "id": "s-dna",
+          "format": "dna-helix",
+          "in": 8.0,
+          "out": 10.0,
+          "params": {
+            "label": "ADN"
+          },
+          "sfx": "click"
+        }
+      ],
+      "platforms": [],
+      "audio": {
+        "music": {
+          "track": "pista",
+          "ads": "quiza"
+        },
+        "sfx_auto": {
+          "scenes": "variado",
+          "overlays": "click",
+          "exits": "whoosh"
+        },
+        "sfx": [
+          {
+            "at": 5.0,
+            "sound": "click",
+            "db": -20
+          }
+        ]
+      },
+      "voice": {
+        "strength": "natural"
+      }
+    },
+    "expected": [
+      [
+        "platforms: debe ser un objeto {plataforma: {cta_text}}"
+      ],
+      []
+    ]
+  },
+  {
+    "storyboard": {
+      "version": 1,
+      "video": "cut/master-cut.mp4",
+      "tail_s": 1.5,
+      "camera": {
+        "origin": "50% 30%",
+        "moves": [
+          {
+            "type": "punch",
+            "t": 2.0,
+            "scale": 1.08,
+            "until": 4.0
+          }
+        ]
+      },
+      "emphasis": {
+        "w1": "keyword"
+      },
+      "overlays": [
+        {
+          "id": "hook",
+          "type": "title",
+          "in": 0.15,
+          "out": 3.0,
+          "text": "Hola",
+          "role": "keyword"
+        },
+        {
+          "id": "cta",
+          "type": "cta",
+          "in": 18.0,
+          "out": 21.5,
+          "text": "Sígueme",
+          "role": "punchline"
+        }
+      ],
+      "scenes": [
+        {
+          "id": "s-dna",
+          "format": "dna-helix",
+          "in": 8.0,
+          "out": 10.0,
+          "params": {
+            "label": "ADN"
+          },
+          "sfx": "click"
+        }
+      ],
+      "platforms": {},
+      "audio": {
+        "music": {
+          "track": "pista",
+          "ads": "quiza"
+        },
+        "sfx_auto": {
+          "scenes": "variado",
+          "overlays": "click",
+          "exits": "whoosh"
+        },
+        "sfx": [
+          {
+            "at": 5.0,
+            "sound": "click",
+            "db": -20
+          }
+        ]
+      },
+      "voice": {
+        "strength": "natural"
+      }
+    },
+    "expected": [
+      [],
+      []
+    ]
+  },
+  {
+    "storyboard": {
+      "version": 1,
+      "video": "cut/master-cut.mp4",
+      "tail_s": 1.5,
+      "camera": {
+        "origin": "50% 30%",
+        "moves": [
+          {
+            "type": "punch",
+            "t": 2.0,
+            "scale": 1.08,
+            "until": 4.0
+          }
+        ]
+      },
+      "emphasis": {
+        "w1": "keyword"
+      },
+      "overlays": [
+        {
+          "id": "hook",
+          "type": "title",
+          "in": 0.15,
+          "out": 3.0,
+          "text": "Hola",
+          "role": "keyword"
+        },
+        {
+          "id": "cta",
+          "type": "cta",
+          "in": 18.0,
+          "out": 21.5,
+          "text": "Sígueme",
+          "role": "punchline"
+        }
+      ],
+      "scenes": [
+        {
+          "id": "s-dna",
+          "format": "dna-helix",
+          "in": 8.0,
+          "out": 10.0,
+          "params": {
+            "label": "ADN"
+          },
+          "sfx": "click"
+        }
+      ],
+      "platforms": null,
+      "audio": {
+        "music": {
+          "track": "pista",
+          "ads": "quiza"
+        },
+        "sfx_auto": {
+          "scenes": "variado",
+          "overlays": "click",
+          "exits": "whoosh"
+        },
+        "sfx": [
+          {
+            "at": 5.0,
+            "sound": "click",
+            "db": -20
+          }
+        ]
+      },
+      "voice": {
+        "strength": "natural"
+      }
+    },
+    "expected": [
+      [
+        "platforms: debe ser un objeto {plataforma: {cta_text}}"
+      ],
+      []
+    ]
+  },
+  {
+    "storyboard": {
+      "version": 1,
+      "video": "cut/master-cut.mp4",
+      "tail_s": 1.5,
+      "camera": {
+        "origin": "50% 30%",
+        "moves": [
+          {
+            "type": "punch",
+            "t": 2.0,
+            "scale": 1.08,
+            "until": 4.0
+          }
+        ]
+      },
+      "emphasis": {
+        "w1": "keyword"
+      },
+      "overlays": [
+        {
+          "id": "hook",
+          "type": "title",
+          "in": 0.15,
+          "out": 3.0,
+          "text": "Hola",
+          "role": "keyword"
+        },
+        {
+          "id": "cta",
+          "type": "cta",
+          "in": 18.0,
+          "out": 21.5,
+          "text": "Sígueme",
+          "role": "punchline"
+        }
+      ],
+      "scenes": [
+        {
+          "id": "s-dna",
+          "format": "dna-helix",
+          "in": 8.0,
+          "out": 10.0,
+          "params": {
+            "label": "ADN"
+          },
+          "sfx": "click"
+        }
+      ],
+      "platforms": "invalid",
+      "audio": {
+        "music": {
+          "track": "pista",
+          "ads": "quiza"
+        },
+        "sfx_auto": {
+          "scenes": "variado",
+          "overlays": "click",
+          "exits": "whoosh"
+        },
+        "sfx": [
+          {
+            "at": 5.0,
+            "sound": "click",
+            "db": -20
+          }
+        ]
+      },
+      "voice": {
+        "strength": "natural"
+      }
+    },
+    "expected": [
+      [
+        "platforms: debe ser un objeto {plataforma: {cta_text}}"
+      ],
+      []
+    ]
+  },
+  {
+    "storyboard": {
+      "version": 1,
+      "video": "cut/master-cut.mp4",
+      "tail_s": 1.5,
+      "camera": {
+        "origin": "50% 30%",
+        "moves": [
+          {
+            "type": "punch",
+            "t": 2.0,
+            "scale": 1.08,
+            "until": 4.0
+          }
+        ]
+      },
+      "emphasis": {
+        "w1": "keyword"
+      },
+      "overlays": [
+        {
+          "id": "hook",
+          "type": "title",
+          "in": 0.15,
+          "out": 3.0,
+          "text": "Hola",
+          "role": "keyword"
+        },
+        {
+          "id": "cta",
+          "type": "cta",
+          "in": 18.0,
+          "out": 21.5,
+          "text": "Sígueme",
+          "role": "punchline"
+        }
+      ],
+      "scenes": [
+        {
+          "id": "s-dna",
+          "format": "dna-helix",
+          "in": 8.0,
+          "out": 10.0,
+          "params": {
+            "label": "ADN"
+          },
+          "sfx": "click"
+        }
+      ],
+      "platforms": {
+        "tiktok": {
+          "cta_text": "Sígueme"
+        }
+      },
+      "audio": {
+        "music": {
+          "track": "pista",
+          "ads": "quiza"
+        },
+        "sfx_auto": {
+          "scenes": "variado",
+          "overlays": "click",
+          "exits": "whoosh"
+        },
+        "sfx": [
+          {
+            "at": 5.0,
+            "sound": "click",
+            "db": -20
+          }
+        ]
+      },
+      "voice": {
+        "strength": "natural"
+      },
+      "broll": []
+    },
+    "expected": [
+      [],
+      []
+    ]
+  },
+  {
+    "storyboard": {
+      "version": 1,
+      "video": "cut/master-cut.mp4",
+      "tail_s": 1.5,
+      "camera": {
+        "origin": "50% 30%",
+        "moves": [
+          {
+            "type": "punch",
+            "t": 2.0,
+            "scale": 1.08,
+            "until": 4.0
+          }
+        ]
+      },
+      "emphasis": {
+        "w1": "keyword"
+      },
+      "overlays": [
+        {
+          "id": "hook",
+          "type": "title",
+          "in": 0.15,
+          "out": 3.0,
+          "text": "Hola",
+          "role": "keyword"
+        },
+        {
+          "id": "cta",
+          "type": "cta",
+          "in": 18.0,
+          "out": 21.5,
+          "text": "Sígueme",
+          "role": "punchline"
+        }
+      ],
+      "scenes": [
+        {
+          "id": "s-dna",
+          "format": "dna-helix",
+          "in": 8.0,
+          "out": 10.0,
+          "params": {
+            "label": "ADN"
+          },
+          "sfx": "click"
+        }
+      ],
+      "platforms": {
+        "tiktok": {
+          "cta_text": "Sígueme"
+        }
+      },
+      "audio": {
+        "music": {
+          "track": "pista",
+          "ads": "quiza"
+        },
+        "sfx_auto": {
+          "scenes": "variado",
+          "overlays": "click",
+          "exits": "whoosh"
+        },
+        "sfx": [
+          {
+            "at": 5.0,
+            "sound": "click",
+            "db": -20
+          }
+        ]
+      },
+      "voice": {
+        "strength": "natural"
+      },
+      "broll": {}
+    },
+    "expected": [
+      [
+        "broll: debe ser una lista"
+      ],
+      []
+    ]
+  },
+  {
+    "storyboard": {
+      "version": 1,
+      "video": "cut/master-cut.mp4",
+      "tail_s": 1.5,
+      "camera": {
+        "origin": "50% 30%",
+        "moves": [
+          {
+            "type": "punch",
+            "t": 2.0,
+            "scale": 1.08,
+            "until": 4.0
+          }
+        ]
+      },
+      "emphasis": {
+        "w1": "keyword"
+      },
+      "overlays": [
+        {
+          "id": "hook",
+          "type": "title",
+          "in": 0.15,
+          "out": 3.0,
+          "text": "Hola",
+          "role": "keyword"
+        },
+        {
+          "id": "cta",
+          "type": "cta",
+          "in": 18.0,
+          "out": 21.5,
+          "text": "Sígueme",
+          "role": "punchline"
+        }
+      ],
+      "scenes": [
+        {
+          "id": "s-dna",
+          "format": "dna-helix",
+          "in": 8.0,
+          "out": 10.0,
+          "params": {
+            "label": "ADN"
+          },
+          "sfx": "click"
+        }
+      ],
+      "platforms": {
+        "tiktok": {
+          "cta_text": "Sígueme"
+        }
+      },
+      "audio": {
+        "music": {
+          "track": "pista",
+          "ads": "quiza"
+        },
+        "sfx_auto": {
+          "scenes": "variado",
+          "overlays": "click",
+          "exits": "whoosh"
+        },
+        "sfx": [
+          {
+            "at": 5.0,
+            "sound": "click",
+            "db": -20
+          }
+        ]
+      },
+      "voice": {
+        "strength": "natural"
+      },
+      "broll": null
+    },
+    "expected": [
+      [
+        "broll: debe ser una lista"
+      ],
+      []
+    ]
+  },
+  {
+    "storyboard": {
+      "version": 1,
+      "video": "cut/master-cut.mp4",
+      "tail_s": 1.5,
+      "camera": {
+        "origin": "50% 30%",
+        "moves": [
+          {
+            "type": "punch",
+            "t": 2.0,
+            "scale": 1.08,
+            "until": 4.0
+          }
+        ]
+      },
+      "emphasis": {
+        "w1": "keyword"
+      },
+      "overlays": [
+        {
+          "id": "hook",
+          "type": "title",
+          "in": 0.15,
+          "out": 3.0,
+          "text": "Hola",
+          "role": "keyword"
+        },
+        {
+          "id": "cta",
+          "type": "cta",
+          "in": 18.0,
+          "out": 21.5,
+          "text": "Sígueme",
+          "role": "punchline"
+        }
+      ],
+      "scenes": [
+        {
+          "id": "s-dna",
+          "format": "dna-helix",
+          "in": 8.0,
+          "out": 10.0,
+          "params": {
+            "label": "ADN"
+          },
+          "sfx": "click"
+        }
+      ],
+      "platforms": {
+        "tiktok": {
+          "cta_text": "Sígueme"
+        }
+      },
+      "audio": {
+        "music": {
+          "track": "pista",
+          "ads": "quiza"
+        },
+        "sfx_auto": {
+          "scenes": "variado",
+          "overlays": "click",
+          "exits": "whoosh"
+        },
+        "sfx": [
+          {
+            "at": 5.0,
+            "sound": "click",
+            "db": -20
+          }
+        ]
+      },
+      "voice": {
+        "strength": "natural"
+      },
+      "broll": "invalid"
+    },
+    "expected": [
+      [
+        "broll: debe ser una lista"
+      ],
+      []
+    ]
+  },
+  {
+    "storyboard": {
+      "version": 1,
+      "video": "cut/master-cut.mp4",
+      "tail_s": 1.5,
+      "camera": {
+        "origin": "50% 30%",
+        "moves": [
+          {
+            "type": "punch",
+            "t": 2.0,
+            "scale": 1.08,
+            "until": 4.0
+          }
+        ]
+      },
+      "emphasis": {
+        "w1": "keyword"
+      },
+      "overlays": [
+        {
+          "id": "hook",
+          "type": "title",
+          "in": -1,
+          "out": 3.0,
+          "text": "Hola",
+          "role": "keyword"
+        },
+        {
+          "id": "cta",
+          "type": "cta",
+          "in": 18.0,
+          "out": 21.5,
+          "text": "Sígueme",
+          "role": "punchline"
+        }
+      ],
+      "scenes": [
+        {
+          "id": "s-dna",
+          "format": "dna-helix",
+          "in": 8.0,
+          "out": 10.0,
+          "params": {
+            "label": "ADN"
+          },
+          "sfx": "click"
+        }
+      ],
+      "platforms": {
+        "tiktok": {
+          "cta_text": "Sígueme"
+        }
+      },
+      "audio": {
+        "music": {
+          "track": "pista",
+          "ads": "quiza"
+        },
+        "sfx_auto": {
+          "scenes": "variado",
+          "overlays": "click",
+          "exits": "whoosh"
+        },
+        "sfx": [
+          {
+            "at": 5.0,
+            "sound": "click",
+            "db": -20
+          }
+        ]
+      },
+      "voice": {
+        "strength": "natural"
+      }
+    },
+    "expected": [
+      [
+        "overlays[0].in: -1 es negativo"
+      ],
+      []
+    ]
+  },
+  {
+    "storyboard": {
+      "version": 1,
+      "video": "cut/master-cut.mp4",
+      "tail_s": 1.5,
+      "camera": {
+        "origin": "50% 30%",
+        "moves": [
+          {
+            "type": "punch",
+            "t": 2.0,
+            "scale": 1.08,
+            "until": 4.0
+          }
+        ]
+      },
+      "emphasis": {
+        "w1": "keyword"
+      },
+      "overlays": [
+        {
+          "id": "hook",
+          "type": "title",
+          "in": 100,
+          "out": 3.0,
+          "text": "Hola",
+          "role": "keyword"
+        },
+        {
+          "id": "cta",
+          "type": "cta",
+          "in": 18.0,
+          "out": 21.5,
+          "text": "Sígueme",
+          "role": "punchline"
+        }
+      ],
+      "scenes": [
+        {
+          "id": "s-dna",
+          "format": "dna-helix",
+          "in": 8.0,
+          "out": 10.0,
+          "params": {
+            "label": "ADN"
+          },
+          "sfx": "click"
+        }
+      ],
+      "platforms": {
+        "tiktok": {
+          "cta_text": "Sígueme"
+        }
+      },
+      "audio": {
+        "music": {
+          "track": "pista",
+          "ads": "quiza"
+        },
+        "sfx_auto": {
+          "scenes": "variado",
+          "overlays": "click",
+          "exits": "whoosh"
+        },
+        "sfx": [
+          {
+            "at": 5.0,
+            "sound": "click",
+            "db": -20
+          }
+        ]
+      },
+      "voice": {
+        "strength": "natural"
+      }
+    },
+    "expected": [
+      [
+        "overlays[0].out: 3.0 debe ser mayor que in (100)"
+      ],
+      []
+    ]
+  },
+  {
+    "storyboard": {
+      "version": 1,
+      "video": "cut/master-cut.mp4",
+      "tail_s": 1.5,
+      "camera": {
+        "origin": "50% 30%",
+        "moves": [
+          {
+            "type": "punch",
+            "t": 2.0,
+            "scale": 1.08,
+            "until": 4.0
+          }
+        ]
+      },
+      "emphasis": {
+        "w1": "keyword"
+      },
+      "overlays": [
+        {
+          "id": "hook",
+          "type": "title",
+          "in": "wrong",
+          "out": 3.0,
+          "text": "Hola",
+          "role": "keyword"
+        },
+        {
+          "id": "cta",
+          "type": "cta",
+          "in": 18.0,
+          "out": 21.5,
+          "text": "Sígueme",
+          "role": "punchline"
+        }
+      ],
+      "scenes": [
+        {
+          "id": "s-dna",
+          "format": "dna-helix",
+          "in": 8.0,
+          "out": 10.0,
+          "params": {
+            "label": "ADN"
+          },
+          "sfx": "click"
+        }
+      ],
+      "platforms": {
+        "tiktok": {
+          "cta_text": "Sígueme"
+        }
+      },
+      "audio": {
+        "music": {
+          "track": "pista",
+          "ads": "quiza"
+        },
+        "sfx_auto": {
+          "scenes": "variado",
+          "overlays": "click",
+          "exits": "whoosh"
+        },
+        "sfx": [
+          {
+            "at": 5.0,
+            "sound": "click",
+            "db": -20
+          }
+        ]
+      },
+      "voice": {
+        "strength": "natural"
+      }
+    },
+    "expected": [
+      [
+        "overlays[0]: «in» y «out» son obligatorios (segundos)"
+      ],
+      []
+    ]
+  },
+  {
+    "storyboard": {
+      "version": 1,
+      "video": "cut/master-cut.mp4",
+      "tail_s": 1.5,
+      "camera": {
+        "origin": "50% 30%",
+        "moves": [
+          {
+            "type": "punch",
+            "t": 2.0,
+            "scale": 1.08,
+            "until": 4.0
+          }
+        ]
+      },
+      "emphasis": {
+        "w1": "keyword"
+      },
+      "overlays": [
+        {
+          "id": "hook",
+          "type": "title",
+          "in": null,
+          "out": 3.0,
+          "text": "Hola",
+          "role": "keyword"
+        },
+        {
+          "id": "cta",
+          "type": "cta",
+          "in": 18.0,
+          "out": 21.5,
+          "text": "Sígueme",
+          "role": "punchline"
+        }
+      ],
+      "scenes": [
+        {
+          "id": "s-dna",
+          "format": "dna-helix",
+          "in": 8.0,
+          "out": 10.0,
+          "params": {
+            "label": "ADN"
+          },
+          "sfx": "click"
+        }
+      ],
+      "platforms": {
+        "tiktok": {
+          "cta_text": "Sígueme"
+        }
+      },
+      "audio": {
+        "music": {
+          "track": "pista",
+          "ads": "quiza"
+        },
+        "sfx_auto": {
+          "scenes": "variado",
+          "overlays": "click",
+          "exits": "whoosh"
+        },
+        "sfx": [
+          {
+            "at": 5.0,
+            "sound": "click",
+            "db": -20
+          }
+        ]
+      },
+      "voice": {
+        "strength": "natural"
+      }
+    },
+    "expected": [
+      [
+        "overlays[0]: «in» y «out» son obligatorios (segundos)"
+      ],
+      []
+    ]
+  },
+  {
+    "storyboard": {
+      "version": 1,
+      "video": "cut/master-cut.mp4",
+      "tail_s": 1.5,
+      "camera": {
+        "origin": "50% 30%",
+        "moves": [
+          {
+            "type": "punch",
+            "t": 2.0,
+            "scale": 1.08,
+            "until": 4.0
+          }
+        ]
+      },
+      "emphasis": {
+        "w1": "keyword"
+      },
+      "overlays": [
+        {
+          "id": "hook",
+          "type": "title",
+          "in": 0.15,
+          "out": -1,
+          "text": "Hola",
+          "role": "keyword"
+        },
+        {
+          "id": "cta",
+          "type": "cta",
+          "in": 18.0,
+          "out": 21.5,
+          "text": "Sígueme",
+          "role": "punchline"
+        }
+      ],
+      "scenes": [
+        {
+          "id": "s-dna",
+          "format": "dna-helix",
+          "in": 8.0,
+          "out": 10.0,
+          "params": {
+            "label": "ADN"
+          },
+          "sfx": "click"
+        }
+      ],
+      "platforms": {
+        "tiktok": {
+          "cta_text": "Sígueme"
+        }
+      },
+      "audio": {
+        "music": {
+          "track": "pista",
+          "ads": "quiza"
+        },
+        "sfx_auto": {
+          "scenes": "variado",
+          "overlays": "click",
+          "exits": "whoosh"
+        },
+        "sfx": [
+          {
+            "at": 5.0,
+            "sound": "click",
+            "db": -20
+          }
+        ]
+      },
+      "voice": {
+        "strength": "natural"
+      }
+    },
+    "expected": [
+      [
+        "overlays[0].out: -1 debe ser mayor que in (0.15)"
+      ],
+      []
+    ]
+  },
+  {
+    "storyboard": {
+      "version": 1,
+      "video": "cut/master-cut.mp4",
+      "tail_s": 1.5,
+      "camera": {
+        "origin": "50% 30%",
+        "moves": [
+          {
+            "type": "punch",
+            "t": 2.0,
+            "scale": 1.08,
+            "until": 4.0
+          }
+        ]
+      },
+      "emphasis": {
+        "w1": "keyword"
+      },
+      "overlays": [
+        {
+          "id": "hook",
+          "type": "title",
+          "in": 0.15,
+          "out": 100,
+          "text": "Hola",
+          "role": "keyword"
+        },
+        {
+          "id": "cta",
+          "type": "cta",
+          "in": 18.0,
+          "out": 21.5,
+          "text": "Sígueme",
+          "role": "punchline"
+        }
+      ],
+      "scenes": [
+        {
+          "id": "s-dna",
+          "format": "dna-helix",
+          "in": 8.0,
+          "out": 10.0,
+          "params": {
+            "label": "ADN"
+          },
+          "sfx": "click"
+        }
+      ],
+      "platforms": {
+        "tiktok": {
+          "cta_text": "Sígueme"
+        }
+      },
+      "audio": {
+        "music": {
+          "track": "pista",
+          "ads": "quiza"
+        },
+        "sfx_auto": {
+          "scenes": "variado",
+          "overlays": "click",
+          "exits": "whoosh"
+        },
+        "sfx": [
+          {
+            "at": 5.0,
+            "sound": "click",
+            "db": -20
+          }
+        ]
+      },
+      "voice": {
+        "strength": "natural"
+      }
+    },
+    "expected": [
+      [
+        "overlays[0].out: 100 pasa del final del video (21.50 s)"
+      ],
+      []
+    ]
+  },
+  {
+    "storyboard": {
+      "version": 1,
+      "video": "cut/master-cut.mp4",
+      "tail_s": 1.5,
+      "camera": {
+        "origin": "50% 30%",
+        "moves": [
+          {
+            "type": "punch",
+            "t": 2.0,
+            "scale": 1.08,
+            "until": 4.0
+          }
+        ]
+      },
+      "emphasis": {
+        "w1": "keyword"
+      },
+      "overlays": [
+        {
+          "id": "hook",
+          "type": "title",
+          "in": 0.15,
+          "out": "wrong",
+          "text": "Hola",
+          "role": "keyword"
+        },
+        {
+          "id": "cta",
+          "type": "cta",
+          "in": 18.0,
+          "out": 21.5,
+          "text": "Sígueme",
+          "role": "punchline"
+        }
+      ],
+      "scenes": [
+        {
+          "id": "s-dna",
+          "format": "dna-helix",
+          "in": 8.0,
+          "out": 10.0,
+          "params": {
+            "label": "ADN"
+          },
+          "sfx": "click"
+        }
+      ],
+      "platforms": {
+        "tiktok": {
+          "cta_text": "Sígueme"
+        }
+      },
+      "audio": {
+        "music": {
+          "track": "pista",
+          "ads": "quiza"
+        },
+        "sfx_auto": {
+          "scenes": "variado",
+          "overlays": "click",
+          "exits": "whoosh"
+        },
+        "sfx": [
+          {
+            "at": 5.0,
+            "sound": "click",
+            "db": -20
+          }
+        ]
+      },
+      "voice": {
+        "strength": "natural"
+      }
+    },
+    "expected": [
+      [
+        "overlays[0]: «in» y «out» son obligatorios (segundos)"
+      ],
+      []
+    ]
+  },
+  {
+    "storyboard": {
+      "version": 1,
+      "video": "cut/master-cut.mp4",
+      "tail_s": 1.5,
+      "camera": {
+        "origin": "50% 30%",
+        "moves": [
+          {
+            "type": "punch",
+            "t": 2.0,
+            "scale": 1.08,
+            "until": 4.0
+          }
+        ]
+      },
+      "emphasis": {
+        "w1": "keyword"
+      },
+      "overlays": [
+        {
+          "id": "hook",
+          "type": "title",
+          "in": 0.15,
+          "out": null,
+          "text": "Hola",
+          "role": "keyword"
+        },
+        {
+          "id": "cta",
+          "type": "cta",
+          "in": 18.0,
+          "out": 21.5,
+          "text": "Sígueme",
+          "role": "punchline"
+        }
+      ],
+      "scenes": [
+        {
+          "id": "s-dna",
+          "format": "dna-helix",
+          "in": 8.0,
+          "out": 10.0,
+          "params": {
+            "label": "ADN"
+          },
+          "sfx": "click"
+        }
+      ],
+      "platforms": {
+        "tiktok": {
+          "cta_text": "Sígueme"
+        }
+      },
+      "audio": {
+        "music": {
+          "track": "pista",
+          "ads": "quiza"
+        },
+        "sfx_auto": {
+          "scenes": "variado",
+          "overlays": "click",
+          "exits": "whoosh"
+        },
+        "sfx": [
+          {
+            "at": 5.0,
+            "sound": "click",
+            "db": -20
+          }
+        ]
+      },
+      "voice": {
+        "strength": "natural"
+      }
+    },
+    "expected": [
+      [
+        "overlays[0]: «in» y «out» son obligatorios (segundos)"
+      ],
+      []
+    ]
+  },
+  {
+    "storyboard": {
+      "version": 1,
+      "video": "cut/master-cut.mp4",
+      "tail_s": 1.5,
+      "camera": {
+        "origin": "50% 30%",
+        "moves": [
+          {
+            "type": "punch",
+            "t": 2.0,
+            "scale": 1.08,
+            "until": 4.0
+          }
+        ]
+      },
+      "emphasis": {
+        "w1": "keyword"
+      },
+      "overlays": [
+        {
+          "id": -1,
+          "type": "title",
+          "in": 0.15,
+          "out": 3.0,
+          "text": "Hola",
+          "role": "keyword"
+        },
+        {
+          "id": "cta",
+          "type": "cta",
+          "in": 18.0,
+          "out": 21.5,
+          "text": "Sígueme",
+          "role": "punchline"
+        }
+      ],
+      "scenes": [
+        {
+          "id": "s-dna",
+          "format": "dna-helix",
+          "in": 8.0,
+          "out": 10.0,
+          "params": {
+            "label": "ADN"
+          },
+          "sfx": "click"
+        }
+      ],
+      "platforms": {
+        "tiktok": {
+          "cta_text": "Sígueme"
+        }
+      },
+      "audio": {
+        "music": {
+          "track": "pista",
+          "ads": "quiza"
+        },
+        "sfx_auto": {
+          "scenes": "variado",
+          "overlays": "click",
+          "exits": "whoosh"
+        },
+        "sfx": [
+          {
+            "at": 5.0,
+            "sound": "click",
+            "db": -20
+          }
+        ]
+      },
+      "voice": {
+        "strength": "natural"
+      }
+    },
+    "expected": [
+      [],
+      []
+    ]
+  },
+  {
+    "storyboard": {
+      "version": 1,
+      "video": "cut/master-cut.mp4",
+      "tail_s": 1.5,
+      "camera": {
+        "origin": "50% 30%",
+        "moves": [
+          {
+            "type": "punch",
+            "t": 2.0,
+            "scale": 1.08,
+            "until": 4.0
+          }
+        ]
+      },
+      "emphasis": {
+        "w1": "keyword"
+      },
+      "overlays": [
+        {
+          "id": 100,
+          "type": "title",
+          "in": 0.15,
+          "out": 3.0,
+          "text": "Hola",
+          "role": "keyword"
+        },
+        {
+          "id": "cta",
+          "type": "cta",
+          "in": 18.0,
+          "out": 21.5,
+          "text": "Sígueme",
+          "role": "punchline"
+        }
+      ],
+      "scenes": [
+        {
+          "id": "s-dna",
+          "format": "dna-helix",
+          "in": 8.0,
+          "out": 10.0,
+          "params": {
+            "label": "ADN"
+          },
+          "sfx": "click"
+        }
+      ],
+      "platforms": {
+        "tiktok": {
+          "cta_text": "Sígueme"
+        }
+      },
+      "audio": {
+        "music": {
+          "track": "pista",
+          "ads": "quiza"
+        },
+        "sfx_auto": {
+          "scenes": "variado",
+          "overlays": "click",
+          "exits": "whoosh"
+        },
+        "sfx": [
+          {
+            "at": 5.0,
+            "sound": "click",
+            "db": -20
+          }
+        ]
+      },
+      "voice": {
+        "strength": "natural"
+      }
+    },
+    "expected": [
+      [],
+      []
+    ]
+  },
+  {
+    "storyboard": {
+      "version": 1,
+      "video": "cut/master-cut.mp4",
+      "tail_s": 1.5,
+      "camera": {
+        "origin": "50% 30%",
+        "moves": [
+          {
+            "type": "punch",
+            "t": 2.0,
+            "scale": 1.08,
+            "until": 4.0
+          }
+        ]
+      },
+      "emphasis": {
+        "w1": "keyword"
+      },
+      "overlays": [
+        {
+          "id": "wrong",
+          "type": "title",
+          "in": 0.15,
+          "out": 3.0,
+          "text": "Hola",
+          "role": "keyword"
+        },
+        {
+          "id": "cta",
+          "type": "cta",
+          "in": 18.0,
+          "out": 21.5,
+          "text": "Sígueme",
+          "role": "punchline"
+        }
+      ],
+      "scenes": [
+        {
+          "id": "s-dna",
+          "format": "dna-helix",
+          "in": 8.0,
+          "out": 10.0,
+          "params": {
+            "label": "ADN"
+          },
+          "sfx": "click"
+        }
+      ],
+      "platforms": {
+        "tiktok": {
+          "cta_text": "Sígueme"
+        }
+      },
+      "audio": {
+        "music": {
+          "track": "pista",
+          "ads": "quiza"
+        },
+        "sfx_auto": {
+          "scenes": "variado",
+          "overlays": "click",
+          "exits": "whoosh"
+        },
+        "sfx": [
+          {
+            "at": 5.0,
+            "sound": "click",
+            "db": -20
+          }
+        ]
+      },
+      "voice": {
+        "strength": "natural"
+      }
+    },
+    "expected": [
+      [],
+      []
+    ]
+  },
+  {
+    "storyboard": {
+      "version": 1,
+      "video": "cut/master-cut.mp4",
+      "tail_s": 1.5,
+      "camera": {
+        "origin": "50% 30%",
+        "moves": [
+          {
+            "type": "punch",
+            "t": 2.0,
+            "scale": 1.08,
+            "until": 4.0
+          }
+        ]
+      },
+      "emphasis": {
+        "w1": "keyword"
+      },
+      "overlays": [
+        {
+          "id": null,
+          "type": "title",
+          "in": 0.15,
+          "out": 3.0,
+          "text": "Hola",
+          "role": "keyword"
+        },
+        {
+          "id": "cta",
+          "type": "cta",
+          "in": 18.0,
+          "out": 21.5,
+          "text": "Sígueme",
+          "role": "punchline"
+        }
+      ],
+      "scenes": [
+        {
+          "id": "s-dna",
+          "format": "dna-helix",
+          "in": 8.0,
+          "out": 10.0,
+          "params": {
+            "label": "ADN"
+          },
+          "sfx": "click"
+        }
+      ],
+      "platforms": {
+        "tiktok": {
+          "cta_text": "Sígueme"
+        }
+      },
+      "audio": {
+        "music": {
+          "track": "pista",
+          "ads": "quiza"
+        },
+        "sfx_auto": {
+          "scenes": "variado",
+          "overlays": "click",
+          "exits": "whoosh"
+        },
+        "sfx": [
+          {
+            "at": 5.0,
+            "sound": "click",
+            "db": -20
+          }
+        ]
+      },
+      "voice": {
+        "strength": "natural"
+      }
+    },
+    "expected": [
+      [
+        "overlays[0].id: obligatorio"
+      ],
+      []
+    ]
+  },
+  {
+    "storyboard": {
+      "version": 1,
+      "video": "cut/master-cut.mp4",
+      "tail_s": 1.5,
+      "camera": {
+        "origin": "50% 30%",
+        "moves": [
+          {
+            "type": "punch",
+            "t": 2.0,
+            "scale": 1.08,
+            "until": 4.0
+          }
+        ]
+      },
+      "emphasis": {
+        "w1": "keyword"
+      },
+      "overlays": [
+        {
+          "id": "hook",
+          "type": "title",
+          "in": 0.15,
+          "out": 3.0,
+          "text": "Hola",
+          "role": -1
+        },
+        {
+          "id": "cta",
+          "type": "cta",
+          "in": 18.0,
+          "out": 21.5,
+          "text": "Sígueme",
+          "role": "punchline"
+        }
+      ],
+      "scenes": [
+        {
+          "id": "s-dna",
+          "format": "dna-helix",
+          "in": 8.0,
+          "out": 10.0,
+          "params": {
+            "label": "ADN"
+          },
+          "sfx": "click"
+        }
+      ],
+      "platforms": {
+        "tiktok": {
+          "cta_text": "Sígueme"
+        }
+      },
+      "audio": {
+        "music": {
+          "track": "pista",
+          "ads": "quiza"
+        },
+        "sfx_auto": {
+          "scenes": "variado",
+          "overlays": "click",
+          "exits": "whoosh"
+        },
+        "sfx": [
+          {
+            "at": 5.0,
+            "sound": "click",
+            "db": -20
+          }
+        ]
+      },
+      "voice": {
+        "strength": "natural"
+      }
+    },
+    "expected": [
+      [
+        "overlays[0].role: «-1» no existe en brand.json → highlight_roles (data, keyword, punchline, warning)"
+      ],
+      []
+    ]
+  },
+  {
+    "storyboard": {
+      "version": 1,
+      "video": "cut/master-cut.mp4",
+      "tail_s": 1.5,
+      "camera": {
+        "origin": "50% 30%",
+        "moves": [
+          {
+            "type": "punch",
+            "t": 2.0,
+            "scale": 1.08,
+            "until": 4.0
+          }
+        ]
+      },
+      "emphasis": {
+        "w1": "keyword"
+      },
+      "overlays": [
+        {
+          "id": "hook",
+          "type": "title",
+          "in": 0.15,
+          "out": 3.0,
+          "text": "Hola",
+          "role": 100
+        },
+        {
+          "id": "cta",
+          "type": "cta",
+          "in": 18.0,
+          "out": 21.5,
+          "text": "Sígueme",
+          "role": "punchline"
+        }
+      ],
+      "scenes": [
+        {
+          "id": "s-dna",
+          "format": "dna-helix",
+          "in": 8.0,
+          "out": 10.0,
+          "params": {
+            "label": "ADN"
+          },
+          "sfx": "click"
+        }
+      ],
+      "platforms": {
+        "tiktok": {
+          "cta_text": "Sígueme"
+        }
+      },
+      "audio": {
+        "music": {
+          "track": "pista",
+          "ads": "quiza"
+        },
+        "sfx_auto": {
+          "scenes": "variado",
+          "overlays": "click",
+          "exits": "whoosh"
+        },
+        "sfx": [
+          {
+            "at": 5.0,
+            "sound": "click",
+            "db": -20
+          }
+        ]
+      },
+      "voice": {
+        "strength": "natural"
+      }
+    },
+    "expected": [
+      [
+        "overlays[0].role: «100» no existe en brand.json → highlight_roles (data, keyword, punchline, warning)"
+      ],
+      []
+    ]
+  },
+  {
+    "storyboard": {
+      "version": 1,
+      "video": "cut/master-cut.mp4",
+      "tail_s": 1.5,
+      "camera": {
+        "origin": "50% 30%",
+        "moves": [
+          {
+            "type": "punch",
+            "t": 2.0,
+            "scale": 1.08,
+            "until": 4.0
+          }
+        ]
+      },
+      "emphasis": {
+        "w1": "keyword"
+      },
+      "overlays": [
+        {
+          "id": "hook",
+          "type": "title",
+          "in": 0.15,
+          "out": 3.0,
+          "text": "Hola",
+          "role": "wrong"
+        },
+        {
+          "id": "cta",
+          "type": "cta",
+          "in": 18.0,
+          "out": 21.5,
+          "text": "Sígueme",
+          "role": "punchline"
+        }
+      ],
+      "scenes": [
+        {
+          "id": "s-dna",
+          "format": "dna-helix",
+          "in": 8.0,
+          "out": 10.0,
+          "params": {
+            "label": "ADN"
+          },
+          "sfx": "click"
+        }
+      ],
+      "platforms": {
+        "tiktok": {
+          "cta_text": "Sígueme"
+        }
+      },
+      "audio": {
+        "music": {
+          "track": "pista",
+          "ads": "quiza"
+        },
+        "sfx_auto": {
+          "scenes": "variado",
+          "overlays": "click",
+          "exits": "whoosh"
+        },
+        "sfx": [
+          {
+            "at": 5.0,
+            "sound": "click",
+            "db": -20
+          }
+        ]
+      },
+      "voice": {
+        "strength": "natural"
+      }
+    },
+    "expected": [
+      [
+        "overlays[0].role: «wrong» no existe en brand.json → highlight_roles (data, keyword, punchline, warning)"
+      ],
+      []
+    ]
+  },
+  {
+    "storyboard": {
+      "version": 1,
+      "video": "cut/master-cut.mp4",
+      "tail_s": 1.5,
+      "camera": {
+        "origin": "50% 30%",
+        "moves": [
+          {
+            "type": "punch",
+            "t": 2.0,
+            "scale": 1.08,
+            "until": 4.0
+          }
+        ]
+      },
+      "emphasis": {
+        "w1": "keyword"
+      },
+      "overlays": [
+        {
+          "id": "hook",
+          "type": "title",
+          "in": 0.15,
+          "out": 3.0,
+          "text": "Hola",
+          "role": null
+        },
+        {
+          "id": "cta",
+          "type": "cta",
+          "in": 18.0,
+          "out": 21.5,
+          "text": "Sígueme",
+          "role": "punchline"
+        }
+      ],
+      "scenes": [
+        {
+          "id": "s-dna",
+          "format": "dna-helix",
+          "in": 8.0,
+          "out": 10.0,
+          "params": {
+            "label": "ADN"
+          },
+          "sfx": "click"
+        }
+      ],
+      "platforms": {
+        "tiktok": {
+          "cta_text": "Sígueme"
+        }
+      },
+      "audio": {
+        "music": {
+          "track": "pista",
+          "ads": "quiza"
+        },
+        "sfx_auto": {
+          "scenes": "variado",
+          "overlays": "click",
+          "exits": "whoosh"
+        },
+        "sfx": [
+          {
+            "at": 5.0,
+            "sound": "click",
+            "db": -20
+          }
+        ]
+      },
+      "voice": {
+        "strength": "natural"
+      }
+    },
+    "expected": [
+      [
+        "overlays[0].role: «None» no existe en brand.json → highlight_roles (data, keyword, punchline, warning)"
+      ],
+      []
+    ]
+  },
+  {
+    "storyboard": {
+      "version": 1,
+      "video": "cut/master-cut.mp4",
+      "tail_s": 1.5,
+      "camera": {
+        "origin": "50% 30%",
+        "moves": [
+          {
+            "type": "punch",
+            "t": 2.0,
+            "scale": 1.08,
+            "until": 4.0
+          }
+        ]
+      },
+      "emphasis": {
+        "w1": "keyword"
+      },
+      "overlays": [
+        {
+          "id": "hook",
+          "type": -1,
+          "in": 0.15,
+          "out": 3.0,
+          "text": "Hola",
+          "role": "keyword"
+        },
+        {
+          "id": "cta",
+          "type": "cta",
+          "in": 18.0,
+          "out": 21.5,
+          "text": "Sígueme",
+          "role": "punchline"
+        }
+      ],
+      "scenes": [
+        {
+          "id": "s-dna",
+          "format": "dna-helix",
+          "in": 8.0,
+          "out": 10.0,
+          "params": {
+            "label": "ADN"
+          },
+          "sfx": "click"
+        }
+      ],
+      "platforms": {
+        "tiktok": {
+          "cta_text": "Sígueme"
+        }
+      },
+      "audio": {
+        "music": {
+          "track": "pista",
+          "ads": "quiza"
+        },
+        "sfx_auto": {
+          "scenes": "variado",
+          "overlays": "click",
+          "exits": "whoosh"
+        },
+        "sfx": [
+          {
+            "at": 5.0,
+            "sound": "click",
+            "db": -20
+          }
+        ]
+      },
+      "voice": {
+        "strength": "natural"
+      }
+    },
+    "expected": [
+      [
+        "overlays[0].type: «-1» no existe (card, cta, tag, title)"
+      ],
+      []
+    ]
+  },
+  {
+    "storyboard": {
+      "version": 1,
+      "video": "cut/master-cut.mp4",
+      "tail_s": 1.5,
+      "camera": {
+        "origin": "50% 30%",
+        "moves": [
+          {
+            "type": "punch",
+            "t": 2.0,
+            "scale": 1.08,
+            "until": 4.0
+          }
+        ]
+      },
+      "emphasis": {
+        "w1": "keyword"
+      },
+      "overlays": [
+        {
+          "id": "hook",
+          "type": 100,
+          "in": 0.15,
+          "out": 3.0,
+          "text": "Hola",
+          "role": "keyword"
+        },
+        {
+          "id": "cta",
+          "type": "cta",
+          "in": 18.0,
+          "out": 21.5,
+          "text": "Sígueme",
+          "role": "punchline"
+        }
+      ],
+      "scenes": [
+        {
+          "id": "s-dna",
+          "format": "dna-helix",
+          "in": 8.0,
+          "out": 10.0,
+          "params": {
+            "label": "ADN"
+          },
+          "sfx": "click"
+        }
+      ],
+      "platforms": {
+        "tiktok": {
+          "cta_text": "Sígueme"
+        }
+      },
+      "audio": {
+        "music": {
+          "track": "pista",
+          "ads": "quiza"
+        },
+        "sfx_auto": {
+          "scenes": "variado",
+          "overlays": "click",
+          "exits": "whoosh"
+        },
+        "sfx": [
+          {
+            "at": 5.0,
+            "sound": "click",
+            "db": -20
+          }
+        ]
+      },
+      "voice": {
+        "strength": "natural"
+      }
+    },
+    "expected": [
+      [
+        "overlays[0].type: «100» no existe (card, cta, tag, title)"
+      ],
+      []
+    ]
+  },
+  {
+    "storyboard": {
+      "version": 1,
+      "video": "cut/master-cut.mp4",
+      "tail_s": 1.5,
+      "camera": {
+        "origin": "50% 30%",
+        "moves": [
+          {
+            "type": "punch",
+            "t": 2.0,
+            "scale": 1.08,
+            "until": 4.0
+          }
+        ]
+      },
+      "emphasis": {
+        "w1": "keyword"
+      },
+      "overlays": [
+        {
+          "id": "hook",
+          "type": "wrong",
+          "in": 0.15,
+          "out": 3.0,
+          "text": "Hola",
+          "role": "keyword"
+        },
+        {
+          "id": "cta",
+          "type": "cta",
+          "in": 18.0,
+          "out": 21.5,
+          "text": "Sígueme",
+          "role": "punchline"
+        }
+      ],
+      "scenes": [
+        {
+          "id": "s-dna",
+          "format": "dna-helix",
+          "in": 8.0,
+          "out": 10.0,
+          "params": {
+            "label": "ADN"
+          },
+          "sfx": "click"
+        }
+      ],
+      "platforms": {
+        "tiktok": {
+          "cta_text": "Sígueme"
+        }
+      },
+      "audio": {
+        "music": {
+          "track": "pista",
+          "ads": "quiza"
+        },
+        "sfx_auto": {
+          "scenes": "variado",
+          "overlays": "click",
+          "exits": "whoosh"
+        },
+        "sfx": [
+          {
+            "at": 5.0,
+            "sound": "click",
+            "db": -20
+          }
+        ]
+      },
+      "voice": {
+        "strength": "natural"
+      }
+    },
+    "expected": [
+      [
+        "overlays[0].type: «wrong» no existe (card, cta, tag, title)"
+      ],
+      []
+    ]
+  },
+  {
+    "storyboard": {
+      "version": 1,
+      "video": "cut/master-cut.mp4",
+      "tail_s": 1.5,
+      "camera": {
+        "origin": "50% 30%",
+        "moves": [
+          {
+            "type": "punch",
+            "t": 2.0,
+            "scale": 1.08,
+            "until": 4.0
+          }
+        ]
+      },
+      "emphasis": {
+        "w1": "keyword"
+      },
+      "overlays": [
+        {
+          "id": "hook",
+          "type": null,
+          "in": 0.15,
+          "out": 3.0,
+          "text": "Hola",
+          "role": "keyword"
+        },
+        {
+          "id": "cta",
+          "type": "cta",
+          "in": 18.0,
+          "out": 21.5,
+          "text": "Sígueme",
+          "role": "punchline"
+        }
+      ],
+      "scenes": [
+        {
+          "id": "s-dna",
+          "format": "dna-helix",
+          "in": 8.0,
+          "out": 10.0,
+          "params": {
+            "label": "ADN"
+          },
+          "sfx": "click"
+        }
+      ],
+      "platforms": {
+        "tiktok": {
+          "cta_text": "Sígueme"
+        }
+      },
+      "audio": {
+        "music": {
+          "track": "pista",
+          "ads": "quiza"
+        },
+        "sfx_auto": {
+          "scenes": "variado",
+          "overlays": "click",
+          "exits": "whoosh"
+        },
+        "sfx": [
+          {
+            "at": 5.0,
+            "sound": "click",
+            "db": -20
+          }
+        ]
+      },
+      "voice": {
+        "strength": "natural"
+      }
+    },
+    "expected": [
+      [
+        "overlays[0].type: «None» no existe (card, cta, tag, title)"
+      ],
+      []
+    ]
+  },
+  {
+    "storyboard": {
+      "version": 1,
+      "video": "cut/master-cut.mp4",
+      "tail_s": 1.5,
+      "camera": {
+        "origin": "50% 30%",
+        "moves": [
+          {
+            "type": "punch",
+            "t": 2.0,
+            "scale": 1.08,
+            "until": 4.0
+          }
+        ]
+      },
+      "emphasis": {
+        "w1": "keyword"
+      },
+      "overlays": [
+        {
+          "id": "hook",
+          "type": "title",
+          "in": 0.15,
+          "out": 3.0,
+          "text": -1,
+          "role": "keyword"
+        },
+        {
+          "id": "cta",
+          "type": "cta",
+          "in": 18.0,
+          "out": 21.5,
+          "text": "Sígueme",
+          "role": "punchline"
+        }
+      ],
+      "scenes": [
+        {
+          "id": "s-dna",
+          "format": "dna-helix",
+          "in": 8.0,
+          "out": 10.0,
+          "params": {
+            "label": "ADN"
+          },
+          "sfx": "click"
+        }
+      ],
+      "platforms": {
+        "tiktok": {
+          "cta_text": "Sígueme"
+        }
+      },
+      "audio": {
+        "music": {
+          "track": "pista",
+          "ads": "quiza"
+        },
+        "sfx_auto": {
+          "scenes": "variado",
+          "overlays": "click",
+          "exits": "whoosh"
+        },
+        "sfx": [
+          {
+            "at": 5.0,
+            "sound": "click",
+            "db": -20
+          }
+        ]
+      },
+      "voice": {
+        "strength": "natural"
+      }
+    },
+    "expected": [
+      [],
+      []
+    ]
+  },
+  {
+    "storyboard": {
+      "version": 1,
+      "video": "cut/master-cut.mp4",
+      "tail_s": 1.5,
+      "camera": {
+        "origin": "50% 30%",
+        "moves": [
+          {
+            "type": "punch",
+            "t": 2.0,
+            "scale": 1.08,
+            "until": 4.0
+          }
+        ]
+      },
+      "emphasis": {
+        "w1": "keyword"
+      },
+      "overlays": [
+        {
+          "id": "hook",
+          "type": "title",
+          "in": 0.15,
+          "out": 3.0,
+          "text": 100,
+          "role": "keyword"
+        },
+        {
+          "id": "cta",
+          "type": "cta",
+          "in": 18.0,
+          "out": 21.5,
+          "text": "Sígueme",
+          "role": "punchline"
+        }
+      ],
+      "scenes": [
+        {
+          "id": "s-dna",
+          "format": "dna-helix",
+          "in": 8.0,
+          "out": 10.0,
+          "params": {
+            "label": "ADN"
+          },
+          "sfx": "click"
+        }
+      ],
+      "platforms": {
+        "tiktok": {
+          "cta_text": "Sígueme"
+        }
+      },
+      "audio": {
+        "music": {
+          "track": "pista",
+          "ads": "quiza"
+        },
+        "sfx_auto": {
+          "scenes": "variado",
+          "overlays": "click",
+          "exits": "whoosh"
+        },
+        "sfx": [
+          {
+            "at": 5.0,
+            "sound": "click",
+            "db": -20
+          }
+        ]
+      },
+      "voice": {
+        "strength": "natural"
+      }
+    },
+    "expected": [
+      [],
+      []
+    ]
+  },
+  {
+    "storyboard": {
+      "version": 1,
+      "video": "cut/master-cut.mp4",
+      "tail_s": 1.5,
+      "camera": {
+        "origin": "50% 30%",
+        "moves": [
+          {
+            "type": "punch",
+            "t": 2.0,
+            "scale": 1.08,
+            "until": 4.0
+          }
+        ]
+      },
+      "emphasis": {
+        "w1": "keyword"
+      },
+      "overlays": [
+        {
+          "id": "hook",
+          "type": "title",
+          "in": 0.15,
+          "out": 3.0,
+          "text": "wrong",
+          "role": "keyword"
+        },
+        {
+          "id": "cta",
+          "type": "cta",
+          "in": 18.0,
+          "out": 21.5,
+          "text": "Sígueme",
+          "role": "punchline"
+        }
+      ],
+      "scenes": [
+        {
+          "id": "s-dna",
+          "format": "dna-helix",
+          "in": 8.0,
+          "out": 10.0,
+          "params": {
+            "label": "ADN"
+          },
+          "sfx": "click"
+        }
+      ],
+      "platforms": {
+        "tiktok": {
+          "cta_text": "Sígueme"
+        }
+      },
+      "audio": {
+        "music": {
+          "track": "pista",
+          "ads": "quiza"
+        },
+        "sfx_auto": {
+          "scenes": "variado",
+          "overlays": "click",
+          "exits": "whoosh"
+        },
+        "sfx": [
+          {
+            "at": 5.0,
+            "sound": "click",
+            "db": -20
+          }
+        ]
+      },
+      "voice": {
+        "strength": "natural"
+      }
+    },
+    "expected": [
+      [],
+      []
+    ]
+  },
+  {
+    "storyboard": {
+      "version": 1,
+      "video": "cut/master-cut.mp4",
+      "tail_s": 1.5,
+      "camera": {
+        "origin": "50% 30%",
+        "moves": [
+          {
+            "type": "punch",
+            "t": 2.0,
+            "scale": 1.08,
+            "until": 4.0
+          }
+        ]
+      },
+      "emphasis": {
+        "w1": "keyword"
+      },
+      "overlays": [
+        {
+          "id": "hook",
+          "type": "title",
+          "in": 0.15,
+          "out": 3.0,
+          "text": null,
+          "role": "keyword"
+        },
+        {
+          "id": "cta",
+          "type": "cta",
+          "in": 18.0,
+          "out": 21.5,
+          "text": "Sígueme",
+          "role": "punchline"
+        }
+      ],
+      "scenes": [
+        {
+          "id": "s-dna",
+          "format": "dna-helix",
+          "in": 8.0,
+          "out": 10.0,
+          "params": {
+            "label": "ADN"
+          },
+          "sfx": "click"
+        }
+      ],
+      "platforms": {
+        "tiktok": {
+          "cta_text": "Sígueme"
+        }
+      },
+      "audio": {
+        "music": {
+          "track": "pista",
+          "ads": "quiza"
+        },
+        "sfx_auto": {
+          "scenes": "variado",
+          "overlays": "click",
+          "exits": "whoosh"
+        },
+        "sfx": [
+          {
+            "at": 5.0,
+            "sound": "click",
+            "db": -20
+          }
+        ]
+      },
+      "voice": {
+        "strength": "natural"
+      }
+    },
+    "expected": [
+      [
+        "overlays[0].text: obligatorio"
+      ],
+      []
+    ]
+  }
+]

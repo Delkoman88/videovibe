@@ -1,0 +1,52 @@
+{
+  "id": "ads",
+  "label": "Anuncio / post promocionado (9:16)",
+  "canvas": {
+    "width": 1080,
+    "height": 1920,
+    "fps": 30
+  },
+  "safe_zone_px": {
+    "_note": "Texto solo en la banda 168–1330 px (guía de HyperFrames para 9:16: arriba la barra de estado, abajo descripción/usuario/botones, a la derecha el riel de acciones). Verificar con captura real.",
+    "_verified": false,
+    "top": 168,
+    "bottom": 590,
+    "left": 60,
+    "right": 180
+  },
+  "duration_s": {
+    "target_min": 20,
+    "target_max": 60,
+    "short_max": 30
+  },
+  "pacing": {
+    "pause_after_sentence_s": 0.25,
+    "hook_s": 1.5
+  },
+  "end": {
+    "type": "cta",
+    "default_cta": "comentar_o_seguir"
+  },
+  "export": {
+    "container": "mp4",
+    "vcodec": "h264",
+    "profile": "high",
+    "pix_fmt": "yuv420p",
+    "video_bitrate": "16M",
+    "acodec": "aac",
+    "audio_bitrate": "192k",
+    "audio_rate": 48000,
+    "loudness_lufs": -14,
+    "true_peak_db": -1
+  },
+  "copy": {
+    "caption_max_chars": 2200,
+    "hashtags": [
+      3,
+      5
+    ],
+    "style": "breve, gancho en la primera línea, pregunta al final"
+  },
+  "ads": true,
+  "_note": "Versión para pauta pagada (TikTok Promote, Meta Ads, posts promocionados). Mismo formato 9:16 que TikTok; la música sale de una pista con licencia para anuncios (library.json → ads: true)."
+}

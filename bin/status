@@ -1,0 +1,66 @@
+#!/usr/bin/env python3
+"""Estado de las piezas: etapa, aprobaciones (A = corte, B = plan visual) y renders verificados.
+
+Uso:
+  bin/status                              todas las piezas de todos los canales
+  bin/status <canal>/<pieza>              detalle de una pieza
+  bin/status <canal>/<pieza> --approve A  registra la aprobación A (o B) con fecha y nota opcional
+                              [--note "texto"]
+Lee y escribe <pieza>/status.json (lo actualizan también los scripts del pipeline).
+"""
+import argparse
+import datetime
+import json
+import sys
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(ROOT))
+from scripts.core import oslib  # noqa: E402
+from scripts.core import reviewlib  # noqa: E402
+
+
+def load(P):
+    f = P / "status.json"
+    return oslib.read_json(f) if f.exists() else {"stage": None, "history": [], "approvals": {}, "renders": {}}
+
+
+def main():
+    ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    ap.add_argument("project", nargs="?")
+    ap.add_argument("--approve", choices=["A", "B"])
+    ap.add_argument("--note", default="")
+    args = ap.parse_args()
+
+    if not args.project:
+        rows = []
+        for P in sorted(p for root in oslib.channel_roots() for p in root.glob("*/projects/*/")):
+            if P.parent.parent.name.startswith("_"):
+                continue
+            st = load(P)
+            rows.append({"pieza": f"{P.parent.parent.name}/{P.name}", "etapa": st.get("stage"),
+                         "aprobado": sorted(st.get("approvals", {})), "renders": sorted(st.get("renders", {})),
+                         "actualizado": st.get("updated")})
+        print(json.dumps({"ok": True, "piezas": rows}, ensure_ascii=False, indent=2))
+        return
+
+    P = oslib.project_dir(args.project)
+    st = load(P)
+    if args.approve:
+        review = st.get("reviews", {}).get(args.approve)
+        if not review or review.get("fingerprint") != reviewlib.fingerprint(P, args.approve):
+            oslib.die(f"revisión {args.approve} ausente o desactualizada; corre bin/review <pieza> --gate {args.approve}", 1)
+        if any(not Path(path).is_file() for path in review.get("files", [])):
+            oslib.die("faltan archivos de la revisión; genéralos y presenta la revisión de nuevo", 1)
+        if review.get("decision") in ("adjust", "reject"):
+            oslib.die("la revisión pide ajustes o fue rechazada; presenta una versión nueva antes de aprobar", 1)
+        st.setdefault("approvals", {})[args.approve] = {
+            "at": datetime.datetime.now().isoformat(timespec="seconds"), "note": args.note}
+        review["decision"] = "approved"
+        oslib.write_json(P / "status.json", st)
+    shown = str(P.relative_to(oslib.ROOT)) if P.is_relative_to(oslib.ROOT) else str(P)
+    print(json.dumps({"ok": True, "pieza": shown, **st}, ensure_ascii=False, indent=2))
+
+
+if __name__ == "__main__":
+    main()

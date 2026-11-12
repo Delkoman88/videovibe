@@ -1,0 +1,7 @@
+# 0007 — Orquestador idempotente con pausas (`bin/edit`)
+
+**Contexto.** Editar una pieza eran ~12 comandos en orden y desde carpetas distintas. Un agente nuevo podía saltarse pasos, renderizar sin aprobación o rehacer trabajo (y con ello pisar correcciones manuales).
+**Decisión.** `bin/edit <canal>/<pieza>` decide la siguiente etapa con `scripts/core/editlib.py` (lógica pura, probada) y se detiene en las pausas: aprobación A, storyboard, aprobación B, copy/portada. Es idempotente: cada etapa tiene su regla de «desactualizado»; las posteriores a la composición usan huellas de contenido (no fechas) para no repetir renders de minutos. Una aprobación se invalida si el archivo aprobado cambia después.
+**Reglas de frescura no obvias.** La transcripción se compara con el archivo crudo (no con `media.json`, que cada ingesta reescribe). Los subtítulos dependen de los segmentos del corte (`captions.json → cut_fingerprint`), no del archivo de video: un re-render de color no los invalida. `apply-cut` escribe su transcripción en `master-cut.remap.json` para no pisar el texto corregido de `master-cut.json`.
+**Descartado.** Un Makefile (difícil de leer para agentes y sin pausas con instrucciones); que el orquestador escriba storyboard o copy (es trabajo creativo con la persona).
+**Consecuencias.** Toda etapa nueva debe añadirse a `editlib.STAGES` con su regla de frescura y test. Si `paper-cut.py` vuelve a correr (porque cambió la transcripción), sobrescribe cambios manuales del corte; la aprobación A se invalida y obliga a revisarlo.

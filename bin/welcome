@@ -1,0 +1,99 @@
+#!/usr/bin/env python3
+"""¿En qué etapa está la persona? Lo primero que corre un agente en cada sesión (AGENTS.md).
+
+Uso: bin/welcome [--skip-doctor] [--channels-dir RUTA]
+
+Etapas (en orden):
+  instalar         falta algo obligatorio (bin/doctor)          → ofrecer bin/setup
+  crear-canal      no hay canales propios                       → docs/getting-started.md (preguntas básicas)
+  completar-canal  hay un canal con pendientes (TODO, errores)  → completarlo (bin/doctor --channel <id>)
+  primera-pieza    hay canal pero ninguna pieza                 → proponer la primera (bin/new-piece)
+  listo            hay canales y piezas                         → flujo normal (bin/status, bin/edit)
+`demo` dice si ya se corrió bin/demo (útil para ofrecerla a quien empieza).
+--channels-dir RUTA  guarda en local.json la carpeta para los canales propios (y la crea).
+--skip-doctor       no comprueba la instalación (más rápido; para tests).
+Salida JSON. Exit 0 siempre que pueda leer el estado.
+"""
+import argparse
+import json
+import subprocess
+import sys
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(ROOT))
+from scripts.core import oslib  # noqa: E402
+
+ENGINE_ONLY = {"_template", "science-60"}  # canales que trae el motor (no son de la persona)
+
+
+def set_channels_dir(path, local=ROOT / "local.json"):
+    """Guarda channels_dir en local.json (sin tocar otras claves) y crea la carpeta."""
+    p = Path(path).expanduser()
+    p.mkdir(parents=True, exist_ok=True)
+    data = json.loads(local.read_text()) if local.exists() else {}
+    data["channels_dir"] = str(path)
+    local.write_text(json.dumps(data, ensure_ascii=False, indent=2) + "\n")
+    return p.resolve()
+
+
+def own_channels(channels_dir):
+    out = []
+    if not channels_dir.is_dir():
+        return out
+    for d in sorted(channels_dir.iterdir()):
+        if not (d / "channel.json").exists() or d.name in ENGINE_ONLY or d.name.startswith(("_", "zz-")):
+            continue
+        from scripts.tools import check_channel
+        pieces = sorted(p.name for p in (d / "projects").iterdir() if p.is_dir()) if (d / "projects").is_dir() else []
+        states = {}
+        for name in pieces:
+            st = d / "projects" / name / "status.json"
+            states[name] = (json.loads(st.read_text()).get("stage") if st.exists() else "nueva")
+        out.append({"id": d.name, "problems": check_channel.check(d.name), "pieces": states})
+    return out
+
+
+def main():
+    ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    ap.add_argument("--skip-doctor", action="store_true")
+    ap.add_argument("--channels-dir", metavar="RUTA")
+    args = ap.parse_args()
+    channels_dir = oslib.CHANNELS
+    if args.channels_dir:
+        channels_dir = set_channels_dir(args.channels_dir)
+
+    missing = []
+    if not args.skip_doctor:
+        r = subprocess.run([str(ROOT / "bin" / "doctor"), "--json"], capture_output=True, text=True)
+        try:
+            missing = [c["name"] for c in json.loads(r.stdout)["checks"] if c["status"] == "FALTA"]
+        except (json.JSONDecodeError, KeyError):
+            missing = ["bin/doctor no pudo comprobar la instalación"]
+    demo = any((ROOT / "work" / "demo").glob("canales/*/projects/*/renders/draft-*.mp4"))
+    chans = own_channels(channels_dir)
+
+    if missing:
+        stage, nxt = "instalar", ("Faltan dependencias: " + ", ".join(missing) + ". Explícalo en una frase y ofrece "
+                                  "correr bin/setup (pide confirmación antes de instalar). Guía: docs/getting-started.md#1")
+    elif not chans:
+        stage, nxt = "crear-canal", ("Primera vez: sigue docs/getting-started.md (bienvenida, demo opcional, "
+                                     "preguntas básicas, crear el canal).")
+    elif any(c["problems"] for c in chans):
+        c = next(c for c in chans if c["problems"])
+        stage, nxt = "completar-canal", (f"El canal {c['id']} tiene pendientes: {c['problems'][:3]}. Complétalo "
+                                         "(docs/getting-started.md#4) y corre bin/doctor --channel " + c["id"])
+    elif not any(c["pieces"] for c in chans):
+        stage, nxt = "primera-pieza", (f"Propón la primera pieza: bin/new-piece {chans[0]['id']} <slug> --from <video> "
+                                       "(docs/getting-started.md#5).")
+    else:
+        stage, nxt = "listo", "Flujo normal: bin/status para ver las piezas; bin/edit <canal>/<pieza> para avanzar."
+    material = sorted(p.name for p in oslib.MATERIAL.iterdir()
+                      if p.is_file() and not p.name.startswith((".", "README"))) if oslib.MATERIAL.is_dir() else []
+    oslib.emit({"ok": True, "stage": stage, "missing": missing, "demo": demo, "channels_dir": oslib.rel(channels_dir),
+                "input_dir": str(oslib.MATERIAL), "input": material, "deliveries_dir": str(oslib.DELIVERIES),
+                "channels": chans, "next": nxt})
+
+
+if __name__ == "__main__":
+    main()

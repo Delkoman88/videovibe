@@ -1,0 +1,29 @@
+{
+  "id": "science-60",
+  "name": "Ciencia en 60 segundos",
+  "language": "es",
+  "persons": [
+    {
+      "name": "Alex Ejemplo",
+      "short": "Alex",
+      "role": "divulgador (persona ficticia del ejemplo)",
+      "on_camera": true
+    }
+  ],
+  "platforms": [
+    "tiktok",
+    "reels"
+  ],
+  "format_packs": [
+    "biotech"
+  ],
+  "notes": "Canal de EJEMPLO del motor (ficticio). Úsalo para probar el sistema (bin/demo) o como modelo para tu propio canal: bin/new-channel <id>.",
+  "voice": {
+    "enabled": true,
+    "strength": "natural"
+  },
+  "audio": {
+    "music_level_db": -24,
+    "music_duck_db": -32
+  }
+}

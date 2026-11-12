@@ -1,0 +1,59 @@
+#!/usr/bin/env bash
+# Verifica las dependencias del sistema. No instala nada.
+# Salida: tabla legible; con --json, un objeto JSON. Exit 0 si todo lo obligatorio está, 1 si falta algo.
+set -u
+ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+JSON=0; CHANNEL=""
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --json) JSON=1; shift;;
+    --channel) CHANNEL="$2"; shift 2;;
+    --help) echo "Uso: bin/doctor [--json] [--channel <id>]   Dependencias (INSTALL.es.md) y, con --channel, que el canal esté completo."; exit 0;;
+    *) echo "opción desconocida: $1" >&2; exit 2;;
+  esac
+done
+
+missing=0; rows=()
+check() { # nombre, obligatorio(1/0), comando, cómo instalar
+  local name="$1" req="$2" cmd="$3" fix="$4" ver
+  if ver=$(eval "$cmd" 2>/dev/null | head -1) && [ -n "$ver" ]; then
+    rows+=("ok|$name|$ver|")
+  else
+    [ "$req" = 1 ] && missing=1
+    rows+=("$([ "$req" = 1 ] && echo FALTA || echo opcional)|$name||$fix")
+  fi
+}
+
+check "ffmpeg"        1 "ffmpeg -version | awk '{print \$3}'"            "brew install ffmpeg"
+PYQ="$ROOT/.venv/bin/python"; [ -x "$PYQ" ] || PYQ=python3  # oslib no necesita numpy: sirve antes de bin/setup
+FF="$("$PYQ" -c "import sys; sys.path.insert(0, '$ROOT'); from scripts.core import oslib; print(oslib.FFMPEG)" 2>/dev/null || echo ffmpeg)"
+check "ffmpeg con zscale" 1 "'$FF' -hide_banner -filters 2>/dev/null | grep -q ' zscale ' && echo \"$FF\"" "macOS: brew install ffmpeg-full · Linux: el ffmpeg de la distribución suele traerlo (o VIDEOVIBE_FFMPEG=/ruta)"
+check "hyperframes"   1 "'$ROOT'/node_modules/.bin/hyperframes --version" "npm install (en la raíz del repo)"
+check "ffprobe"       1 "ffprobe -version | awk '{print \$3}'"           "viene con ffmpeg"
+check "python3"       1 "python3 -c 'import sys;print(sys.version.split()[0])'" "brew install python · apt install python3-venv"
+check ".venv + numpy"  1 "'$ROOT'/.venv/bin/python -c 'import numpy;print(numpy.__version__)'" "python3 -m venv .venv && .venv/bin/pip install numpy"
+check "node (>=22)"   1 "node -e 'const v=+process.versions.node.split(\".\")[0];if(v>=22)console.log(process.version)'" "brew install node"
+check "whisper-cli"   1 "command -v whisper-cli >/dev/null && echo instalado" "brew install whisper-cpp"
+check "modelo whisper" 1 "ls '$ROOT'/models/ggml-large-v3-turbo-q5_0.bin 2>/dev/null && echo large-v3-turbo-q5_0" "ver INSTALL.es.md (descarga de modelos)"
+check "modelo VAD"    1 "ls '$ROOT'/models/ggml-silero-v5.1.2.bin 2>/dev/null && echo silero-v5.1.2" "ver INSTALL.es.md (descarga de modelos)"
+check "Chrome/Chromium" 1 "[ -d '/Applications/Google Chrome.app' ] && echo 'Google Chrome' || command -v google-chrome chromium chromium-browser 2>/dev/null | head -1" "google.com/chrome o chromium (lo usa el render HTML)"
+check "auto-editor"   0 "auto-editor --version"                          "python3 -m pip install --user auto-editor"
+check "yt-dlp"        0 "yt-dlp --version"                               "brew install yt-dlp"
+
+if [ $JSON = 1 ]; then
+  printf '{"ok":%s,"checks":[' "$([ $missing = 0 ] && echo true || echo false)"
+  sep=""; for r in "${rows[@]}"; do IFS='|' read -r st n v f <<<"$r"
+    printf '%s{"status":"%s","name":"%s","version":"%s","fix":"%s"}' "$sep" "$st" "$n" "$v" "$f"; sep=","; done
+  printf ']}\n'
+else
+  for r in "${rows[@]}"; do IFS='|' read -r st n v f <<<"$r"
+    printf '%-9s %-15s %s%s\n' "$st" "$n" "$v" "${f:+→ $f}"; done
+  [ $missing = 0 ] && echo "Todo lo obligatorio está instalado." || echo "Faltan dependencias obligatorias (ver INSTALL.es.md)."
+fi
+CH_DIR="$("$PYQ" -c "import sys; sys.path.insert(0, '$ROOT'); from scripts.core import oslib; print(oslib.CHANNELS)" 2>/dev/null)"
+[ $JSON = 1 ] || echo "Carpeta de canales: ${CH_DIR:-?} (VIDEOVIBE_CHANNELS / local.json / channels/)"
+if [ -n "$CHANNEL" ]; then
+  echo "--- canal: $CHANNEL"
+  "$ROOT/.venv/bin/python" "$ROOT/scripts/tools/check_channel.py" "$CHANNEL" || missing=1
+fi
+exit $missing

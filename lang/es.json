@@ -1,0 +1,56 @@
+{
+  "code": "es",
+  "name": "español",
+  "whisper": "es",
+  "fillers_drop": [
+    "eh",
+    "ehh",
+    "em",
+    "emm",
+    "ehm",
+    "mm",
+    "mmm",
+    "hmm",
+    "ah",
+    "aah",
+    "e"
+  ],
+  "fillers_suggest": [
+    "este",
+    "o sea",
+    "osea",
+    "bueno",
+    "pues",
+    "tipo",
+    "digamos",
+    "verdad"
+  ],
+  "connectors_lone": [
+    "y",
+    "e",
+    "pues",
+    "entonces",
+    "bueno",
+    "o",
+    "pero",
+    "este",
+    "osea"
+  ],
+  "hallucinations": [
+    "gracias por ver",
+    "suscríbete",
+    "subtítulos",
+    "amara.org",
+    "gracias."
+  ],
+  "captions": {
+    "inverted_question": true,
+    "tag_questions": [
+      "no"
+    ]
+  },
+  "vocab_label": "Vocabulario",
+  "labels": {
+    "illustrative": "ILUSTRATIVO"
+  }
+}

@@ -1,0 +1,53 @@
+{
+  "id": "x",
+  "label": "X",
+  "canvas": {
+    "width": 1080,
+    "height": 1920,
+    "fps": 30
+  },
+  "alt_canvas": {
+    "_note": "Para piezas muy técnicas (pantalla, código) puede convenir 1080x1350 (4:5), que ocupa más espacio en el timeline. Decidir en el brief.",
+    "width": 1080,
+    "height": 1350
+  },
+  "safe_zone_px": {
+    "_note": "Texto solo en la banda 168–1330 px (guía de HyperFrames para 9:16: arriba la barra de estado, abajo descripción/usuario/botones, a la derecha el riel de acciones). Verificar con captura real.",
+    "_verified": false,
+    "top": 168,
+    "bottom": 590,
+    "left": 60,
+    "right": 60
+  },
+  "duration_s": {
+    "target_min": 20,
+    "target_max": 90,
+    "short_max": 45,
+    "_note": "Las cuentas sin suscripción tienen un límite de duración de subida (históricamente 2:20). Verificar el límite vigente de la cuenta."
+  },
+  "pacing": {
+    "pause_after_sentence_s": 0.3,
+    "hook_s": 2.0
+  },
+  "end": {
+    "type": "cta",
+    "default_cta": "revisar_codigo_o_responder"
+  },
+  "export": {
+    "container": "mp4",
+    "vcodec": "h264",
+    "profile": "high",
+    "pix_fmt": "yuv420p",
+    "video_bitrate": "12M",
+    "acodec": "aac",
+    "audio_bitrate": "192k",
+    "audio_rate": 48000,
+    "loudness_lufs": -14,
+    "true_peak_db": -1
+  },
+  "copy": {
+    "post_max_chars": 280,
+    "thread_allowed": true,
+    "style": "directo y técnico: qué se hizo, qué salió, qué falta. Enlace a código/datos si existe. Sin hashtags o máx. 1."
+  }
+}

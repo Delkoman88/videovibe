@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+# Crea (o repara) los punteros para cada agente. Idempotente.
+set -eu
+ROOT="$(cd "$(dirname "$0")/.." && pwd)"; cd "$ROOT"
+[ "${1:-}" = "--help" ] && { echo "Uso: bin/install-agents   Crea CLAUDE.md, GEMINI.md y .claude/skills -> .agents/skills"; exit 0; }
+
+[ -f AGENTS.md ] || { echo "Falta AGENTS.md en $ROOT" >&2; exit 2; }
+for f in CLAUDE.md GEMINI.md; do
+  if [ ! -f "$f" ] || [ "$(cat "$f")" != "@AGENTS.md" ]; then echo "@AGENTS.md" > "$f"; echo "escrito $f"; fi
+done
+mkdir -p .claude
+if [ ! -L .claude/skills ]; then
+  [ -e .claude/skills ] && { echo ".claude/skills existe y no es enlace; revísalo a mano" >&2; exit 1; }
+  ln -s ../.agents/skills .claude/skills; echo "enlazado .claude/skills -> .agents/skills"
+fi
+echo "Listo. Codex, Gemini CLI y Muse Code leen AGENTS.md y .agents/skills directamente."
+echo "Muse Code: marca la carpeta como confiable para que cargue la skill."

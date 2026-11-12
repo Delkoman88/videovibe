@@ -1,0 +1,5 @@
+# Términos que la transcripción debe escribir bien (uno por línea). Se pasan a whisper como prompt.
+# Los de varias palabras nunca se parten en los subtítulos.
+Ciencia en 60 segundos
+levadura
+dióxido de carbono

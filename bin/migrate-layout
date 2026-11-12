@@ -1,0 +1,7 @@
+#!/usr/bin/env python3
+"""Migra nombres del sistema; simulación por defecto, --apply para aplicar."""
+import sys
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+from scripts.tools.migrate_layout import main
+main()

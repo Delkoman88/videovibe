@@ -1,0 +1,104 @@
+#!/usr/bin/env python3
+"""Publica una versión limpia del motor en la rama `public` (y, con --push, en el repo público).
+
+Dos repos, un solo lugar de trabajo:
+  - `main` (tu historial completo, con tus commits y mensajes) → remoto privado.
+  - `public` (historial propio, un commit por versión, sin tu historial) → remoto público.
+Cada publicación crea en `public` un commit cuyo contenido es exactamente el de `main` (HEAD), firmado
+con el autor/correo públicos de local.json. Nunca copia el historial de `main`.
+
+Uso:
+  bin/publish                         simulación: qué archivos irían, revisión de datos personales y tests
+  bin/publish --message "0.9.1: …"    crea el commit en la rama local `public` (no sube nada)
+  bin/publish --message "…" --tag v0.9.1-alpha --push   además lo sube al remoto público
+
+Configuración (local.json, fuera de git):
+  {"publish": {"author": "Nombre", "email": "usuario@users.noreply.github.com", "remote": "publico"}}
+
+Antes de publicar exige: árbol de trabajo limpio y el test que vigila datos personales en verde.
+"""
+import argparse
+import json
+import os
+import subprocess
+import sys
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parent.parent
+
+
+def git(*args, env=None, check=True):
+    r = subprocess.run(["git", *args], cwd=ROOT, capture_output=True, text=True, env=env)
+    if check and r.returncode:
+        sys.exit(f"git {' '.join(args)}: {r.stderr.strip()}")
+    return r.stdout.strip()
+
+
+def main():
+    ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    ap.add_argument("--message", help="mensaje del commit público (sin él: simulación)")
+    ap.add_argument("--tag", help="etiqueta de versión, p. ej. v0.9.0-alpha")
+    ap.add_argument("--push", action="store_true", help="subir la rama public (como main) y la etiqueta al remoto público")
+    ap.add_argument("--skip-tests", action="store_true", help="solo el test de datos personales (más rápido)")
+    args = ap.parse_args()
+
+    cfg = {}
+    if (ROOT / "local.json").exists():
+        cfg = json.loads((ROOT / "local.json").read_text()).get("publish", {})
+    author, email, remote = cfg.get("author"), cfg.get("email"), cfg.get("remote", "publico")
+    if not author or not email:
+        sys.exit('Falta local.json → publish {"author", "email"} (usa el correo noreply de GitHub).')
+    if "noreply" not in email:
+        sys.exit(f"El correo público debería ser el noreply de GitHub (…@users.noreply.github.com), no {email}.")
+
+    if git("status", "--porcelain"):
+        sys.exit("Hay cambios sin commit en main: haz commit antes de publicar.")
+    tree = git("rev-parse", "HEAD^{tree}")
+    files = git("ls-tree", "-r", "--name-only", "HEAD").splitlines()
+    size = sum((ROOT / f).stat().st_size for f in files if (ROOT / f).is_file())
+
+    print(f"Contenido: {len(files)} archivos, {size / 1e6:.1f} MB (exactamente lo que hay en HEAD)")
+    py = str(ROOT / ".venv" / "bin" / "python")
+    guard = subprocess.run([py, "-m", "unittest", "test_channel.TestChannels.test_engine_has_no_personal_data"],
+                           cwd=ROOT / "scripts" / "tests", capture_output=True, text=True)
+    if guard.returncode:
+        sys.exit("✗ El test de datos personales falla: no se publica.\n" + guard.stderr[-3000:])
+    print("✓ Sin datos personales (test_engine_has_no_personal_data)")
+    if not args.skip_tests:
+        t = subprocess.run([py, "-m", "unittest", "discover", "-s", "scripts/tests"], cwd=ROOT,
+                           capture_output=True, text=True)
+        if t.returncode:
+            sys.exit("✗ Tests en rojo: no se publica.\n" + t.stderr[-3000:])
+        print("✓ Tests en verde")
+
+    parent = git("rev-parse", "--verify", "-q", "refs/heads/public", check=False)
+    if parent and git("rev-parse", f"{parent}^{{tree}}") == tree:
+        print("La rama public ya tiene este contenido: nada que publicar.")
+        new = parent
+    elif not args.message:
+        changed = "todo (primera publicación)" if not parent else \
+            f"{len(git('diff', '--name-only', parent, 'HEAD').splitlines())} archivos cambian respecto a la última versión pública"
+        print(f"Simulación: se crearía un commit en `public` firmado por {author} <{email}> ({changed}).")
+        print("Para hacerlo: bin/publish --message \"…\" [--tag vX] [--push]")
+        return
+    else:
+        env = {**os.environ, "GIT_AUTHOR_NAME": author, "GIT_AUTHOR_EMAIL": email,
+               "GIT_COMMITTER_NAME": author, "GIT_COMMITTER_EMAIL": email}
+        new = git("commit-tree", tree, *(["-p", parent] if parent else []), "-m", args.message, env=env)
+        git("update-ref", "refs/heads/public", new)
+        print(f"✓ Commit público {new[:8]} en la rama local `public`")
+    if args.tag:
+        env = {**os.environ, "GIT_COMMITTER_NAME": author, "GIT_COMMITTER_EMAIL": email}
+        git("tag", "-a", args.tag, new, "-m", args.tag, env=env)
+        print(f"✓ Etiqueta {args.tag}")
+    if args.push:
+        if not git("remote", "get-url", remote, check=False):
+            sys.exit(f"No existe el remoto «{remote}» (git remote add {remote} <url del repo público>).")
+        git("push", remote, "public:main")
+        if args.tag:
+            git("push", remote, args.tag)
+        print(f"✓ Subido a {remote}")
+
+
+if __name__ == "__main__":
+    main()

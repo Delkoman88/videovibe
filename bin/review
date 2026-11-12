@@ -1,0 +1,35 @@
+#!/usr/bin/env python3
+"""Presenta una revisión A/B, abre sus archivos y registra ajustes o rechazo."""
+import argparse
+import json
+import sys
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(ROOT))
+from scripts.core import oslib  # noqa: E402
+from scripts.core import reviewlib  # noqa: E402
+
+ap = argparse.ArgumentParser(description=__doc__)
+ap.add_argument("project")
+ap.add_argument("--gate", choices=["A", "B"], required=True)
+ap.add_argument("--json", action="store_true")
+ap.add_argument("--reopen", action="store_true")
+ap.add_argument("--no-open", action="store_true", help="para CI o entornos sin interfaz")
+ap.add_argument("--simulated", action="store_true", help="solo para la demo automatizada")
+ap.add_argument("--decision", choices=["adjust", "reject"])
+ap.add_argument("--note", default="")
+args = ap.parse_args()
+P = oslib.project_dir(args.project)
+if args.decision:
+    st = oslib.read_json(P / "status.json")
+    review = st.get("reviews", {}).get(args.gate)
+    if not review or review.get("fingerprint") != reviewlib.fingerprint(P, args.gate):
+        oslib.die("primero presenta la revisión vigente con bin/review", 1)
+    review.update(decision=args.decision, note=args.note)
+    oslib.write_json(P / "status.json", st)
+    result = {"ok": True, "gate": args.gate, "decision": args.decision, "note": args.note}
+else:
+    result = {"ok": True, **reviewlib.present(P, args.gate, no_open=args.no_open,
+                                               reopen=args.reopen, simulated=args.simulated)}
+print(json.dumps(result, ensure_ascii=False, indent=2) if args.json or args.decision else reviewlib.format_packet(result))

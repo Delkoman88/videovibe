@@ -1,0 +1,80 @@
+#!/usr/bin/env python3
+"""Crea una pieza nueva en un canal: carpeta, raw/ con el material y brief.md listo para completar.
+
+Uso: bin/new-piece <canal> <slug> [--from archivo …] [--move] [--date AAAA-MM-DD]
+
+- La pieza se crea en <carpeta de canales>/<canal>/projects/<fecha>-<slug>/ (la carpeta de canales sale de
+  $VIDEOVIBE_CHANNELS, local.json → channels_dir o channels/: la misma que usa todo el motor).
+- --from copia los archivos al raw/ de la pieza (--move los mueve en vez de copiarlos). Acepta rutas, carpetas
+  (todos sus videos/audios/imágenes) y nombres sueltos, que se buscan en la carpeta input/ de la raíz
+  ($VIDEOVIBE_INPUT o local.json → input_dir): ahí la persona deja sus originales.
+- Después: completar brief.md preguntándole a la persona (los campos ★) y correr bin/edit <canal>/<pieza>.
+Salida JSON. Exit 0 ok, 2 error.
+"""
+import argparse
+import datetime
+import re
+import shutil
+import sys
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(ROOT))
+from scripts.core import oslib  # noqa: E402
+
+MEDIA = {".mp4", ".mov", ".m4v", ".mkv", ".webm", ".avi", ".wav", ".mp3", ".m4a", ".aac", ".flac", ".aiff",
+         ".aif", ".ogg", ".png", ".jpg", ".jpeg", ".webp", ".heic"}
+
+
+def main():
+    ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    ap.add_argument("channel")
+    ap.add_argument("slug")
+    ap.add_argument("--from", dest="files", nargs="+", default=[], metavar="ARCHIVO")
+    ap.add_argument("--move", action="store_true", help="mover los archivos en vez de copiarlos")
+    ap.add_argument("--date", default=datetime.date.today().isoformat())
+    args = ap.parse_args()
+
+    cdir = oslib.channel_path(args.channel)
+    if not (cdir / "channel.json").exists():
+        roots = ", ".join(str(r) for r in oslib.channel_roots())
+        oslib.die(f"no existe el canal «{args.channel}» (busqué en: {roots}). Créalo con bin/new-channel.")
+    if args.channel.startswith("_"):
+        oslib.die("_template no es un canal: crea uno con bin/new-channel")
+    slug = re.sub(r"[^a-z0-9]+", "-", args.slug.lower()).strip("-")
+    if not slug or not re.fullmatch(r"\d{4}-\d{2}-\d{2}", args.date):
+        oslib.die("slug con letras o números y --date AAAA-MM-DD")
+    name = f"{args.date}-{slug}"
+    P = cdir / "projects" / name
+    if P.exists():
+        oslib.die(f"ya existe la pieza {P}")
+    srcs, missing = [], []
+    for f in args.files:
+        cands = [Path(f).expanduser(), oslib.MATERIAL / f]
+        hit = next((c for c in cands if c.exists()), None)
+        if hit is None:
+            missing.append(f)
+        elif hit.is_dir():
+            srcs += sorted(x for x in hit.iterdir() if x.is_file() and x.suffix.lower() in MEDIA)
+        else:
+            srcs.append(hit)
+    if missing:
+        avail = sorted(p.name for p in oslib.MATERIAL.iterdir() if p.is_file()) if oslib.MATERIAL.is_dir() else []
+        oslib.die(f"no encuentro {missing} (ni como ruta ni en {oslib.MATERIAL}). "
+                  + (f"En input/ hay: {avail[:20]}" if avail else "input/ está vacía.")
+                  + " Pide a la persona la ruta completa del archivo o que lo ponga en input/.")
+    odd = [s.name for s in srcs if s.suffix.lower() not in MEDIA]
+    (P / "raw").mkdir(parents=True)
+    for s in srcs:
+        (shutil.move if args.move else shutil.copy2)(str(s), str(P / "raw" / s.name))
+    shutil.copy(oslib.ROOT / "templates" / "brief.md", P / "brief.md")
+    ref = f"{args.channel}/{name}"
+    oslib.emit({"ok": True, "piece": ref, "dir": str(P), "raw": sorted(p.name for p in (P / "raw").iterdir()),
+                "warnings": [f"tipo de archivo no reconocido por la ingesta: {odd}"] if odd else [],
+                "next": (f"Completa {P / 'brief.md'} preguntándole a la persona los campos ★ (objetivo, audiencia, "
+                         f"material, llamada a la acción). Luego: bin/edit {ref}"
+                         + ("" if srcs else f". Antes, pon el material en {P / 'raw'}/"))})
+
+
+if __name__ == "__main__":
+    main()

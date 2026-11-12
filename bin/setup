@@ -1,0 +1,105 @@
+#!/usr/bin/env bash
+# VideoVibe — instala lo necesario (macOS con Homebrew o Linux con apt) y termina con bin/doctor.
+# Uso: bin/setup [--yes]        (--yes: no preguntar antes de instalar paquetes del sistema)
+# Idempotente: lo que ya está instalado se salta. Ver INSTALL.md / INSTALL.es.md.
+set -euo pipefail
+ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+cd "$ROOT"
+YES=0
+[ "${1:-}" = "--yes" ] && YES=1
+[ "${1:-}" = "--help" ] && { sed -n 2,4p "$0" | sed 's/^# //'; exit 0; }
+
+say() { printf '\n\033[1m==> %s\033[0m\n' "$*"; }
+ask() {  # ask "pregunta" → 0 si sí
+  [ $YES = 1 ] && return 0
+  read -r -p "$1 [s/N] " r; [[ "$r" =~ ^[sSyY] ]]
+}
+have() { command -v "$1" >/dev/null 2>&1; }
+
+OS="$(uname -s)"
+say "Sistema: $OS"
+
+# ---------------------------------------------------------------- paquetes del sistema
+if [ "$OS" = "Darwin" ]; then
+  have brew || { echo "Necesitas Homebrew: https://brew.sh" >&2; exit 1; }
+  PKGS=()
+  have ffmpeg || PKGS+=(ffmpeg)
+  [ -x "$(brew --prefix)/opt/ffmpeg-full/bin/ffmpeg" ] || PKGS+=(ffmpeg-full)
+  have whisper-cli || PKGS+=(whisper-cpp)
+  { have node && [ "$(node -p 'process.versions.node.split(".")[0]')" -ge 22 ]; } || PKGS+=(node)
+  have python3 || PKGS+=(python)
+  if [ ${#PKGS[@]} -gt 0 ]; then
+    say "Faltan: ${PKGS[*]}"
+    ask "¿Instalar con Homebrew?" && brew install "${PKGS[@]}"
+    echo "Tras instalar con Homebrew, comprueba que tus otras herramientas siguen funcionando (p. ej. node -v)."
+  fi
+elif [ "$OS" = "Linux" ] && have apt-get; then
+  PKGS=()
+  have ffmpeg || PKGS+=(ffmpeg)
+  have python3 || PKGS+=(python3)
+  python3 -c 'import venv, ensurepip' 2>/dev/null || PKGS+=(python3-venv)
+  have espeak-ng || PKGS+=(espeak-ng)          # voz sintética para bin/demo
+  have cmake || PKGS+=(cmake build-essential)  # para compilar whisper.cpp
+  have git || PKGS+=(git)
+  if [ ${#PKGS[@]} -gt 0 ]; then
+    say "Faltan: ${PKGS[*]}"
+    ask "¿Instalar con apt (sudo)?" && sudo apt-get update && sudo apt-get install -y "${PKGS[@]}"
+  fi
+  if ! { have node && [ "$(node -p 'process.versions.node.split(".")[0]')" -ge 22 ]; }; then
+    echo "Necesitas Node ≥ 22 (la versión de apt suele ser vieja): https://nodejs.org o nvm." >&2
+  fi
+  if ! have whisper-cli; then
+    say "Compilando whisper.cpp (tools/whisper.cpp)"
+    if ask "¿Clonar y compilar whisper.cpp?"; then
+      [ -d tools/whisper.cpp ] || git clone --depth 1 https://github.com/ggml-org/whisper.cpp tools/whisper.cpp
+      cmake -S tools/whisper.cpp -B tools/whisper.cpp/build -DCMAKE_BUILD_TYPE=Release >/dev/null
+      cmake --build tools/whisper.cpp/build -j --config Release --target whisper-cli >/dev/null
+      mkdir -p "$HOME/.local/bin"
+      ln -sf "$ROOT/tools/whisper.cpp/build/bin/whisper-cli" "$HOME/.local/bin/whisper-cli"
+      echo "whisper-cli → ~/.local/bin (asegúrate de tenerlo en el PATH)"
+    fi
+  fi
+  if ! ffmpeg -hide_banner -filters 2>/dev/null | grep -q ' zscale '; then
+    echo "Tu ffmpeg no trae zscale: los videos HDR de teléfono no se podrán convertir." >&2
+    echo "Instala un ffmpeg con libzimg (p. ej. un build estático) y apúntalo con VIDEOVIBE_FFMPEG=/ruta." >&2
+  fi
+else
+  echo "Sistema no soportado por bin/setup ($OS). Sigue INSTALL.md a mano." >&2
+fi
+
+# ---------------------------------------------------------------- Python
+say "Entorno de Python (.venv + numpy)"
+[ -x .venv/bin/python ] || python3 -m venv .venv
+.venv/bin/python -c 'import numpy' 2>/dev/null || .venv/bin/pip install -q numpy
+
+# ---------------------------------------------------------------- Node (HyperFrames, GSAP)
+if have npm; then
+  say "Dependencias de Node (versiones fijadas)"
+  npm ci --no-audit --no-fund
+fi
+
+# ---------------------------------------------------------------- modelos
+say "Modelos de transcripción (models/)"
+mkdir -p models
+fetch() {  # url archivo sha256
+  local url="$1" f="models/$2" sum="$3"
+  if [ -f "$f" ] && [ "$(shasum -a 256 "$f" 2>/dev/null | cut -d' ' -f1 || sha256sum "$f" | cut -d' ' -f1)" = "$sum" ]; then
+    echo "ok  $2"; return
+  fi
+  echo "descargando $2…"
+  curl -L --fail --progress-bar -o "$f.part" "$url"
+  local got
+  got="$( (shasum -a 256 "$f.part" 2>/dev/null || sha256sum "$f.part") | cut -d' ' -f1)"
+  [ "$got" = "$sum" ] || { echo "checksum incorrecto en $2 (esperado $sum, obtenido $got)" >&2; rm -f "$f.part"; exit 1; }
+  mv "$f.part" "$f"
+}
+fetch https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-large-v3-turbo-q5_0.bin \
+  ggml-large-v3-turbo-q5_0.bin 394221709cd5ad1f40c46e6031ca61bce88931e6e088c188294c6d5a55ffa7e2
+fetch https://huggingface.co/ggml-org/whisper-vad/resolve/main/ggml-silero-v5.1.2.bin \
+  ggml-silero-v5.1.2.bin 29940d98d42b91fbd05ce489f3ecf7c72f0a42f027e4875919a28fb4c04ea2cf
+
+# ---------------------------------------------------------------- agentes y comprobación
+say "Punteros para agentes (Claude Code, Gemini CLI, Codex)"
+bin/install-agents >/dev/null && echo "ok"
+say "Comprobación final"
+bin/doctor && echo && echo "Listo. Abre tu agente en esta carpeta y dile: «Hola, es mi primera vez con VideoVibe» (o prueba: bin/demo --quick)."

@@ -1,0 +1,55 @@
+#!/usr/bin/env python3
+"""Genera docs/formats.md (catálogo de formatos de animación) desde el registro de formats/.
+
+Uso: bin/format-catalog [--check]   (--check: exit 1 si docs/formats.md está desactualizado)
+"""
+import argparse
+import json
+import sys
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(ROOT))
+import formats  # noqa: E402
+
+OUT = ROOT / "docs" / "formats.md"
+
+
+def build():
+    packs = formats.available_packs()
+    reg = formats.registry(packs)
+    lines = ["# Catálogo de formatos de animación", "",
+             "> Generado por `bin/format-catalog` desde `formats/`. No editar a mano.",
+             "> Uso en `storyboard.json → scenes` (ver `docs/storyboard.md`). `core` está siempre disponible;",
+             "> los paquetes se activan por canal en `channel.json → format_packs`.", ""]
+    for pack in ["core", *packs]:
+        items = {k: v for k, v in sorted(reg.items()) if v["pack"] == pack}
+        if not items:
+            continue
+        lines += [f"## Paquete `{pack}`", ""]
+        for name, m in items.items():
+            doc = " ".join(m["doc"].split())
+            lines += [f"### `{name}`", "", doc, "",
+                      f"- Layout por defecto: `{m['layout']}`",
+                      f"- Obligatorios: {', '.join(f'`{r}`' for r in m['required']) or '—'}",
+                      "- Ejemplo:", "", "```json",
+                      json.dumps({"id": f"s-{name}", "format": name, "in": 0.0, "out": 3.0, "params": m["example"]},
+                                 ensure_ascii=False), "```", ""]
+    return "\n".join(lines)
+
+
+def main():
+    ap = argparse.ArgumentParser(description=__doc__)
+    ap.add_argument("--check", action="store_true")
+    args = ap.parse_args()
+    text = build()
+    if args.check:
+        ok = OUT.exists() and OUT.read_text(encoding="utf-8") == text
+        print(json.dumps({"ok": ok, "file": str(OUT.relative_to(ROOT))}))
+        sys.exit(0 if ok else 1)
+    OUT.write_text(text, encoding="utf-8")
+    print(json.dumps({"ok": True, "file": str(OUT.relative_to(ROOT)), "formats": len(formats.registry(formats.available_packs()))}))
+
+
+if __name__ == "__main__":
+    main()

@@ -1,0 +1,50 @@
+{
+  "code": "en",
+  "name": "English",
+  "whisper": "en",
+  "fillers_drop": [
+    "uh",
+    "uhh",
+    "um",
+    "umm",
+    "uhm",
+    "er",
+    "erm",
+    "hmm",
+    "mm",
+    "mmm",
+    "ah"
+  ],
+  "fillers_suggest": [
+    "like",
+    "you know",
+    "basically",
+    "actually",
+    "so",
+    "right",
+    "i mean"
+  ],
+  "connectors_lone": [
+    "and",
+    "so",
+    "but",
+    "or",
+    "well",
+    "then"
+  ],
+  "hallucinations": [
+    "thanks for watching",
+    "subscribe",
+    "subtitles by",
+    "amara.org",
+    "thank you."
+  ],
+  "captions": {
+    "inverted_question": false,
+    "tag_questions": []
+  },
+  "vocab_label": "Glossary",
+  "labels": {
+    "illustrative": "ILLUSTRATIVE"
+  }
+}

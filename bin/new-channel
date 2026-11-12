@@ -1,0 +1,205 @@
+#!/usr/bin/env python3
+"""Crea un canal nuevo desde channels/_template en la carpeta de canales (la de todo el motor).
+
+Uso:
+  bin/new-channel <id> [--name "Nombre"] [--lang es|en|…]
+      → canal con marcadores TODO: el agente lo completa con templates/channel-brief.md.
+  bin/new-channel <id> --name "Nombre" --lang es --about "De qué trata" --person "Nombre:rol" \\
+      [--person …] [--platforms tiktok,reels] [--music propia|epidemic] [--no-camera]
+      → canal BÁSICO listo para usar: con las respuestas de los primeros pasos (docs/getting-started.md)
+        y valores por defecto en todo lo demás (estilo, ritmo, paleta, sonido), marcados para ajustarse con
+        las notas de la persona. Genera también el kit de efectos.
+
+La carpeta de canales sale de $VIDEOVIBE_CHANNELS, local.json → channels_dir o channels/ (bin/doctor la muestra).
+Salida JSON. Exit 0 ok, 1 ya existe, 2 error de uso.
+"""
+import argparse
+import re
+import shutil
+import subprocess
+import sys
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(ROOT))
+from scripts.core import oslib  # noqa: E402
+
+DEFAULT_NOTE = "_Valores por defecto: se ajustan con las notas de la persona (ver `learnings.md`)._"
+
+
+def basic_files(name, about, persons, platforms, music, on_camera):
+    """Archivos del canal con las respuestas básicas + valores por defecto razonables (sin TODO)."""
+    who = ", ".join(f"{p['name']} ({p['role']})" for p in persons)
+    music_rule = ("Con licencia de Epidemic Sound (conector MCP, `docs/connectors.md`); para anuncios, música propia."
+                  if music == "epidemic" else
+                  "Propia, generada con `scripts/audio/musicgen.py` (sirve también para anuncios).")
+    image = ("Solo corrección natural de color y luz de quien aparece (motor); nunca alterar rasgos."
+             if on_camera else "Nadie aparece a cámara: la imagen principal son pantalla, B-roll o animaciones.")
+    return {
+        "CHANNEL.md": f"""# Canal: {name}
+
+> Perfil del canal. Empezó con los primeros pasos (`docs/getting-started.md`); se completa con el uso o con
+> el cuestionario completo (`templates/channel-brief.md`).
+
+## Identidad
+{about}
+
+Quién aparece o narra: {who}.
+
+## Intención
+- Publicar con regularidad piezas cortas y claras sobre el tema del canal.
+- Que cada pieza deje una idea concreta.
+
+{DEFAULT_NOTE}
+
+## Audiencia
+Personas interesadas en el tema del canal. Cada pieza define su audiencia principal en el brief.
+
+## Tono
+Cercano, claro y directo.
+
+| Sí | No |
+|---|---|
+| Una idea por pieza, con un ejemplo concreto | Varias ideas a la vez |
+| Lenguaje de todos los días | Jerga sin explicar |
+
+## Principio editorial
+Cada pieza responde una pregunta clara para la audiencia.
+
+## Guardarraíles de contenido
+- Nada de afirmaciones sin fuente; lo ilustrativo se marca «ILUSTRATIVO».
+- Nada de consejos personales de salud, dinero o legales.
+
+## Llamada a la acción
+En primera persona: «Sígueme para…», «Cuéntame en comentarios…».
+""",
+        "style.md": f"""# Estilo visual
+
+Limpio y legible: fondo oscuro neutro, un color de acento para la palabra clave. Valores en `brand.json`.
+{DEFAULT_NOTE}
+
+## Paleta y roles
+| Rol | Token (`brand.json`) | Uso |
+|---|---|---|
+| Fondo | `bg`, `surface` | Tarjetas y fondos de animación |
+| Profundidad | `depth`, `depth2` | Fondos y degradados; nunca texto |
+| Palabra clave | `accent` | El concepto de la pieza |
+| Dato | `accent2` | Cifras y unidades |
+| Remate | `accent3` | La frase final |
+| Advertencia | `warn` | Errores y mitos |
+
+## Tipografía
+Space Grotesk (display) y JetBrains Mono (datos), SIL OFL, incluidas en el motor.
+
+## Permitido / Prohibido
+- Permitido: tarjetas con el gancho y datos, animaciones cortas a pantalla completa.
+- Prohibido: filtros de color fuertes, texto fuera de la zona segura.
+
+## Animaciones
+Pantalla completa, cortas (2–4 s), intercaladas con la toma (`docs/formats.md`).
+
+## Tratamiento de la imagen de quien aparece
+{image}
+""",
+        "rhythm.md": f"""# Ritmo, subtítulos y sonido
+
+{DEFAULT_NOTE}
+
+## Gancho
+La pregunta o promesa en el primer segundo, escrita en pantalla y dicha.
+
+## Limpieza del corte
+Pausa tras frase de 0.25 s; se quitan retomas, muletillas largas y silencios.
+
+## Movimiento y densidad
+Un acercamiento suave cada 6–10 s; máximo un elemento nuevo cada 3 s.
+
+## Subtítulos
+Grandes, palabra activa resaltada en `accent` (ver `brand.json → captions`).
+
+## Sonido
+| Elemento | Regla |
+|---|---|
+| Música | {music_rule} Baja: −24 sin voz y −32 bajo la voz (`channel.json → audio`). |
+| Efectos | Un efecto por animación, distinto según lo que muestra; whoosh suave al salir. |
+
+Mezcla final −14 LUFS, pico ≤ −1 dBTP (motor).
+""",
+        "topics.md": f"""# Temas frecuentes
+
+| id | Tema | B-roll / gráficos naturales | Cuidado |
+|---|---|---|---|
+| general | {about[:80]} | Según la pieza | Fuentes en el copy |
+
+{DEFAULT_NOTE} Añade una fila por tema que se repita.
+""",
+    }
+
+
+def main():
+    ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    ap.add_argument("id")
+    ap.add_argument("--name")
+    ap.add_argument("--lang", default="es")
+    ap.add_argument("--about", help="de qué trata el canal (activa el modo básico)")
+    ap.add_argument("--person", action="append", default=[], metavar="NOMBRE[:ROL]")
+    ap.add_argument("--platforms", default="tiktok,reels")
+    ap.add_argument("--music", choices=["propia", "epidemic"], default="propia")
+    ap.add_argument("--no-camera", action="store_true", help="nadie aparece a cámara")
+    args = ap.parse_args()
+
+    cid = args.id
+    if not re.fullmatch(r"[a-z0-9][a-z0-9-]*", cid):
+        oslib.die("id inválido: minúsculas, números y guiones (p. ej. mi-canal)")
+    if not (oslib.LANG_DIR / f"{args.lang}.json").exists():
+        oslib.die(f"no hay lang/{args.lang}.json (crea el paquete de idioma primero; ver docs/channels.md)")
+    plats = [p.strip() for p in args.platforms.split(",") if p.strip()]
+    presets = sorted(p.stem for p in (oslib.ROOT / "presets").glob("*.json"))
+    bad = [p for p in plats if p not in presets]
+    if bad:
+        oslib.die(f"plataformas sin preset: {bad} (disponibles: {presets})")
+    dest = oslib.CHANNELS / cid
+    if dest.exists() or (oslib.ENGINE_CHANNELS / cid / "channel.json").exists():
+        oslib.emit({"ok": False, "error": f"ya existe el canal {cid}"}, 1)
+    basic = bool(args.about)
+    if basic and not args.person and not args.no_camera:
+        oslib.die('--person "Nombre:rol" (quién aparece o narra) es obligatorio con --about')
+    oslib.CHANNELS.mkdir(parents=True, exist_ok=True)
+    shutil.copytree(oslib.ENGINE_CHANNELS / "_template", dest)
+    name = args.name or cid
+    cfg = oslib.read_json(dest / "channel.json")
+    cfg.update({"id": cid, "name": name, "language": args.lang, "platforms": plats})
+    if basic:
+        persons = []
+        for p in args.person or ["Narrador:voz en off"]:
+            n, _, role = p.partition(":")
+            persons.append({"name": n.strip(), "short": n.strip().split()[0], "role": role.strip() or "presenta",
+                            "on_camera": not args.no_camera})
+        cfg["persons"] = persons
+        cfg["notes"] = "Canal creado con los primeros pasos (valores por defecto); se ajusta con el uso."
+        cfg["audio"] = {"music_level_db": -24, "music_duck_db": -32}
+        for fname, text in basic_files(name, args.about.strip(), persons, plats, args.music,
+                                       not args.no_camera).items():
+            (dest / fname).write_text(text, encoding="utf-8")
+        brand = oslib.read_json(dest / "brand.json")
+        brand["_note"] = "Paleta y fuentes neutras por defecto; se cambian cuando la persona elija (docs/getting-started.md)."
+        oslib.write_json(dest / "brand.json", brand)
+        (dest / "vocabulary.txt").write_text(
+            "# Términos que la transcripción debe escribir bien (uno por línea).\n" + name + "\n", encoding="utf-8")
+    oslib.write_json(dest / "channel.json", cfg)
+    out = {"ok": True, "channel": cid, "dir": str(dest), "mode": "básico" if basic else "plantilla"}
+    if basic:
+        r = subprocess.run([str(oslib.ROOT / ".venv" / "bin" / "python"), str(oslib.ROOT / "scripts" / "audio" / "sfx.py"),
+                            "--channel", cid], capture_output=True, text=True)
+        out["sfx_kit"] = r.returncode == 0
+        from scripts.tools import check_channel
+        out["problems"] = check_channel.check(cid)
+        out["next"] = (f"Canal listo con valores por defecto. Primera pieza: bin/new-piece {cid} <slug> --from <video>"
+                       if not out["problems"] else f"Corrige los problemas y corre bin/doctor --channel {cid}")
+    else:
+        out["next"] = f"Completa los TODO de {dest} con templates/channel-brief.md y corre bin/doctor --channel {cid}"
+    oslib.emit(out)
+
+
+if __name__ == "__main__":
+    main()

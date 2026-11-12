@@ -1,0 +1,211 @@
+{
+  "generator": "scripts/audio/sfx.py",
+  "generator_version": 2,
+  "sound": {
+    "root_hz": 660,
+    "brightness": 0.5,
+    "texture": "clean"
+  },
+  "recipes_hash": "ff893508a98c",
+  "user_hash": "",
+  "license": "Base y recetas: propio (sintetizado). Aportados: ver cada efecto",
+  "entrances": [
+    "bell",
+    "sparkle",
+    "bubbles",
+    "zap",
+    "pulse",
+    "scan",
+    "bloom",
+    "blip",
+    "drop",
+    "shimmer",
+    "ping"
+  ],
+  "sounds": {
+    "pulse": {
+      "file": "pulse.wav",
+      "duration_s": 0.12,
+      "use": "Pulso breve con subida de tono: entrada de un elemento o escena",
+      "source": "base",
+      "license": "Propio (sintetizado)",
+      "ads": true
+    },
+    "click": {
+      "file": "click.wav",
+      "duration_s": 0.03,
+      "use": "Clic de interfaz muy corto: aparece una tarjeta o etiqueta",
+      "source": "base",
+      "license": "Propio (sintetizado)",
+      "ads": true
+    },
+    "data": {
+      "file": "data.wav",
+      "duration_s": 0.3,
+      "use": "Tres destellos rápidos: datos procesándose, terminal, agentes",
+      "source": "base",
+      "license": "Propio (sintetizado)",
+      "ads": true
+    },
+    "sweep": {
+      "file": "sweep.wav",
+      "duration_s": 0.45,
+      "use": "Barrido suave de ruido filtrado: transición de escena (usar con moderación)",
+      "source": "base",
+      "license": "Propio (sintetizado)",
+      "ads": true
+    },
+    "rise": {
+      "file": "rise.wav",
+      "duration_s": 0.6,
+      "use": "Subida tonal: revelación de un título o resultado",
+      "source": "base",
+      "license": "Propio (sintetizado)",
+      "ads": true
+    },
+    "success": {
+      "file": "success.wav",
+      "duration_s": 0.28,
+      "use": "Dos tonos ascendentes: algo verificado o logrado",
+      "source": "base",
+      "license": "Propio (sintetizado)",
+      "ads": true
+    },
+    "warn": {
+      "file": "warn.wav",
+      "duration_s": 0.34,
+      "use": "Dos tonos graves descendentes: error, limitación, advertencia",
+      "source": "base",
+      "license": "Propio (sintetizado)",
+      "ads": true
+    },
+    "glitch": {
+      "file": "glitch.wav",
+      "duration_s": 0.14,
+      "use": "Destello digital granulado: glitch breve y controlado",
+      "source": "base",
+      "license": "Propio (sintetizado)",
+      "ads": true
+    },
+    "ping": {
+      "file": "ping.wav",
+      "duration_s": 0.5,
+      "use": "Ping de sonar con cola larga: aparece un diagrama o red (entrada)",
+      "source": "base",
+      "license": "Propio (sintetizado)",
+      "ads": true
+    },
+    "bloom": {
+      "file": "bloom.wav",
+      "duration_s": 0.45,
+      "use": "Acorde suave que se abre: entrada de escena tranquila o conceptual",
+      "source": "base",
+      "license": "Propio (sintetizado)",
+      "ads": true
+    },
+    "blip": {
+      "file": "blip.wav",
+      "duration_s": 0.2,
+      "use": "Arpegio ascendente muy rápido: entrada de escena técnica o de datos",
+      "source": "base",
+      "license": "Propio (sintetizado)",
+      "ads": true
+    },
+    "scan": {
+      "file": "scan.wav",
+      "duration_s": 0.25,
+      "use": "Barrido corto ascendente con tono: escaneo, análisis, molécula (entrada)",
+      "source": "base",
+      "license": "Propio (sintetizado)",
+      "ads": true
+    },
+    "drop": {
+      "file": "drop.wav",
+      "duration_s": 0.18,
+      "use": "Tono que cae de agudo a medio: entrada con peso, cambio de tema",
+      "source": "base",
+      "license": "Propio (sintetizado)",
+      "ads": true
+    },
+    "shimmer": {
+      "file": "shimmer.wav",
+      "duration_s": 0.4,
+      "use": "Brillo agudo con trémolo: entrada de título o revelación ligera",
+      "source": "base",
+      "license": "Propio (sintetizado)",
+      "ads": true
+    },
+    "whoosh": {
+      "file": "whoosh.wav",
+      "duration_s": 0.55,
+      "use": "Soplo de aire que cruza de izquierda a derecha: salida o transición de escena",
+      "source": "base",
+      "license": "Propio (sintetizado)",
+      "ads": true
+    },
+    "impact": {
+      "file": "impact.wav",
+      "duration_s": 0.7,
+      "use": "Golpe grave con cola: revelación importante, dato fuerte (usar poco)",
+      "source": "base",
+      "license": "Propio (sintetizado)",
+      "ads": true
+    },
+    "bell": {
+      "file": "bell.wav",
+      "duration_s": 1.0,
+      "use": "Campana metálica (FM) con cola larga: idea, red, conexión",
+      "source": "base",
+      "license": "Propio (sintetizado)",
+      "ads": true
+    },
+    "bubbles": {
+      "file": "bubbles.wav",
+      "duration_s": 0.7,
+      "use": "Burbujas ascendentes: célula, biología, laboratorio húmedo",
+      "source": "base",
+      "license": "Propio (sintetizado)",
+      "ads": true
+    },
+    "heartbeat": {
+      "file": "heartbeat.wav",
+      "duration_s": 0.55,
+      "use": "Latido doble grave: salud, pulso, vida",
+      "source": "base",
+      "license": "Propio (sintetizado)",
+      "ads": true
+    },
+    "typing": {
+      "file": "typing.wav",
+      "duration_s": 0.7,
+      "use": "Tecleo rápido: terminal, código, agentes escribiendo",
+      "source": "base",
+      "license": "Propio (sintetizado)",
+      "ads": true
+    },
+    "riser": {
+      "file": "riser.wav",
+      "duration_s": 1.0,
+      "use": "Subida de ruido y tono de 1 s: anticipa una revelación",
+      "source": "base",
+      "license": "Propio (sintetizado)",
+      "ads": true
+    },
+    "sparkle": {
+      "file": "sparkle.wav",
+      "duration_s": 0.6,
+      "use": "Destellos agudos dispersos: ADN, moléculas, algo nuevo",
+      "source": "base",
+      "license": "Propio (sintetizado)",
+      "ads": true
+    },
+    "zap": {
+      "file": "zap.wav",
+      "duration_s": 0.3,
+      "use": "Láser descendente: acción de un agente o herramienta",
+      "source": "base",
+      "license": "Propio (sintetizado)",
+      "ads": true
+    }
+  }
+}

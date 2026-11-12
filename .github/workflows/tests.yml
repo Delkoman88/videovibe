@@ -1,0 +1,48 @@
+name: tests
+on: [push, pull_request]
+jobs:
+  unit:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: System packages
+        run: sudo apt-get update && sudo apt-get install -y ffmpeg
+      - name: Python
+        run: python3 -m venv .venv && .venv/bin/pip install numpy
+      - name: Node (HyperFrames, GSAP)
+        run: npm ci --no-audit --no-fund
+      - name: Tests (the ones needing macOS `say` or whisper models skip themselves)
+        run: .venv/bin/python -m unittest discover -s scripts/tests -v
+
+  demo:
+    # De punta a punta en Linux: espeak-ng (voz), whisper.cpp compilado, modelo pequeño, Chrome del runner.
+    # Aún sin validar en GitHub: no bloquea mientras se confirma en la primera ejecución.
+    runs-on: ubuntu-24.04
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: System packages
+        run: sudo apt-get update && sudo apt-get install -y ffmpeg espeak-ng cmake build-essential
+      - name: whisper.cpp
+        run: |
+          git clone --depth 1 https://github.com/ggml-org/whisper.cpp tools/whisper.cpp
+          cmake -S tools/whisper.cpp -B tools/whisper.cpp/build -DCMAKE_BUILD_TYPE=Release
+          cmake --build tools/whisper.cpp/build -j --config Release --target whisper-cli
+          echo "$PWD/tools/whisper.cpp/build/bin" >> "$GITHUB_PATH"
+      - name: Models (small whisper for CI + VAD)
+        run: |
+          mkdir -p models
+          curl -L --fail -o models/ggml-base.bin https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-base.bin
+          curl -L --fail -o models/ggml-silero-v5.1.2.bin https://huggingface.co/ggml-org/whisper-vad/resolve/main/ggml-silero-v5.1.2.bin
+      - name: Python + Node
+        run: python3 -m venv .venv && .venv/bin/pip install numpy && npm ci --no-audit --no-fund
+      - name: Demo (cut + visual plan + draft)
+        env:
+          VIDEOVIBE_WHISPER_MODEL: models/ggml-base.bin
+        run: bin/demo --quick

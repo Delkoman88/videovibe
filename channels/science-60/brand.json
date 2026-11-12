@@ -1,0 +1,72 @@
+{
+  "colors": {
+    "bg": "#101418",
+    "surface": "#1A2027",
+    "surface_line": "#2E3742",
+    "depth": "#1D2B36",
+    "depth2": "#2A2233",
+    "accent": "#FFB000",
+    "accent2": "#3DD6C6",
+    "accent3": "#FF6F91",
+    "warn": "#FF5A4E",
+    "text": "#F7F5F0",
+    "muted": "#A7B0BA"
+  },
+  "highlight_roles": {
+    "keyword": "accent",
+    "data": "accent2",
+    "punchline": "accent3",
+    "warning": "warn"
+  },
+  "fonts": {
+    "_note": "Fuentes SIL OFL. `file` se busca en <canal>/fonts/ y luego en assets/fonts/.",
+    "display": {
+      "family": "Space Grotesk",
+      "file": "SpaceGrotesk[wght].ttf",
+      "weights": [
+        500,
+        700
+      ]
+    },
+    "mono": {
+      "family": "JetBrains Mono",
+      "file": "JetBrainsMono[wght].ttf",
+      "weights": [
+        400,
+        600
+      ]
+    }
+  },
+  "captions": {
+    "font": "display",
+    "weight": 700,
+    "size_px": 72,
+    "max_chars_per_line": 22,
+    "max_lines": 2,
+    "stroke_px": 0,
+    "shadow": "0 4px 18px rgba(0,0,0,0.65)",
+    "plate": "none",
+    "active_word": "keyword"
+  },
+  "motion": {
+    "enter_s": 0.35,
+    "exit_s": 0.25,
+    "ease_in": "power2.out",
+    "ease_out": "power2.in",
+    "glitch_max_frames": 6
+  },
+  "glow": {
+    "default": "0 0 12px rgba(46,230,240,0.45)",
+    "violet": "0 0 12px rgba(155,107,255,0.45)"
+  },
+  "_tokens": "Colores por función: bg/surface/surface_line (fondos), depth/depth2 (profundidad, nunca texto), accent (palabra clave), accent2 (dato), accent3 (remate), warn (advertencia), text/muted (texto).",
+  "_note": "Paleta cálida de ejemplo: ámbar (clave), turquesa (dato), rosa (remate). Fuentes SIL OFL del motor.",
+  "sound": {
+    "root_hz": 660,
+    "brightness": 0.5,
+    "texture": "clean"
+  },
+  "music": {
+    "_note": "Sin paleta fija: cada ánimo de musicgen.py usa sus instrumentos."
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "id": "TODO-id-del-canal",
+  "name": "TODO Nombre del canal",
+  "language": "es",
+  "persons": [
+    {
+      "name": "TODO Nombre completo",
+      "short": "TODO Nombre corto",
+      "role": "TODO rol en el canal",
+      "on_camera": true
+    }
+  ],
+  "platforms": [
+    "tiktok",
+    "reels"
+  ],
+  "format_packs": [],
+  "notes": "Archivos del canal: CHANNEL.md, style.md, rhythm.md, topics.md, brand.json, vocabulary.txt, learnings.md",
+  "voice": {
+    "enabled": true,
+    "strength": "natural"
+  }
+}

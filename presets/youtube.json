@@ -1,0 +1,8 @@
+{
+  "id": "youtube",
+  "label": "YouTube (fase posterior)",
+  "_status": "pendiente: definir cuando se active YouTube. Shorts usa 1080x1920; videos largos 3840x2160.",
+  "shorts": {"canvas": {"width": 1080, "height": 1920, "fps": 30}},
+  "long": {"canvas": {"width": 3840, "height": 2160, "fps": 30}},
+  "export": {"container": "mp4", "vcodec": "h264", "pix_fmt": "yuv420p", "acodec": "aac", "audio_rate": 48000, "loudness_lufs": -14, "true_peak_db": -1}
+}
