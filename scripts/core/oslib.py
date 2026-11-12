@@ -24,6 +24,27 @@ def _ffmpeg_bin():
 
 
 FFMPEG = _ffmpeg_bin()
+
+
+def ffmpeg_major(version_line):
+    """Versión mayor de ffmpeg desde la primera línea de `ffmpeg -version` (p. ej. «ffmpeg version 9.0.2»,
+    «ffmpeg version 6.1.1-3ubuntu5», «ffmpeg version n7.1»). None si no se reconoce (build de desarrollo)."""
+    import re
+    m = re.search(r"version\s+n?(\d+)\.", version_line)
+    return int(m.group(1)) if m else None
+
+
+_FILTER_ARGS = {}
+
+
+def filter_script_args(path):
+    """Argumentos para pasar un grafo de filtros desde archivo: ffmpeg ≥ 7 usa `-/filter_complex <archivo>`
+    (ffmpeg 9 quitó -filter_complex_script); ffmpeg 6 (p. ej. Ubuntu 24.04) solo entiende -filter_complex_script."""
+    if FFMPEG not in _FILTER_ARGS:
+        r = subprocess.run([FFMPEG, "-hide_banner", "-version"], capture_output=True, text=True)
+        major = ffmpeg_major((r.stdout or "").splitlines()[0] if r.stdout else "")
+        _FILTER_ARGS[FFMPEG] = "-filter_complex_script" if major is not None and major < 7 else "-/filter_complex"
+    return [_FILTER_ARGS[FFMPEG], str(path)]
 HDR_TRANSFERS = {"arib-std-b67", "smpte2084"}  # HLG y PQ
 # HDR → SDR BT.709 (curva hable: tono de piel natural; el grado de color posterior levanta la exposición)
 TONEMAP_SDR = ("zscale=t=linear:npl=100,format=gbrpf32le,zscale=p=bt709,tonemap=tonemap=hable:desat=0,"

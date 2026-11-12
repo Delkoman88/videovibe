@@ -123,7 +123,13 @@ def main():
     run([ROOT / "bin" / "status", ref, "--approve", "A", "--note", "demo: aprobación automática"], env)
 
     log("3/6 Corte aplicado y subtítulos (bin/edit → falta el plan visual)")
-    run([ROOT / "bin" / "edit", ref], env, check=False)
+    out = run([ROOT / "bin" / "edit", ref], env, check=False)
+    if not (P / "cut" / "cut-map.json").exists():  # el paso falló: mostrar el error real de bin/edit
+        print(out.stdout[-3000:], out.stderr[-3000:], file=sys.stderr)
+        log_tail = P / "work" / "edit.log"
+        if log_tail.exists():
+            print("work/edit.log:", *log_tail.read_text().splitlines()[-5:], sep="\n", file=sys.stderr)
+        sys.exit(1)
     cmap = json.loads((P / "cut" / "cut-map.json").read_text())
     dur = cmap["duration_s"]
 

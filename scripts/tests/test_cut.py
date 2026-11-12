@@ -171,3 +171,24 @@ echo '{{"transcription": [{{"text": "hola", "offsets": {{"from": 0, "to": 500}},
             self.assertNotIn("-ng", lines[0])
             self.assertTrue(all("-ng" in l for l in lines[1:]))
             self.assertTrue(transcribe._CPU_ONLY["fallback"])
+
+
+class TestFfmpegFilterScript(unittest.TestCase):
+    """ffmpeg ≥ 7 usa `-/filter_complex <archivo>`; ffmpeg 6 (Ubuntu 24.04) solo `-filter_complex_script`."""
+
+    def test_version_parsing(self):
+        from scripts.core import oslib
+        self.assertEqual(oslib.ffmpeg_major("ffmpeg version 9.0.2 Copyright (c) 2000-2026"), 9)
+        self.assertEqual(oslib.ffmpeg_major("ffmpeg version 6.1.1-3ubuntu5 Copyright"), 6)
+        self.assertEqual(oslib.ffmpeg_major("ffmpeg version n7.1 Copyright"), 7)
+        self.assertIsNone(oslib.ffmpeg_major("ffmpeg version N-112233-gabcdef Copyright"))
+
+    def test_args_match_installed_ffmpeg(self):
+        import subprocess
+        from scripts.core import oslib
+        args = oslib.filter_script_args("g.txt")
+        self.assertEqual(args[1], "g.txt")
+        first = subprocess.run([oslib.FFMPEG, "-version"], capture_output=True, text=True).stdout.splitlines()[0]
+        major = oslib.ffmpeg_major(first)
+        self.assertEqual(args[0], "-filter_complex_script" if major is not None and major < 7 else "-/filter_complex")
+

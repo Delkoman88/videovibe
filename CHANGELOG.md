@@ -10,6 +10,10 @@
 Formato: una entrada por versión; dentro, lo que cambió para quien usa el motor. Las decisiones
 técnicas y su porqué están en `docs/decisions/`.
 
+## 0.9.1-alpha
+- Corregido en Linux: el corte usaba `-/filter_complex`, que no existe en ffmpeg 6 (Ubuntu 24.04); ahora se detecta la versión de ffmpeg. Encontrado por la demo de punta a punta en GitHub.
+- La demo muestra el error real de `bin/edit` cuando un paso falla.
+
 ## 0.9.0-alpha — primera versión pública
 - Carpeta de originales configurable como `input_dir` / `$VIDEOVIBE_INPUT` (los nombres `material_dir` / `$VIDEOVIBE_MATERIAL` siguen valiendo); documentación corregida: la plataforma de anuncio es `ads` y los scripts se llaman `apply_cut.py` / `paper_cut.py`.
 - Carpetas fáciles de encontrar en la raíz: `input/` (originales; `bin/new-piece --from <nombre>` los busca ahí) y `deliveries/<Canal>/<fecha> <pieza>/` (finales verificados con portada, texto y `README.md`, como enlaces o copias; `bin/edit` la abre al entregar). ADR 0018.

@@ -53,5 +53,5 @@ o usa la variable `VIDEOVIBE_CHANNELS`. `bin/doctor` dice qué carpeta se está 
 
 - Instalar o actualizar con Homebrew puede romper otras herramientas (librerías compartidas): revisa `node -v` después; `brew upgrade node` lo arregla.
 - Si mueves o renombras el repo, recrea `.venv`: `rm -rf .venv && bin/setup`.
-- ffmpeg 9 quitó `-filter_complex_script`; VideoVibe usa `-/filter_complex <archivo>`.
+- ffmpeg 9 quitó `-filter_complex_script`; VideoVibe usa `-/filter_complex <archivo>` con ffmpeg ≥ 7 y la opción anterior con ffmpeg 6 (p. ej. Ubuntu 24.04); lo detecta solo.
 - En zsh, una variable con varias opciones (`$X`) no se separa en palabras: usa arrays o bash.

@@ -131,7 +131,7 @@ def main():
     graph_file = P / "work" / "apply-cut.filter"
     graph_file.parent.mkdir(parents=True, exist_ok=True)
     graph_file.write_text(graph, encoding="utf-8")
-    oslib.run([oslib.FFMPEG, "-y", "-v", "error", *inputs, "-/filter_complex", str(graph_file),
+    oslib.run([oslib.FFMPEG, "-y", "-v", "error", *inputs, *oslib.filter_script_args(graph_file),
                "-map", "[v]", "-map", "[a]", "-c:v", "libx264", "-preset", "medium", "-crf", str(args.crf),
                "-g", str(FPS // 2), "-keyint_min", str(FPS // 2), "-pix_fmt", "yuv420p",
                "-colorspace", "bt709", "-color_trc", "bt709", "-color_primaries", "bt709", "-color_range", "tv",

@@ -53,4 +53,4 @@ or set `VIDEOVIBE_CHANNELS`. `bin/doctor` prints which folder is in use.
 
 - A Homebrew upgrade can break other tools (shared libraries): check `node -v` afterwards; `brew upgrade node` fixes it.
 - If you move or rename the repo, recreate `.venv`: `rm -rf .venv && bin/setup`.
-- ffmpeg 9 removed `-filter_complex_script`; VideoVibe uses `-/filter_complex <file>`.
+- ffmpeg 9 removed `-filter_complex_script`; VideoVibe uses `-/filter_complex <file>` on ffmpeg ≥ 7 and the old option on ffmpeg 6 (e.g. Ubuntu 24.04), detected automatically.
