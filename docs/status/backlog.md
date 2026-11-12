@@ -6,7 +6,6 @@
 ## P1
 
 - [ ] **Validación real** antes de más funciones: toma con micrófono externo, segundo canal. (Codex: ✅ 2026-11-11, de la bienvenida a la revisión A en una copia limpia.)
-- [ ] **Confirmar en GitHub el job `demo`** (Linux de punta a punta) y quitarle `continue-on-error`.
 
 - [ ] **Probar audios propios con material real**: una toma de 30–60 s con teléfono + micrófono externo (verificar sincronía de labios en el corte) y 1–2 efectos grabados (`sfx.py add` + `--preview`).
 
@@ -38,6 +37,8 @@
 - [ ] Respaldo remoto del repo (GitHub privado o público).
 
 ## Hecho
+
+- [x] **Linux de punta a punta en GitHub** (2026-11-12): la demo pasa en Ubuntu 24.04 tras dos correcciones (sintaxis de filtros de ffmpeg 6 y sincronía de la voz por muestras decodificadas). El job `demo` ya bloquea.
 
 - [x] **Organización y nombres** (2026-11-12): validador por secciones, paquetes por responsabilidad, rutas en inglés sin alias y migración reversible de canales y entregas (ADR 0019).
 

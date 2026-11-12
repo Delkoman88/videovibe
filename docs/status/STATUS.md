@@ -54,7 +54,7 @@ ffmpeg 9 (`ffmpeg-full` para HDR) · Node ≥ 22 · Python 3.14 + numpy (`.venv`
 
 - Zonas seguras de las plataformas aproximadas (no medidas con capturas reales).
 - Agentes probados: Claude Code (uso real) y Codex CLI (copia limpia: de la bienvenida a la revisión A). Falta Gemini CLI y Muse Code.
-- Probado en macOS; Linux tiene `bin/setup` y CI de tests rápidos, pero no un uso real de punta a punta.
+- Probado en macOS con material real. Linux: la demo de punta a punta pasa en GitHub (Ubuntu 24.04, ffmpeg 6, sin GPU); falta un uso real con video propio.
 - La detección de retomas exige que la nueva toma empiece con las mismas 3 palabras.
 - `compose.py` sobrescribe ediciones manuales hechas en la app de HyperFrames.
 - Las pruebas que necesitan `say` se omiten si macOS genera audio vacío dentro del sandbox; la validación de voz requiere correr la suite con audio real (ADR 0016).

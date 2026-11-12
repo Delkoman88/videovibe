@@ -19,9 +19,7 @@ jobs:
 
   demo:
     # De punta a punta en Linux: espeak-ng (voz), whisper.cpp compilado, modelo pequeño, Chrome del runner.
-    # Aún sin validar en GitHub: no bloquea mientras se confirma en la primera ejecución.
     runs-on: ubuntu-24.04
-    continue-on-error: true
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
