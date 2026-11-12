@@ -230,14 +230,18 @@ def ensure_voice(P, cfg=None, force=False, do_compare=False):
     m = analyze(audio)
     chain = choose_chain(m, cfg)
     process(src, out, chain, ch)
-    after = analyze(oslib.load_audio(out, SR))
+    treated = oslib.load_audio(out, SR)
+    after = analyze(treated)
     if cfg["compress"]:  # 2.ª pasada: expansor suave para que el compresor no suba el fondo en las pausas
         chain.append(expander_step(after, cfg))
         process(src, out, chain, ch)
-        after = analyze(oslib.load_audio(out, SR))
-    dur_out, _ = n_samples(out)
-    if abs(dur_out - dur) > 0.002:
-        oslib.die(f"la voz tratada dura {dur_out} s y el master {dur} s: no se usa (sincronía de labios)")
+        treated = oslib.load_audio(out, SR)
+        after = analyze(treated)
+    # Sincronía de labios: se comparan las muestras DECODIFICADAS (lo que suena), no la duración declarada del
+    # contenedor: el «priming» de AAC (~20 ms) se declara distinto según la versión de ffmpeg (6 vs 9).
+    if abs(len(treated) - len(audio)) > 0.002 * SR:
+        oslib.die(f"la voz tratada dura {len(treated) / SR:.3f} s y el original {len(audio) / SR:.3f} s: "
+                  "no se usa (sincronía de labios)")
     rep = {"enabled": True, "version": VERSION, "hash": h, "config": cfg, "before": m,
            "after": {k: after[k] for k in ("noise_db", "speech_db", "snr_db", "bands_rel_db", "sibilance_p98_db")},
            "chain": chain}

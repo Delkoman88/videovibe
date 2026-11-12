@@ -10,6 +10,9 @@
 Formato: una entrada por versión; dentro, lo que cambió para quien usa el motor. Las decisiones
 técnicas y su porqué están en `docs/decisions/`.
 
+## 0.9.2-alpha
+- Corregido en Linux: el control de sincronía de la voz tratada comparaba la duración declarada del contenedor (el «priming» de AAC se declara distinto en ffmpeg 6 y 9); ahora compara las muestras decodificadas.
+
 ## 0.9.1-alpha
 - Corregido en Linux: el corte usaba `-/filter_complex`, que no existe en ffmpeg 6 (Ubuntu 24.04); ahora se detecta la versión de ffmpeg. Encontrado por la demo de punta a punta en GitHub.
 - La demo muestra el error real de `bin/edit` cuando un paso falla.

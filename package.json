@@ -1,6 +1,6 @@
 {
   "name": "videovibe",
-  "version": "0.9.1-alpha",
+  "version": "0.9.2-alpha",
   "private": true,
   "description": "VideoVibe: Node tools (HTML → video render via HyperFrames, GSAP).",
   "license": "Apache-2.0",
