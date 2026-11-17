@@ -1,6 +1,6 @@
 {
   "name": "videovibe",
-  "version": "0.10.0-alpha",
+  "version": "0.11.0-alpha",
   "private": true,
   "description": "VideoVibe: Node tools (HTML → video render via HyperFrames, GSAP).",
   "license": "Apache-2.0",
@@ -11,7 +11,9 @@
     "esbuild@0.28.2": true
   },
   "dependencies": {
+    "3dmol": "2.5.5",
     "gsap": "3.15.0",
+    "lottie-web": "5.13.0",
     "pixi-filters": "6.1.5",
     "pixi.js": "8.23.0"
   }

@@ -1,0 +1,85 @@
+{
+  "_note": "Animaciones propias del motor. Las de cada canal van en <canal>/assets/lottie/ (scripts/tools/lottie.py add).",
+  "items": [
+    {
+      "id": "check-draw",
+      "file": "check-draw.json",
+      "description": "Un círculo y un check que se dibujan (logro, verificado, listo)",
+      "origin": "propia (VideoVibe, scripts/tools/lottie_builtins.py)",
+      "license": "Apache-2.0",
+      "ads": true,
+      "loop": false,
+      "recolor": {
+        "#00e5ff": "accent",
+        "#7cff4f": "accent2",
+        "#b14dff": "accent3"
+      },
+      "fps": 30,
+      "frames": 54,
+      "ip": 0,
+      "duration_s": 1.8,
+      "w": 600,
+      "h": 600
+    },
+    {
+      "id": "pulse-rings",
+      "file": "pulse-rings.json",
+      "description": "Pulsos que se expanden desde un punto (señal, alerta, «aquí»)",
+      "origin": "propia (VideoVibe, scripts/tools/lottie_builtins.py)",
+      "license": "Apache-2.0",
+      "ads": true,
+      "loop": false,
+      "recolor": {
+        "#00e5ff": "accent",
+        "#7cff4f": "accent2",
+        "#b14dff": "accent3"
+      },
+      "fps": 30,
+      "frames": 75,
+      "ip": 0,
+      "duration_s": 2.5,
+      "w": 600,
+      "h": 600
+    },
+    {
+      "id": "spark-burst",
+      "file": "spark-burst.json",
+      "description": "Estallido de rayos y puntos (idea, descubrimiento, remate)",
+      "origin": "propia (VideoVibe, scripts/tools/lottie_builtins.py)",
+      "license": "Apache-2.0",
+      "ads": true,
+      "loop": false,
+      "recolor": {
+        "#00e5ff": "accent",
+        "#7cff4f": "accent2",
+        "#b14dff": "accent3"
+      },
+      "fps": 30,
+      "frames": 45,
+      "ip": 0,
+      "duration_s": 1.5,
+      "w": 600,
+      "h": 600
+    },
+    {
+      "id": "eq-bars",
+      "file": "eq-bars.json",
+      "description": "Ecualizador de cinco barras en bucle (música, audio, voz)",
+      "origin": "propia (VideoVibe, scripts/tools/lottie_builtins.py)",
+      "license": "Apache-2.0",
+      "ads": true,
+      "loop": true,
+      "recolor": {
+        "#00e5ff": "accent",
+        "#7cff4f": "accent2",
+        "#b14dff": "accent3"
+      },
+      "fps": 30,
+      "frames": 60,
+      "ip": 0,
+      "duration_s": 2.0,
+      "w": 600,
+      "h": 600
+    }
+  ]
+}

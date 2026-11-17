@@ -14,7 +14,10 @@
     "tiktok",
     "reels"
   ],
-  "format_packs": [],
+  "format_packs": [
+    "motion",
+    "lottie"
+  ],
   "notes": "Archivos del canal: CHANNEL.md, style.md, rhythm.md, topics.md, brand.json, vocabulary.txt, learnings.md",
   "voice": {
     "enabled": true,

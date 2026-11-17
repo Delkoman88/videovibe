@@ -19,7 +19,7 @@ TODO: fuente display y mono (ambas con licencia libre, p. ej. SIL OFL).
 TODO
 
 ## Animaciones
-TODO: formato preferido (pantalla completa intercalada, sobre la toma…), paquetes temáticos (`channel.json → format_packs`).
+TODO: formato preferido (pantalla completa intercalada, sobre la toma…), paquetes temáticos (`channel.json → format_packs`; `motion` viene activado). Ver cómo lucen con la marca: `bin/format-gallery --channel <id>`.
 
 ## Tratamiento de la imagen de quien aparece
 Por defecto (motor): solo corrección natural de color y luz; nunca alterar rasgos. TODO: ajustes del canal.

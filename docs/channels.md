@@ -18,6 +18,7 @@ sistema para temáticas, estéticas e idiomas distintos.
 | `learnings.md` | notas de la persona convertidas en reglas, con fecha | agente |
 | `fonts/` (opcional) | fuentes propias del canal; si no, se buscan en `assets/fonts/` | scripts |
 | `audio/sfx/` | kit de efectos propio (`scripts/audio/sfx.py --channel <id>`; carácter en `brand.json → sound`) efectos del canal en `recipes.json` y efectos aportados en `user.json` + `user/` (fuera de git) (ver `docs/audio.md`) | compose |
+| `assets/lottie/` | animaciones Lottie del canal: `library.json` (origen, licencia, anuncios, colores) y archivos (los de terceros, fuera de git); `scripts/tools/lottie.py` (ver `docs/visual-assets.md`) | compose |
 | `audio/music/` | biblioteca de música con licencia (`library.json` en git; audios fuera de git). Música propia: `scripts/audio/musicgen.py` (apta para anuncios) | compose |
 | `projects/` | las piezas del canal (fuera de git) | todos |
 
@@ -79,3 +80,7 @@ Por defecto todos los canales usan el estilo sobrio del motor. Un canal puede el
 
 Los formatos que necesitan librerías opcionales (hoy PixiJS en `pixi-signal` y `pixi-mixer` del paquete
 `music`) solo las copian y cargan en las piezas que los usan (ADR 0020).
+
+Cambiar `channel.json` o `brand.json` (por ejemplo, activar un paquete) marca las piezas del canal para
+recomponer. Si el HTML resultante no cambia, `bin/edit` lo detecta: las aprobaciones y los renders
+siguen válidos y solo se vuelve a verificar la entrega.

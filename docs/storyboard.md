@@ -52,7 +52,7 @@ siguiendo el canal (`CHANNEL.md`, `style.md`, `rhythm.md`, `brand.json`) y el br
 | `camera.moves` | `punch` (0.32 s) o `creep` (lento, de `t` a `until`) | Si `until` coincide con un corte, vuelve a 1.0 de golpe; si no, en 0.5 s. Escala 1.05–1.12 |
 | `emphasis` | `id de palabra → rol` (ids de `captions/captions.json`) | Roles de `brand.json → highlight_roles`: keyword, data, punchline, warning (cada canal les asigna color). Máx. 1 rol por grupo de subtítulo, salvo dato + palabra clave |
 | `caption_zones` | Tramos donde los subtítulos cambian de posición | Para no tapar rostro, manos o equipo. Posiciones: `upper-left` y `upper-center`. Los tramos deben ir en orden y no solaparse; fuera de ellos se conserva el preset de plataforma. |
-| `overlays` | Tarjetas en la franja superior (`title`, `card`, `tag`, `cta`) | Una a la vez; nunca sobre la cara; 4–6 s; texto de ≥ 30 px; la `cta` usa el texto de `platforms.<plat>.cta_text` |
+| `overlays` | Tarjetas en la franja superior (`title`, `card`, `tag`, `cta`) | Una a la vez; nunca sobre la cara; 4–6 s; texto de ≥ 30 px; la `cta` usa el texto de `platforms.<plat>.cta_text`. `text_fx` (`rise`, `wave`, `blur`, `mask`) arma el texto letra por letra (no en la `cta`); `*palabra*` no aplica aquí |
 | `broll` | Insertos de video mudo sobre la cámara; `source` es un id de `media.json` con `kind=broll` o `kind=pantalla` | `in`/`out` son segundos del master; `source_in` indica dónde empieza el archivo fuente. No se solapan; pueden cubrir `tail_s` para sostener el último encuadre bajo la CTA. `fit=cover` recorta horizontal a vertical con `focus_x`/`focus_y` (0–100); `contain` muestra el cuadro completo con fondo. `origin` y `license` son obligatorios; `ads:true` si hay plataforma de anuncio. El audio original del inserto se descarta y la voz aprobada continúa. |
 
 Para texto de una grabación horizontal, usa `fit: "region"` con un rectángulo proporcional de
@@ -101,6 +101,25 @@ Animaciones que ilustran lo que se dice. Cada escena usa un **formato** del cat�
 (`docs/formats.md`, generado desde `formats/`): `core` siempre disponible + los paquetes del canal
 (`channel.json → format_packs`).
 
+**Qué formato usar para qué** (catálogo completo y parámetros: `docs/formats.md`):
+
+| Lo que se dice | Formato | Paquete |
+|---|---|---|
+| Apertura, tema o frase clave | `kinetic-title` (`over`), o `text_fx` en una tarjeta `title` | `motion` |
+| Un número, porcentaje o cifra | `data-reveal` | `motion` |
+| Un proceso o pasos (2–5) | `draw-diagram` | `motion` |
+| Una transformación (antes → después, idea → resultado) | `morph-icon` | `motion` |
+| Una historia o cronología | `path-journey` | `motion` |
+| Un remate, logro o sorpresa | `particle-burst` (`over`) | `motion` |
+| Una idea con animación de diseñador | `lottie-scene`, `lottie-accent` (`docs/visual-assets.md`) | `lottie` |
+| Una proteína, ADN o molécula; dónde actúa algo; dos moléculas | `molecule-spin`, `molecule-focus`, `molecule-compare` | `molecular` |
+| Un sistema, equipo o red | `agent-flow`, `community` | `core` |
+| Señalar algo en la toma | `hud-frame` (`over`) | `core` |
+| Comandos o fuentes verificadas | `terminal`, `verify-refs` | `core` |
+
+Los paquetes temáticos (`biotech`, `music`) suman formatos con identidad propia; úsalos cuando el canal los
+tiene. No repetir el mismo formato dos veces seguidas en una pieza.
+
 ```json
 {"id": "s-dna", "format": "dna-helix", "in": 19.35, "out": 21.65, "layout": "full", "params": {"label": "BIOTECNOLOGÍA × IA"}}
 ```
@@ -114,9 +133,15 @@ Animaciones que ilustran lo que se dice. Cada escena usa un **formato** del cat�
   (la ponen solos `terminal` y `verify-refs`).
 - No encadenar dos escenas `full` seguidas; dejar respiros con la toma entre escenas.
 - Quitar tarjetas y movimientos de cámara que caigan dentro de una escena `full`.
-- **Formato nuevo:** función con `@fmt(nombre, layout, required, example)` en `formats/core.py` (genérico)
-  o en `formats/packs/<tema>.py`, docstring de una línea, y `bin/format-catalog` para regenerar el
-  catálogo. `scripts/tests/test_formats.py` lo valida solo con su `example`.
+- **Ver antes de elegir:** `bin/format-gallery --channel <id>` renderiza cada formato con la marca del
+  canal y deja hojas de contacto (en `work/gallery/<canal>/`); ábrelas con `bin/open-review`.
+- **Formato nuevo:** función con `@fmt(nombre, layout, required, example, needs)` en `formats/core.py`
+  (genérico) o en `formats/packs/<tema>.py`, docstring de una línea, y `bin/format-catalog` para regenerar
+  el catálogo. `scripts/tests/test_formats.py` lo valida solo con su `example`.
+  - `needs`: librerías opcionales que usa (`"pixi"`, `"gsap:SplitText"`, … ver `formats/vendors.py`);
+    solo se cargan en las piezas que usan el formato. Una librería nueva se agrega en esa tabla (ADR 0022).
+  - Iconos: `from formats.icons import icon` → `icon("dna", 96)` (Lucide, `formats/icons/selection.txt`).
+  - Prueba visual: `bin/format-gallery --channel <id> --formats <nombre> --check --determinism`.
 
 **Los ids de palabra cambian si se vuelve a transcribir** (`captions.py` sin `--from-transcript`).
 Después de re-transcribir, revisar `emphasis` (compose.py falla si un id no existe).

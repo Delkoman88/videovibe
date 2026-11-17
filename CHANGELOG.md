@@ -1,5 +1,34 @@
 # Changelog
 
+## 0.11.0-alpha — 2026-11-17
+
+Más y mejores animaciones: de 13 a 24 formatos, todos con la marca de cada canal, validados y deterministas.
+
+- Librerías de animación opcionales en una sola tabla (`formats/vendors.py`): los formatos declaran
+  `needs=(...)` y solo se copian y cargan en las piezas que los usan; plugins de GSAP listos
+  (SplitText, ScrambleText, DrawSVG, MorphSVG, MotionPath, Physics2D, CustomEase). ADR 0022.
+- `bin/format-gallery --channel <id> [--check] [--determinism]`: cada formato renderizado con la marca del
+  canal, en hojas de contacto, con chequeo de HyperFrames y prueba de determinismo.
+- 77 iconos de Lucide (ISC) para los formatos: `formats.icons.icon("dna", 96)`.
+- El catálogo de formatos muestra las librerías de cada formato.
+- Nuevo paquete `motion` (activado en la plantilla de canal): `kinetic-title`, `data-reveal`,
+  `draw-diagram`, `morph-icon`, `path-journey` y `particle-burst`, con DrawSVG, MorphSVG, MotionPath y
+  Physics2D. Toman colores y fuentes de la marca de cada canal.
+- Tarjetas con `text_fx` (`rise`, `wave`, `blur`, `mask`): el texto se arma letra por letra.
+- Validación por formato (`@fmt(..., check=fn)`): listas, iconos y valores se revisan con el storyboard.
+- Guía «qué formato usar para qué» en `docs/storyboard.md`.
+- Nuevo paquete `lottie` (activado en la plantilla): `lottie-scene` y `lottie-accent`, con tramos, velocidad
+  y repeticiones; las animaciones se recolorean con la marca del canal al componer.
+- Bibliotecas de recursos visuales con licencia (`scripts/core/assetlib.py`): motor + canal; validación de
+  licencia y anuncios; registro automático en `assets.md`. Guía: `docs/visual-assets.md`. ADR 0023.
+- `scripts/tools/lottie.py add|list|recolor|preview` y cuatro animaciones propias (`check-draw`,
+  `pulse-rings`, `spark-burst`, `eq-bars`).
+- Los formatos pueden declarar recursos (`@fmt(..., uses=...)`), servidos como archivos locales del proyecto.
+- Nuevo paquete `molecular` (3Dmol.js 2.5.5): `molecule-spin`, `molecule-focus` (zoom a cadena, residuos o
+  ligando con anillo y etiqueta) y `molecule-compare`; colores de marca por cadena, superficies translúcidas.
+- `scripts/tools/structures.py fetch --pdb|--pubchem`, `add`, `list`, `preview`; cinco estructuras de ejemplo.
+  La validación revisa que la selección de `focus` exista (`@fmt(..., check_items=...)`). ADR 0024.
+
 ## 0.10.0-alpha — 2026-11-17
 
 Primera pieza real hecha en Windows (WSL) para un canal de DJ; lo que salió de ahí, integrado al motor.

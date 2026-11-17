@@ -3,6 +3,9 @@ import html
 import json
 
 import formats
+from formats import vendors
+from scripts.composer import data
+from formats.text import KINETIC_CSS, kinetic, kinetic_in, plain
 from scripts.composer.context import H, W
 
 
@@ -247,7 +250,7 @@ def _overlay_block_panel(o, indent="    "):
     return (f'{indent}<div id="{o["id"]}" class="ov clip ov-{o["type"]} role-{role}" data-start="{o["in"]}" '
             f'data-duration="{round(o["out"] - o["in"], 3)}" data-track-index="{3 if o["type"] == "cta" else 0}">\n'
             f'{indent}  <div class="panel"><span class="corner tl"></span><span class="corner br"></span>'
-            f'{kicker}<div class="t1"{var}>{esc(o.get("text"))}</div>{t2}</div>\n{indent}</div>')
+            f'{kicker}<div class="t1"{var}>{_t1(o)}</div>{t2}</div>\n{indent}</div>')
 
 
 def _overlay_block_liquid(o, indent="    "):
@@ -261,7 +264,7 @@ def _overlay_block_liquid(o, indent="    "):
             f'{indent}  <div class="panel"><svg class="liquid-cable" viewBox="0 0 920 205"><path d="M20 162 C120 18 238 202 358 72 S640 16 900 132"/></svg>'
             f'<div class="orbit"><i></i><i></i><i></i></div><div class="liquid-main">'
             f'<div class="topline">{kicker}<span class="bpm" data-layout-ignore>LIVE SIGNAL</span></div>'
-            f'<div class="t1"{var}>{esc(o.get("text"))}</div>{t2}<div class="mini-wave">{wave}</div></div>'
+            f'<div class="t1"{var}>{_t1(o)}</div>{t2}<div class="mini-wave">{wave}</div></div>'
             f'<div class="liquid-meter"><i></i></div><i class="droplet d1"></i><i class="droplet d2"></i></div>\n{indent}</div>')
 
 
@@ -299,6 +302,19 @@ def _overlay_tweens_liquid(o):
     return tw
 
 
+def _t1(o):
+    """Texto principal de una tarjeta: tal cual, o partido en letras si pide `text_fx` (no en la CTA)."""
+    if o.get("text_fx") and o["type"] != "cta":
+        return kinetic(o.get("text"))
+    return esc(o.get("text"))
+
+
+def _text_fx_tweens(o):
+    if not o.get("text_fx") or o["type"] == "cta":
+        return []
+    return [kinetic_in(f'#{o["id"]} .t1', o["text_fx"], o["in"] + 0.12, len(plain(o.get("text", ""))))]
+
+
 def overlay_style(brand):
     """Estilo de tarjetas por canal: brand.json → overlays.style (`panel`, por defecto; `liquid`)."""
     return (brand.get("overlays") or {}).get("style", "panel")
@@ -316,7 +332,7 @@ def overlay_block(o, indent="    ", brand=None):
 
 def overlay_tweens(o, brand=None):
     fn = _overlay_tweens_liquid if brand and overlay_style(brand) == "liquid" else _overlay_tweens_panel
-    return fn(o)
+    return fn(o) + _text_fx_tweens(o)
 
 
 def overlays_html(sb, brand, safe, ctx):
@@ -328,6 +344,8 @@ def overlays_html(sb, brand, safe, ctx):
         blocks.append(overlay_block(o, brand=brand))
         tl += overlay_tweens(o, brand)
     css = overlay_css(brand, safe["text_top"] + 14)
+    if any(o.get("text_fx") and o["type"] != "cta" for o in sb.get("overlays", [])):
+        css += KINETIC_CSS
     return f"""<template>
   <style>
     {ctx.font_faces}
@@ -417,25 +435,6 @@ def broll_markup(sb, media):
     return "\n".join(clips)
 
 
-PIXI_HEAD = """    <script>
-      globalThis.__videovibeSeed = 0x4d524c4e;
-      globalThis.__videovibeRandom = () => {
-        let x = globalThis.__videovibeSeed >>> 0;
-        x ^= x << 13; x ^= x >>> 17; x ^= x << 5;
-        globalThis.__videovibeSeed = x >>> 0;
-        return globalThis.__videovibeSeed / 4294967296;
-      };
-    </script>
-    <script src="assets/vendor/pixi.min.js"></script>
-    <script src="assets/vendor/pixi-filters.js"></script>
-"""
-
-
-def pixi_head(sb):
-    """Generador fijo + PixiJS, solo si alguna escena usa un formato que lo necesita (ADR 0020)."""
-    return PIXI_HEAD if "pixi" in formats.needs(sb) else ""
-
-
 def index_html(sb, brand, safe, dur, total, cuts, default_cta, audio_els="", ctx=None, music_srcs=None,
                media=None):
     origin = sb.get("camera", {}).get("origin", "50% 30%")
@@ -458,8 +457,7 @@ def index_html(sb, brand, safe, dur, total, cuts, default_cta, audio_els="", ctx
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width={W}, height={H}" />
-{pixi_head(sb)}    <script src="assets/vendor/gsap.min.js"></script>
-    <style>
+{vendors.head(formats.needs(sb))}{data.head(sb)}    <style>
       {ctx.font_faces}
       :root {{
 {css_vars(brand)}

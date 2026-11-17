@@ -1,14 +1,14 @@
 # Estado del sistema
 
 > Foto actual del motor. La actualiza el agente al cerrar cada sesión de desarrollo.
-> Última actualización: 2026-11-17 · versión `v0.10.0-alpha`.
+> Última actualización: 2026-11-17 · versión `v0.11.0-alpha`.
 
 ## Organización del motor
 
 Paquetes por responsabilidad, validador por secciones y nombres del sistema en inglés, sin alias.
 Migración reversible disponible en `bin/migrate-layout` (ADR 0019; `docs/migration.md`).
 Las revisiones afectadas por la migración requieren aprobación explícita de nuevo.
-Validación: suite de 141 pruebas en verde (15 omitidas cuando el entorno no puede generar audio de sistema).
+Validación: suite de 176 pruebas en verde (15 omitidas cuando el entorno no puede generar audio de sistema).
 
 ## Qué funciona hoy
 
@@ -25,7 +25,7 @@ Validación: suite de 141 pruebas en verde (15 omitidas cuando el entorno no pue
 | Corte en papel (revisión A) | ✅ | Retomas, muletillas, conectores sueltos, fragmentos ≤ 0.3 s, silencios |
 | Aplicar corte | ✅ | HDR→SDR BT.709; ~3.5 min para 90 s con conversión HDR |
 | Subtítulos | ✅ | Palabra por palabra; reimportación desde whisper.cpp y reparación parcial desde el corte aprobado/remapeo para conservar texto y sincronía tras cambios; revisar puntuación a mano |
-| Plan visual + composición | ✅ | Storyboard validado antes de componer (`scripts/pipeline/storyboard.py`); HyperFrames 0.9.32; cámara, overlays orgánicos, CTA por plataforma, corrección de color, 13 formatos (incluye el paquete `music` para DJs/productores, con PixiJS opcional); estilos de subtítulos y tarjetas por canal (`brand.json`) |
+| Plan visual + composición | ✅ | Storyboard validado antes de componer (`scripts/pipeline/storyboard.py`); HyperFrames 0.9.32; cámara, overlays orgánicos, CTA por plataforma, corrección de color, 24 formatos (paquete `motion` con plugins de GSAP; `lottie` con bibliotecas con licencia y color de marca; `molecular` con 3Dmol.js; `music` para DJs/productores, con PixiJS opcional); estilos de subtítulos y tarjetas por canal (`brand.json`); librerías opcionales por formato (`formats/vendors.py`) y galería visual `bin/format-gallery` |
 | Render final | ✅ | `hyperframes render -q delivery`; ~5 min por plataforma |
 | Verificación de entrega | ✅ | `scripts/pipeline/verify.py`; después, `deliveries/<Canal>/<fecha> <pieza>/` con los finales (enlaces o copias) y `README.md` |
 | Estado por pieza | ✅ | `status.json` + `bin/status` |

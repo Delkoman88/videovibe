@@ -1,0 +1,84 @@
+# Iconos de Lucide (ISC) incluidos en formats/icons/lucide.json. Uno por línea; agrega y corre:
+#   scripts/tools/icons.py --from <carpeta icons/ de lucide-static> 
+# General / proceso
+lightbulb
+target
+flag
+rocket
+check
+circle-check
+x
+triangle-alert
+arrow-right
+refresh-cw
+search
+eye
+lock
+clock
+calendar
+map-pin
+route
+trending-up
+trending-down
+chart-column
+chart-line
+chart-pie
+percent
+sparkles
+zap
+star
+heart
+trophy
+puzzle
+layers
+git-branch
+workflow
+settings
+# Personas / comunidad
+user
+users
+message-circle
+megaphone
+handshake
+graduation-cap
+# Tecnología / IA
+bot
+brain
+cpu
+code
+terminal
+database
+cloud
+smartphone
+laptop
+# Ciencia / biotech
+flask-conical
+test-tube
+microscope
+dna
+atom
+pill
+syringe
+leaf
+sprout
+bug
+activity
+heart-pulse
+thermometer
+droplet
+beaker
+# Música / creador
+music
+headphones
+disc-3
+mic
+radio
+audio-waveform
+volume-2
+sliders-horizontal
+speaker
+guitar
+video
+camera
+film
+clapperboard

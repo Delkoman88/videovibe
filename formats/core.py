@@ -29,13 +29,22 @@ CTX = {"font_faces": "", "labels": {"illustrative": "ILLUSTRATIVE"}, "channel": 
 REGISTRY = {}
 
 
-def fmt(name, layout="full", required=(), example=None, needs=()):
+def fmt(name, layout="full", required=(), example=None, needs=(), check=None, uses=None, check_items=None):
     """Registra un formato. `required` son parámetros obligatorios; `example` sirve a tests y al catálogo.
     `needs` son librerías opcionales que el formato usa (p. ej. "pixi"): el motor solo las copia y carga
-    en las piezas cuyas escenas las piden."""
+    en las piezas cuyas escenas las piden. `check(params) -> [problemas]` valida los parámetros más allá de
+    los obligatorios (listas, iconos, rangos); lo llama la validación del storyboard.
+    `uses(params) -> [(tipo, id)]` declara recursos de biblioteca (p. ej. ("lottie", "check-draw")): compose
+    los sirve como archivos locales y la validación revisa que existan y tengan licencia (scripts/core/assetlib.py).
+    `check_items(params, {id: elemento}) -> [problemas]` revisa los parámetros contra los datos de esos recursos
+    (p. ej. que la cadena o el ligando de un zoom existan en la estructura)."""
+    from formats.vendors import unknown
+    if bad := unknown(needs):
+        raise KeyError(f"formato «{name}»: librerías desconocidas {bad} (ver formats/vendors.py)")
+
     def deco(fn):
         REGISTRY[name] = {"fn": fn, "layout": layout, "required": tuple(required), "example": example or {},
-                          "needs": tuple(needs),
+                          "needs": tuple(needs), "check": check, "uses": uses, "check_items": check_items,
                           "doc": (fn.__doc__ or "").strip(), "pack": fn.__module__.rsplit(".", 1)[-1]}
         return fn
     return deco

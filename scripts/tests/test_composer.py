@@ -3,14 +3,14 @@ import unittest
 from types import SimpleNamespace
 
 import formats
-from scripts.composer.visual import captions_html, overlay_css, overlays_html, pixi_head
-from scripts.pipeline.compose import deterministic_vendor_source
+from formats import vendors
+from scripts.composer.visual import captions_html, overlay_css, overlays_html
 
 
 class ComposerTests(unittest.TestCase):
     def test_prepare_hf_removes_randomness_from_pixi_vendors(self):
         source = "const a=Math.random(); const b=Math.random()"
-        result = deterministic_vendor_source(source)
+        result = vendors.seeded_source(source)
         self.assertNotIn("Math.random()", result)
         self.assertEqual(result.count("globalThis.__videovibeRandom()"), 2)
 
@@ -92,9 +92,10 @@ class OptInStylesTests(unittest.TestCase):
 
     def test_pixi_only_when_a_scene_needs_it(self):
         formats.load_packs(["music"])
-        self.assertEqual(pixi_head({"scenes": [{"format": "signal-spell"}]}), "")
-        self.assertEqual(pixi_head({}), "")
-        self.assertIn("pixi.min.js", pixi_head({"scenes": [{"format": "pixi-signal"}]}))
+        head = lambda sb: vendors.head(formats.needs(sb))  # noqa: E731
+        self.assertEqual(head({"scenes": [{"format": "signal-spell"}]}), head({}))
+        self.assertNotIn("pixi", head({}))
+        self.assertIn("pixi.min.js", head({"scenes": [{"format": "pixi-signal"}]}))
         self.assertEqual(formats.needs({"scenes": [{"format": "pixi-mixer"}]}), {"pixi"})
 
 

@@ -1,0 +1,115 @@
+{
+  "_note": "Estructuras de ejemplo del motor (datos públicos). Las de cada canal van en <canal>/assets/structures/ (scripts/tools/structures.py fetch).",
+  "items": [
+    {
+      "id": "crambin",
+      "file": "crambin.pdb",
+      "format": "pdb",
+      "description": "Crambina: proteína pequeña de 46 residuos (ejemplo ligero)",
+      "source": "RCSB PDB 1CRN",
+      "origin": "RCSB PDB 1CRN",
+      "license": "CC0 1.0 (datos del PDB, wwPDB)",
+      "ads": true,
+      "title": "Crambina",
+      "atoms": 327,
+      "chains": {
+        "A": 46
+      },
+      "residues": {
+        "A": [
+          1,
+          46
+        ]
+      },
+      "ligands": []
+    },
+    {
+      "id": "hemoglobin",
+      "file": "hemoglobin.pdb",
+      "format": "pdb",
+      "description": "Hemoglobina humana oxigenada: 4 cadenas y grupos hemo (HEM)",
+      "source": "RCSB PDB 1HHO",
+      "origin": "RCSB PDB 1HHO",
+      "license": "CC0 1.0 (datos del PDB, wwPDB)",
+      "ads": true,
+      "title": "Hemoglobina humana (oxigenada)",
+      "atoms": 2396,
+      "chains": {
+        "A": 141,
+        "B": 146
+      },
+      "residues": {
+        "A": [
+          1,
+          141
+        ],
+        "B": [
+          1,
+          146
+        ]
+      },
+      "ligands": [
+        "HEM",
+        "OXY",
+        "PO4"
+      ]
+    },
+    {
+      "id": "dna-dodecamer",
+      "file": "dna-dodecamer.pdb",
+      "format": "pdb",
+      "description": "ADN B de doble cadena (dodecámero de Dickerson)",
+      "source": "RCSB PDB 1BNA",
+      "origin": "RCSB PDB 1BNA",
+      "license": "CC0 1.0 (datos del PDB, wwPDB)",
+      "ads": true,
+      "title": "ADN B (dodecámero)",
+      "atoms": 566,
+      "chains": {
+        "A": 12,
+        "B": 12
+      },
+      "residues": {
+        "A": [
+          1,
+          12
+        ],
+        "B": [
+          13,
+          24
+        ]
+      },
+      "ligands": []
+    },
+    {
+      "id": "aspirin",
+      "file": "aspirin.sdf",
+      "format": "sdf",
+      "description": "Ácido acetilsalicílico (aspirina), 3D de PubChem",
+      "source": "PubChem CID 2244",
+      "origin": "PubChem CID 2244",
+      "license": "Dominio público (PubChem, NCBI)",
+      "ads": true,
+      "title": "Aspirina (ácido acetilsalicílico)",
+      "atoms": 21,
+      "chains": {},
+      "residues": {},
+      "ligands": []
+    },
+    {
+      "id": "caffeine",
+      "file": "caffeine.sdf",
+      "format": "sdf",
+      "description": "Cafeína, 3D de PubChem",
+      "source": "PubChem CID 2519",
+      "origin": "PubChem CID 2519",
+      "license": "Dominio público (PubChem, NCBI)",
+      "ads": true,
+      "title": "Cafeína",
+      "atoms": 24,
+      "chains": {},
+      "residues": {},
+      "ligands": []
+    }
+  ]
+}

@@ -29,6 +29,22 @@ def validate(sb, state):
             missing = [k for k in reg[fmt]["required"] if k not in params]
             if missing:
                 errs.append(f"{p}.params: faltan {missing} (obligatorios de «{fmt}», ver docs/formats.md)")
+            else:
+                if reg[fmt].get("check"):
+                    errs += [f"{p}.params.{m}" for m in reg[fmt]["check"](params)]
+                if reg[fmt].get("uses") and not any(e.startswith(f"{p}.params") for e in errs):
+                    from scripts.core import assetlib, lottielib
+                    # platforms se valida después: aquí se mira directo si alguna plataforma es de anuncios
+                    ads = any(ctx.get("presets", {}).get(pl, {}).get("ads") for pl in (sb.get("platforms") or {}))
+                    for kind, ident in reg[fmt]["uses"](params):
+                        errs += [f"{p}.params: {m}" for m in
+                                 assetlib.problems(kind, ident, ctx.get("channel_dir"), ads=ads)]
+                        it = assetlib.item(kind, ident, ctx.get("channel_dir"))
+                        if kind == "lottie" and it:
+                            errs += [f"{p}.params: «{ident}» {m}" for m in lottielib.map_problems(it.get("recolor"))]
+                    if reg[fmt].get("check_items"):
+                        items = {i: assetlib.item(k, i, ctx.get("channel_dir")) for k, i in reg[fmt]["uses"](params)}
+                        errs += [f"{p}.params.{m}" for m in reg[fmt]["check_items"](params, items)]
         if "layout" in sc and sc["layout"] not in LAYOUTS:
             errs.append(f"{p}.layout: «{sc['layout']}» no existe ({', '.join(sorted(LAYOUTS))})")
         for k in ("sfx", "sfx_out"):

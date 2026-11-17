@@ -18,3 +18,5 @@ input/*
 !input/README.md
 deliveries/*
 !deliveries/README.md
+channels/*/assets/lottie/*
+!channels/*/assets/lottie/library.json

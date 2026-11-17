@@ -21,7 +21,8 @@ def build():
     lines = ["# Catálogo de formatos de animación", "",
              "> Generado por `bin/format-catalog` desde `formats/`. No editar a mano.",
              "> Uso en `storyboard.json → scenes` (ver `docs/storyboard.md`). `core` está siempre disponible;",
-             "> los paquetes se activan por canal en `channel.json → format_packs`.", ""]
+             "> los paquetes se activan por canal en `channel.json → format_packs`.",
+             "> Para verlos con la marca de un canal: `bin/format-gallery --channel <id>`.", ""]
     for pack in ["core", *packs]:
         items = {k: v for k, v in sorted(reg.items()) if v["pack"] == pack}
         if not items:
@@ -32,6 +33,7 @@ def build():
             lines += [f"### `{name}`", "", doc, "",
                       f"- Layout por defecto: `{m['layout']}`",
                       f"- Obligatorios: {', '.join(f'`{r}`' for r in m['required']) or '—'}",
+                      *([f"- Librerías: {', '.join(f'`{n}`' for n in m['needs'])}"] if m.get("needs") else []),
                       "- Ejemplo:", "", "```json",
                       json.dumps({"id": f"s-{name}", "format": name, "in": 0.0, "out": 3.0, "params": m["example"]},
                                  ensure_ascii=False), "```", ""]

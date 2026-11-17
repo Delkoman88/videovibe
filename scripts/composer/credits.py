@@ -59,3 +59,25 @@ def update_broll_credits(P, clips, media):
     elif block:
         txt = txt.rstrip("\n") + "\n\n" + block + "\n"
     f.write_text(txt, encoding="utf-8")
+
+
+ANIM_BEGIN, ANIM_END = "<!-- animations:auto -->", "<!-- /animations:auto -->"
+KIND_LABEL = {"lottie": "Animación Lottie", "structures": "Estructura molecular"}
+
+
+def update_animation_credits(P, used):
+    """Registra en assets.md cada recurso de biblioteca que usan las escenas (Lottie…), con origen y licencia."""
+    f = P / "assets.md"
+    txt = f.read_text(encoding="utf-8") if f.exists() else "# Fuentes y licencias de los recursos usados\n"
+    rows = [f"| {KIND_LABEL.get(u['kind'], u['kind'])} «{u['id']}» | {u.get('origin', '?')} | {u.get('license', '?')}"
+            f"{' · apta para anuncios' if u.get('ads') else ''} |" for u in used]
+    block = (f"{ANIM_BEGIN}\n## Animaciones (automático: lo actualiza compose.py)\n\n"
+             "| Recurso | Origen | Licencia |\n|---|---|---|\n" + "\n".join(rows) + f"\n{ANIM_END}") if rows else ""
+    if ANIM_BEGIN in txt and ANIM_END in txt:
+        a, b = txt.index(ANIM_BEGIN), txt.index(ANIM_END) + len(ANIM_END)
+        txt = txt[:a] + block + txt[b:]
+    elif block:
+        txt = txt.rstrip("\n") + "\n\n" + block + "\n"
+    else:
+        return
+    f.write_text(txt, encoding="utf-8")

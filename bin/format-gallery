@@ -1,0 +1,18 @@
+#!/usr/bin/env python3
+"""Galería de formatos con la marca de un canal (ver scripts/tools/gallery.py).
+
+Uso: bin/format-gallery --channel <id> [--formats a,b] [--seconds 3.2] [--check] [--determinism]
+"""
+import sys
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parent.parent
+VENV = ROOT / ".venv" / "bin" / "python"
+if VENV.exists() and Path(sys.prefix).resolve() != (ROOT / ".venv").resolve():
+    import os
+    os.execv(str(VENV), [str(VENV), __file__, *sys.argv[1:]])  # numpy para comparar capturas
+sys.path.insert(0, str(ROOT))
+from scripts.tools.gallery import main  # noqa: E402
+
+if __name__ == "__main__":
+    main()

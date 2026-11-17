@@ -27,6 +27,7 @@ Los canales de cada persona pueden vivir fuera del repo (repo privado): la carpe
 | Editar una pieza de un canal | Pieza nueva: `bin/new-piece <canal> <slug> --from <archivos>` (la crea donde viven los canales, con `raw/` y `brief.md`). Después `bin/edit <canal>/<pieza>` y haz lo que indique al pausar. Antes de decisiones creativas: `channels/<canal>/CHANNEL.md`, `style.md`, `rhythm.md`, `learnings.md`. Detalle: `docs/pipeline.md` |
 | Escribir el plan visual (storyboard) | `docs/storyboard.md` + `docs/formats.md` (+ `brand.json` del canal) |
 | Sonido (voz, música, efectos) | `docs/audio.md` |
+| Animaciones Lottie y moléculas 3D (agregar, licencias, colores) | `docs/visual-assets.md` |
 | Adaptar a una plataforma | `presets/<plataforma>.json` + `docs/platforms.md` |
 | Dar de alta un canal | `docs/channels.md` + `templates/channel-brief.md` |
 | Cambiar el motor (scripts, formatos) | `docs/status/` (backlog, roadmap) + `docs/decisions/` antes de tocar nada |
@@ -66,12 +67,12 @@ Precedencia: **pieza (brief) > canal > motor**, salvo estas reglas universales.
 | `deliveries/` | Finales verificados por canal y pieza (`deliveries/<Canal>/<fecha> <pieza>/`): enlaces a los renders + portada, texto y `README.md`. Los llena `bin/edit` al entregar; dile siempre a la persona la ruta (fuera de git) |
 | `channels/_template/`, `channels/science-60/` | Esqueleto para canales nuevos (`bin/new-channel`) y canal de ejemplo (`bin/demo`) |
 | `scripts/` | Paquetes `pipeline/`, `audio/`, `core/`, `composer/`, `validation/`, `tools/`, `tests/`. Pipeline (ver `docs/pipeline.md`). `--project` acepta `<canal>/<pieza>`. `compose.py` orquesta `scripts/composer/` (visual, audio, créditos, placa) |
-| `formats/` | Animaciones: `core.py` (genéricas) + `packs/` (temáticas). Catálogo: `docs/formats.md` |
+| `formats/` | Animaciones: `core.py` (genéricas) + `packs/` (temáticas), `vendors.py` (librerías opcionales), `icons/` (Lucide). Catálogo: `docs/formats.md`; galería: `bin/format-gallery` |
 | `lang/` | Paquetes de idioma (muletillas, conectores, reglas de subtítulos, etiquetas) |
 | `presets/` | Especificación técnica por plataforma |
 | `docs/status/` | Estado del desarrollo: `STATUS.md`, `backlog.md`, `roadmap.md` |
 | `docs/decisions/` | Decisiones técnicas (por qué las cosas son como son) |
-| `bin/` | `welcome` (en qué etapa está la persona), `setup` (instalación), `demo` (prueba de punta a punta), `new-piece` (pieza nueva), `edit` (orquestador), `review` (revisiones A/B guiadas), `open-review` (abrir archivos para la persona), `status`, `doctor`, `new-channel`, `format-catalog`, `install-agents` |
+| `bin/` | `welcome` (en qué etapa está la persona), `setup` (instalación), `demo` (prueba de punta a punta), `new-piece` (pieza nueva), `edit` (orquestador), `review` (revisiones A/B guiadas), `open-review` (abrir archivos para la persona), `status`, `doctor`, `new-channel`, `format-catalog`, `format-gallery` (ver los formatos con la marca de un canal), `install-agents` |
 | `.agents/skills/edit-video/` | Skill (formato abierto SKILL.md); `.claude/skills` apunta aquí |
 
 ## «Guarda esto en el sistema»

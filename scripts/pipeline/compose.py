@@ -29,14 +29,16 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT))
 import formats  # noqa: E402
+from formats import vendors  # noqa: E402
 from scripts.core import oslib  # noqa: E402
 from scripts.pipeline import storyboard  # noqa: E402
 from scripts.audio import voice  # noqa: E402
 from scripts.composer.audio import (audio_markup, db, duck_lane, exit_cues, music_src_for,  # noqa: E402,F401
                             scene_cues, speech_intervals)
 from scripts.composer.context import Ctx, font_faces  # noqa: E402
-from scripts.composer.credits import (AUTO_BEGIN, AUTO_END, audio_credits_md, update_assets_md,
-                              update_broll_credits)  # noqa: E402,F401
+from scripts.composer.credits import (AUTO_BEGIN, AUTO_END, audio_credits_md, update_animation_credits,  # noqa: E402,F401
+                              update_assets_md, update_broll_credits)
+from scripts.composer import data as scene_data  # noqa: E402
 from scripts.composer.plate import build_plate  # noqa: E402
 from scripts.composer.visual import captions_html, index_html, overlays_html, safe_zone  # noqa: E402
 
@@ -64,39 +66,18 @@ def prepare_broll(P, sb, hf, media):
                    "-movflags", "+faststart", str(out)])
 
 
-def deterministic_vendor_source(source):
-    """Redirige la aleatoriedad de terceros al PRNG fijo del proyecto."""
-    return source.replace("Math.random()", "globalThis.__videovibeRandom()")
-
-
 def prepare_hf(P, ch, brand, needs=()):
     """Carpeta hf/ con fuentes de marca, GSAP (npm) y la configuración del proyecto HyperFrames.
-    Las librerías opcionales (`needs`, p. ej. "pixi") solo se copian si alguna escena las usa."""
+    Las librerías opcionales (`needs`, p. ej. "pixi") solo se copian si alguna escena las usa
+    (formats/vendors.py)."""
     hf = P / "hf"
     for sub in ("compositions", "assets/fonts", "assets/vendor"):
         (hf / sub).mkdir(parents=True, exist_ok=True)
     for key in ("display", "mono"):
         shutil.copy(oslib.font_file(ch, key), hf / "assets" / "fonts" / brand["fonts"][key]["file"])
-    vendors = {"gsap.min.js": oslib.ROOT / "node_modules" / "gsap" / "dist" / "gsap.min.js"}  # versión fijada en package.json
-    if "pixi" in needs:
-        vendors["pixi.min.js"] = oslib.ROOT / "node_modules" / "pixi.js" / "dist" / "pixi.min.js"
-        vendors["pixi-filters.js"] = oslib.ROOT / "node_modules" / "pixi-filters" / "dist" / "pixi-filters.js"
-    else:  # una composición anterior pudo dejarlos
-        for old in ("pixi.min.js", "pixi-filters.js"):
-            (hf / "assets" / "vendor" / old).unlink(missing_ok=True)
-    missing = [name for name, src in vendors.items() if not src.exists()]
+    missing = vendors.copy(needs, oslib.ROOT / "node_modules", hf / "assets" / "vendor")
     if missing:
-        oslib.die(f"faltan dependencias visuales {missing}: corre `npm ci` en la raíz del repo (bin/setup lo hace)")
-    for name, src in vendors.items():
-        dst = hf / "assets" / "vendor" / name
-        if name.startswith("pixi"):
-            # HyperFrames exige que todos los cuadros sean reproducibles. Pixi usa
-            # Math.random para ids y semillas internas aun cuando el formato no lo
-            # invoca; lo redirigimos al generador fijo declarado en index.html.
-            source = src.read_text(encoding="utf-8")
-            dst.write_text(deterministic_vendor_source(source), encoding="utf-8")
-        else:
-            shutil.copy(src, dst)
+        oslib.die(f"faltan librerías de animación {missing}: corre `npm ci` en la raíz del repo (bin/setup lo hace)")
     return hf
 
 
@@ -168,6 +149,7 @@ def main():
 
     formats.load_packs(ctx.packs)
     hf = prepare_hf(P, ch, brand, formats.needs(sb))
+    used_assets = scene_data.write(hf, sb, ch["dir"], brand)
     write_plate(P, ch, sb, hf)
     media = {m["id"]: m for m in oslib.read_json(P / "media.json")["items"]}
     prepare_broll(P, sb, hf, media)
@@ -194,6 +176,7 @@ def main():
     plan = audio_markup(sb, ch, caps, total, hf)
     update_assets_md(P, audio_credits_md(plan.credits))
     update_broll_credits(P, sb.get("broll", []), media)
+    update_animation_credits(P, used_assets)
     (hf / "index.html").write_text(index_html(sb, brand, safe, dur, total, cuts, default_cta, plan.els, ctx,
                                               plan.music_srcs, media), encoding="utf-8")
     apply_grading(sb, hf, ctx.packs)

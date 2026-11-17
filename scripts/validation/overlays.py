@@ -1,3 +1,5 @@
+from formats.text import VARIANTS
+
 from .common import OVERLAY_TYPES
 
 def validate(sb, state):
@@ -25,6 +27,11 @@ def validate(sb, state):
         if "role" in o and ctx.get("roles") and o["role"] not in ctx["roles"]:
             errs.append(f"{p}.role: «{o['role']}» no existe en brand.json → highlight_roles "
                         f"({', '.join(sorted(ctx['roles']))})")
+        if "text_fx" in o:
+            if o.get("type") == "cta":
+                errs.append(f"{p}.text_fx: la CTA no admite text_fx (su texto cambia por plataforma)")
+            elif o["text_fx"] not in VARIANTS:
+                errs.append(f"{p}.text_fx: «{o['text_fx']}» (usa {', '.join(VARIANTS)})")
         span(p, o)
         if isinstance(o.get("sfx"), str):
             sound(f"{p}.sfx", o["sfx"])

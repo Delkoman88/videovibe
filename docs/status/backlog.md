@@ -14,6 +14,10 @@
   *Hecho cuando:* la pieza pasa `verify.py` sin tocar `scripts/` ni `formats/core.py`.
 - [ ] **Probar con Codex** (y luego Gemini CLI, Muse Code): editar una pieza corta leyendo solo `AGENTS.md`.
   *Hecho cuando:* termina sin preguntar nada que esté documentado; lo que faltó queda corregido en docs.
+## P1 — Más y mejores animaciones (plan aprobado 2026-11-17)
+
+- [ ] **Fase 1 — revisión B real con `motion`:** el paquete y `text_fx` están hechos (galería de los dos
+  canales en verde); falta usarlos en una pieza real y aprobarla.
 ## P2
 
 - [ ] **Revisar actualización de HyperFrames**: la versión fijada 0.9.32 arrastra `undici` con avisos de seguridad de npm; probar 0.9.58 y migrar solo si la suite, la demo y una pieza real conservan salida y revisiones.
@@ -39,6 +43,15 @@
 - [ ] Respaldo remoto del repo (GitHub privado o público).
 
 ## Hecho
+
+- [x] **Fase 3 de animaciones: paquete `molecular`** (2026-11-17): 3Dmol.js con vista y ángulo absolutos por
+  cuadro, superficies con `buildReady`, `scripts/tools/structures.py` (PDB, PubChem) y validación de `focus`. ADR 0024.
+- [x] **Fase 2 de animaciones: paquete `lottie`** (2026-11-17): bibliotecas con licencia (motor + canal),
+  recoloreo con la marca, datos locales, `scripts/tools/lottie.py` y cuatro animaciones propias. ADR 0023.
+- [x] **Fase 1 de animaciones: paquete `motion`** (2026-11-17): seis formatos con plugins de GSAP, `text_fx`
+  en tarjetas, validación por formato y guía de uso. Galería de los dos canales con check y determinismo en verde.
+- [x] **Fase 0 de animaciones** (2026-11-17): tabla de librerías opcionales (`formats/vendors.py`), prueba
+  técnica de Lottie y 3Dmol en HyperFrames (deterministas), `bin/format-gallery` e iconos Lucide. ADR 0022.
 
 - [x] **Primera pieza real de un canal de DJ, entregada desde Windows/WSL** (2026-11-16): extensión del corte con una conclusión real, subtítulos reparados por tramos, posiciones que evitan el rostro, B-roll vertical sincronizado, CTA con cola de 4 s y render/entrega limitados a TikTok. `verify.py` en verde y suite de 137 pruebas.
 

@@ -66,3 +66,15 @@ def needs(sb):
     for scene in sb.get("scenes", []):
         out.update(REGISTRY.get(scene.get("format"), {}).get("needs", ()))
     return out
+
+
+def uses(sb):
+    """Recursos de biblioteca que piden las escenas: [(escena, tipo, id)] en orden, sin repetir (tipo, id)."""
+    out, seen = [], set()
+    for scene in sb.get("scenes", []):
+        fn = REGISTRY.get(scene.get("format"), {}).get("uses")
+        for kind, ident in (fn(scene.get("params", {})) if fn else []):
+            if (kind, ident) not in seen:
+                seen.add((kind, ident))
+                out.append((scene.get("id"), kind, ident))
+    return out

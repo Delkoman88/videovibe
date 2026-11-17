@@ -15,7 +15,10 @@
     "reels"
   ],
   "format_packs": [
-    "biotech"
+    "biotech",
+    "motion",
+    "lottie",
+    "molecular"
   ],
   "notes": "Canal de EJEMPLO del motor (ficticio). Úsalo para probar el sistema (bin/demo) o como modelo para tu propio canal: bin/new-channel <id>.",
   "voice": {

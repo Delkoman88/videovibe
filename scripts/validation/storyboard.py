@@ -15,6 +15,7 @@ def context(P, ch=None):
         "word_ids": {w["id"] for w in oslib.read_json(caps_f)["words"]} if caps_f.exists() else None,
         "roles": set(ch["brand"].get("highlight_roles", {})),
         "formats": formats.registry(packs),
+        "channel_dir": ch["dir"],
         "library": {t["id"]: t for t in oslib.read_json(lib_f)["tracks"]} if lib_f.exists() else {},
         "kit": oslib.read_json(kit_f)["sounds"] if kit_f.exists() else {},
         "presets": {p.stem: oslib.read_json(p) for p in (oslib.ROOT / "presets").glob("*.json")},
