@@ -22,7 +22,9 @@ def validate(sb, state):
         elif cid in ids:
             errs.append(f"{p}.id: «{cid}» repetido")
         ids.add(cid)
-        span(p, clip, allow_tail=False)
+        # Un inserto puede sostenerse durante `tail_s` para que la placa final conserve el último
+        # encuadre aprobado en vez de revelar de nuevo el master base.
+        span(p, clip, allow_tail=True)
         if _num(clip.get("in")) and clip["in"] < previous_out - 0.001:
             errs.append(f"{p}.in: los insertos deben ir en orden y no solaparse")
         if _num(clip.get("out")):

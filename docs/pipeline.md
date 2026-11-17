@@ -111,6 +111,8 @@ Cómo aplicar las notas del punto A:
 scripts/pipeline/captions.py --project $P            # transcribe el master y arma grupos de subtítulos
 # corregir texto/puntuación en transcript/master-cut.json, luego:
 scripts/pipeline/captions.py --project $P --from-transcript
+# tras un cambio de corte: importa anclajes de `whisper-cli -ojf -sow -ml 1` sobre el master final
+scripts/pipeline/captions.py --project $P --from-whisper-json work/alignment/master-cut.json
 # escribir storyboard.json (docs/storyboard.md)
 scripts/pipeline/compose.py  --project $P --platform tiktok --platform reels
 cd channels/<canal>/projects/<pieza>/hf

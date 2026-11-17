@@ -14,6 +14,49 @@ def W(i, text, a, b):
 
 
 class TestCaptions(unittest.TestCase):
+    def test_repair_from_remap_keeps_master_span_and_approved_words(self):
+        base = [
+            {"w": "¿no?", "start": 0.7, "end": 1.0},
+            {"w": "frase", "start": 1.1, "end": 1.5},
+            {"w": "mala", "start": 1.5, "end": 2.0},
+        ]
+        remap = [
+            {"w": "¿no?", "start": 0.9, "end": 1.1},
+            {"w": "cierre", "start": 1.2, "end": 1.6},
+            {"w": "completo", "start": 1.6, "end": 1.9},
+        ]
+        got = captions.repair_from_remap(base, remap, 1.05, 2.1)
+        self.assertEqual([w["w"] for w in got], ["¿no?", "cierre", "completo"])
+        self.assertEqual(got[1]["start"], 1.1)
+        self.assertEqual(got[-1]["end"], 2.0)
+        self.assertEqual([w["id"] for w in got], ["w0", "w1", "w2"])
+
+    def test_repair_prefix_uses_only_approved_cut_text(self):
+        base = [{"w": "mal", "start": 0, "end": 1}, {"w": "después", "start": 2, "end": 3}]
+        cut = {"lines": [{"id": "L1", "text": "texto correcto", "status": "keep"}]}
+        cmap = {"segments": [{"out_in": 0, "out_out": 1, "lines": ["L1"]}]}
+        got = captions.repair_prefix_from_approved_cut(base, cut, cmap, 1)
+        self.assertEqual([w["w"] for w in got], ["texto", "correcto", "después"])
+        self.assertEqual(got[1]["end"], 1.0)
+    def test_imports_word_timestamps_from_whisper_json(self):
+        data = {"transcription": [
+            {"text": "", "offsets": {"from": 0, "to": 0}, "tokens": []},
+            {"text": " música", "offsets": {"from": 420, "to": 910},
+             "tokens": [{"text": " música", "p": 0.8}]},
+        ]}
+        self.assertEqual(captions.words_from_whisper_json(data), [
+            {"w": "música", "start": 0.42, "end": 0.91, "p": 0.8},
+        ])
+
+    def test_regularizes_simultaneous_words_without_moving_anchor(self):
+        words = [W(0, "Los", 6.3, 6.3), W(1, "que", 6.3, 6.3), W(2, "tocamos", 6.3, 6.49),
+                 W(3, "y", 6.49, 6.6)]
+        captions.regularize_zero_duration_words(words)
+        self.assertEqual(words[0]["start"], 6.3)
+        self.assertEqual(words[2]["end"], 6.49)
+        self.assertGreater(words[0]["end"], words[0]["start"])
+        self.assertGreaterEqual(words[1]["start"], words[0]["end"])
+
     def test_groups_never_overlap_and_break_on_sentence(self):
         ws = [W(0, "Hola", 0.2, 0.5), W(1, "mundo.", 0.5, 0.9), W(2, "Esto", 1.0, 1.2), W(3, "sigue", 1.2, 1.5)]
         gs = captions.build_groups(ws, max_words=4, max_chars=22, duration=2.0)

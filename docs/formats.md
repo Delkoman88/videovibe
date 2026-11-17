@@ -115,3 +115,53 @@ Un nodo central (1 persona + IA) que se expande en módulos biotech con íconos;
 ```json
 {"id": "s-lab-network", "format": "lab-network", "in": 0.0, "out": 3.0, "params": {"core": "1", "core_label": "persona", "plus": "+ IA", "modules": [["Genómica", "adn"], ["Proteínas", "proteina"], ["Células", "celula"], ["Fármacos", "farmaco"]]}}
 ```
+
+## Paquete `music`
+
+### `patchbay-dream`
+
+Recursos entran como canales de una mezcladora y se rutean por cables luminosos hacia la salida `output` (el nombre del artista o la idea final).
+
+- Layout por defecto: `full`
+- Obligatorios: `inputs`, `output`
+- Ejemplo:
+
+```json
+{"id": "s-patchbay-dream", "format": "patchbay-dream", "in": 0.0, "out": 3.0, "params": {"kicker": "ROUTE THE SIGNAL", "inputs": ["RECURSOS", "EXPERIENCIA", "DECISIÓN"], "output": "MASTER", "output_at": 2.0}}
+```
+
+### `pixi-mixer`
+
+Consola de mezcla PixiJS: canales pixel-neón convergen en la salida `output` con bloom y glitch.
+
+- Layout por defecto: `full`
+- Obligatorios: `inputs`, `output`
+- Ejemplo:
+
+```json
+{"id": "s-pixi-mixer", "format": "pixi-mixer", "in": 0.0, "out": 3.0, "params": {"kicker": "PATCH THE DREAM", "inputs": ["RECURSOS", "EXPERIENCIA", "DECISIÓN"], "output": "MASTER", "output_at": 1.9}}
+```
+
+### `pixi-signal`
+
+Señal pixelada construida con PixiJS: waveform, platter, bloom y separación RGB.
+
+- Layout por defecto: `over`
+- Obligatorios: `text`
+- Ejemplo:
+
+```json
+{"id": "s-pixi-signal", "format": "pixi-signal", "in": 0.0, "out": 3.0, "params": {"text": "MÚSICA = MAGIA", "kicker": "LIVE // SIGNAL"}}
+```
+
+### `signal-spell`
+
+La frase emerge de una señal de osciloscopio con anillos de deck y glitch controlado.
+
+- Layout por defecto: `over`
+- Obligatorios: `text`
+- Ejemplo:
+
+```json
+{"id": "s-signal-spell", "format": "signal-spell", "in": 0.0, "out": 3.0, "params": {"text": "MÚSICA = MAGIA", "kicker": "LIVE // SIGNAL", "y": 310}}
+```

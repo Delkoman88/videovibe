@@ -11,6 +11,33 @@ from pathlib import Path
 from scripts.core import oslib
 
 
+def _is_wsl():
+    """Devuelve True dentro de WSL, incluso si las variables de entorno no están disponibles."""
+    if os.environ.get("WSL_INTEROP") or os.environ.get("WSL_DISTRO_NAME"):
+        return True
+    try:
+        return "microsoft" in Path("/proc/sys/kernel/osrelease").read_text().lower()
+    except OSError:
+        return False
+
+
+def _open_in_windows(path):
+    """Abre una ruta WSL con la aplicación predeterminada de Windows."""
+    converted = subprocess.run(
+        ["wslpath", "-w", str(path)], capture_output=True, text=True, timeout=10
+    )
+    if converted.returncode:
+        return False, (converted.stderr or converted.stdout or "wslpath falló").strip()[:240]
+    windows_path = converted.stdout.strip()
+    opened = subprocess.run(
+        ["cmd.exe", "/c", "start", "", windows_path],
+        capture_output=True, text=True, timeout=10,
+    )
+    if opened.returncode:
+        return False, (opened.stderr or opened.stdout or "Windows no pudo abrir el archivo").strip()[:240]
+    return True, None
+
+
 def files_for(P, gate):
     P = Path(P)
     if gate == "A":
@@ -51,7 +78,8 @@ def fingerprint(P, gate):
 
 def open_files(paths, *, no_open=False):
     """Abre cada archivo (o carpeta) una vez y devuelve rutas absolutas aun si el visor falla.
-    macOS: open · Linux: xdg-open · Windows: os.startfile. Sin visor, la persona usa la ruta."""
+    macOS: open · Linux: xdg-open · WSL: app predeterminada de Windows · Windows: os.startfile.
+    Sin visor, la persona usa la ruta."""
     results = []
     seen = set()
     system = platform.system()
@@ -71,6 +99,13 @@ def open_files(paths, *, no_open=False):
                 os.startfile(str(p))  # noqa: S606 — abre con la aplicación predeterminada
                 item["opened"] = True
             except OSError as e:
+                item["reason"] = str(e)[:240]
+        elif system == "Linux" and _is_wsl() and shutil.which("cmd.exe") and shutil.which("wslpath"):
+            try:
+                item["opened"], reason = _open_in_windows(p)
+                if reason:
+                    item["reason"] = reason
+            except (OSError, subprocess.TimeoutExpired) as e:
                 item["reason"] = str(e)[:240]
         elif not opener or not shutil.which(opener):
             item["reason"] = "no hay visor disponible"

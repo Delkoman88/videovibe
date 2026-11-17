@@ -1,6 +1,6 @@
 from scripts.core import oslib
 from .common import ROOT_KEYS, _num, State
-from . import overlays, scenes, camera, emphasis, platforms, broll, audio, voice
+from . import overlays, scenes, camera, emphasis, platforms, broll, audio, voice, captions
 
 def context(P, ch=None):
     """Todo lo que la validación necesita saber de la pieza y su canal."""
@@ -32,8 +32,8 @@ def validate(sb, ctx):
         if not k.startswith("_"):
             warns.append(f"{k}: clave desconocida (se ignora; válidas: {', '.join(sorted(ROOT_KEYS))})")
     tail = sb.get("tail_s", 0)
-    if not _num(tail) or not 0 <= tail <= 3:
-        errs.append("tail_s: número entre 0 y 3 (segundos de último cuadro congelado)")
+    if not _num(tail) or not 0 <= tail <= 5:
+        errs.append("tail_s: número entre 0 y 5 (segundos de último cuadro congelado)")
         tail = 0
     dur = ctx.get("duration")
     end = (dur + tail) if dur is not None else None
@@ -45,6 +45,7 @@ def validate(sb, ctx):
     emphasis.validate(sb, state)
     platforms.validate(sb, state)
     broll.validate(sb, state)
+    captions.validate(sb, state)
     audio.validate(sb, state)
     voice.validate(sb, state)
     return errs, warns

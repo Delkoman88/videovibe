@@ -64,18 +64,39 @@ def prepare_broll(P, sb, hf, media):
                    "-movflags", "+faststart", str(out)])
 
 
-def prepare_hf(P, ch, brand):
-    """Carpeta hf/ con fuentes de marca, GSAP (npm) y la configuración del proyecto HyperFrames."""
+def deterministic_vendor_source(source):
+    """Redirige la aleatoriedad de terceros al PRNG fijo del proyecto."""
+    return source.replace("Math.random()", "globalThis.__videovibeRandom()")
+
+
+def prepare_hf(P, ch, brand, needs=()):
+    """Carpeta hf/ con fuentes de marca, GSAP (npm) y la configuración del proyecto HyperFrames.
+    Las librerías opcionales (`needs`, p. ej. "pixi") solo se copian si alguna escena las usa."""
     hf = P / "hf"
-    (hf / "compositions").mkdir(parents=True, exist_ok=True)
-    (hf / "assets" / "fonts").mkdir(parents=True, exist_ok=True)
-    (hf / "assets" / "vendor").mkdir(parents=True, exist_ok=True)
+    for sub in ("compositions", "assets/fonts", "assets/vendor"):
+        (hf / sub).mkdir(parents=True, exist_ok=True)
     for key in ("display", "mono"):
         shutil.copy(oslib.font_file(ch, key), hf / "assets" / "fonts" / brand["fonts"][key]["file"])
-    gsap = oslib.ROOT / "node_modules" / "gsap" / "dist" / "gsap.min.js"  # versión fijada en package.json
-    if not gsap.exists():
-        oslib.die("falta GSAP: corre `npm install` en la raíz del repo (bin/setup lo hace)")
-    shutil.copy(gsap, hf / "assets" / "vendor" / "gsap.min.js")
+    vendors = {"gsap.min.js": oslib.ROOT / "node_modules" / "gsap" / "dist" / "gsap.min.js"}  # versión fijada en package.json
+    if "pixi" in needs:
+        vendors["pixi.min.js"] = oslib.ROOT / "node_modules" / "pixi.js" / "dist" / "pixi.min.js"
+        vendors["pixi-filters.js"] = oslib.ROOT / "node_modules" / "pixi-filters" / "dist" / "pixi-filters.js"
+    else:  # una composición anterior pudo dejarlos
+        for old in ("pixi.min.js", "pixi-filters.js"):
+            (hf / "assets" / "vendor" / old).unlink(missing_ok=True)
+    missing = [name for name, src in vendors.items() if not src.exists()]
+    if missing:
+        oslib.die(f"faltan dependencias visuales {missing}: corre `npm ci` en la raíz del repo (bin/setup lo hace)")
+    for name, src in vendors.items():
+        dst = hf / "assets" / "vendor" / name
+        if name.startswith("pixi"):
+            # HyperFrames exige que todos los cuadros sean reproducibles. Pixi usa
+            # Math.random para ids y semillas internas aun cuando el formato no lo
+            # invoca; lo redirigimos al generador fijo declarado en index.html.
+            source = src.read_text(encoding="utf-8")
+            dst.write_text(deterministic_vendor_source(source), encoding="utf-8")
+        else:
+            shutil.copy(src, dst)
     return hf
 
 
@@ -138,14 +159,15 @@ def main():
     brand = ch["brand"]
     ctx = Ctx(brand=brand, packs=tuple(ch["config"].get("format_packs", [])), font_faces=font_faces(brand),
               lang=ch["lang"]["code"])
-    formats.configure(ctx.font_faces, ch["lang"]["labels"])
+    formats.configure(ctx.font_faces, ch["lang"]["labels"], ch["config"].get("name"))
     problems, _ = storyboard.validate(sb, storyboard.context(P, ch))  # todos los errores juntos, antes de nada
     if problems:
         oslib.emit({"ok": False, "error": "storyboard.json tiene problemas (scripts/pipeline/storyboard.py)",
                     "problems": problems}, 2)
     sb["_lang"] = ctx.lang
 
-    hf = prepare_hf(P, ch, brand)
+    formats.load_packs(ctx.packs)
+    hf = prepare_hf(P, ch, brand, formats.needs(sb))
     write_plate(P, ch, sb, hf)
     media = {m["id"]: m for m in oslib.read_json(P / "media.json")["items"]}
     prepare_broll(P, sb, hf, media)
@@ -160,7 +182,8 @@ def main():
     for old in list(hf.glob("index-*.html")) + list((hf / "compositions").glob("overlays-*.html")):
         old.unlink()
     (hf / "compositions" / "captions.html").write_text(
-        captions_html(caps, sb.get("emphasis", {}), brand, safe, ctx), encoding="utf-8")
+        captions_html(caps, sb.get("emphasis", {}), brand, safe, ctx, sb.get("caption_zones", [])),
+        encoding="utf-8")
     (hf / "compositions" / "overlays.html").write_text(overlays_html(sb, brand, safe, ctx), encoding="utf-8")
     for old in (hf / "compositions").glob("scene-*.html"):
         old.unlink()

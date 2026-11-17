@@ -16,6 +16,8 @@
   *Hecho cuando:* termina sin preguntar nada que esté documentado; lo que faltó queda corregido en docs.
 ## P2
 
+- [ ] **Revisar actualización de HyperFrames**: la versión fijada 0.9.32 arrastra `undici` con avisos de seguridad de npm; probar 0.9.58 y migrar solo si la suite, la demo y una pieza real conservan salida y revisiones.
+
 - [ ] **Transcripción más rápida y con progreso**: sin GPU (sandbox de Codex) 19 s de video tardaron 148 s porque se recarga el modelo en cada tramo; usar whisper-server (modelo cargado una vez) y que `bin/edit` muestre el avance («tramo 3/7»). En la prueba con Codex, el agente fue a leer `transcribe.py` porque no sabía si seguía trabajando.
 
 - [ ] **Versión corta y clips** desde `clips.json` (render por segmentos del master compuesto).
@@ -37,6 +39,14 @@
 - [ ] Respaldo remoto del repo (GitHub privado o público).
 
 ## Hecho
+
+- [x] **Primera pieza real de un canal de DJ, entregada desde Windows/WSL** (2026-11-16): extensión del corte con una conclusión real, subtítulos reparados por tramos, posiciones que evitan el rostro, B-roll vertical sincronizado, CTA con cola de 4 s y render/entrega limitados a TikTok. `verify.py` en verde y suite de 137 pruebas.
+
+- [x] **Realineación de subtítulos desde el master final** (2026-11-16): `captions.py --from-whisper-json` importa timestamps globales de whisper.cpp, regulariza solo tokens de duración cero y conserva los anclajes; corrige subtítulos obsoletos después de un cambio de corte.
+
+- [x] **Apertura de revisiones en WSL** (2026-11-16): `bin/open-review` detecta Ubuntu/WSL, convierte rutas con `wslpath` y abre video, imágenes y documentos con la aplicación predeterminada de Windows; cubierto por prueba automática.
+
+- [x] **Paquete visual para música electrónica** (2026-11-16): cuatro formatos —incluidos `pixi-signal` y `pixi-mixer` con PixiJS/pixi-filters—, osciloscopio, deck, mezcladora, cables, glitch y píxeles neón. Dependencias locales, semilla fija y revisión B real en un canal de DJ.
 
 - [x] **Linux de punta a punta en GitHub** (2026-11-12): la demo pasa en Ubuntu 24.04 tras dos correcciones (sintaxis de filtros de ffmpeg 6 y sincronía de la voz por muestras decodificadas). El job `demo` ya bloquea.
 

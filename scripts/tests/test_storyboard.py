@@ -48,6 +48,11 @@ class TestValidate(unittest.TestCase):
         self.assertEqual(errs, [])
         self.assertEqual(warns, [])
 
+    def test_four_second_tail_is_valid_for_a_longer_cta(self):
+        sb = json.loads(json.dumps(GOOD))
+        sb["tail_s"] = 4.0
+        self.assertEqual(storyboard.validate(sb, ctx())[0], [])
+
     def test_all_problems_together_with_paths(self):
         bad = json.loads(json.dumps(GOOD))
         bad["overlays"][0]["out"] = 40.0                       # 1 fuera del video
@@ -80,6 +85,20 @@ class TestValidate(unittest.TestCase):
         self.assertEqual(errs, [])
         self.assertTrue(any("colores" in w for w in warns))
 
+    def test_caption_zones_validate_position_and_overlap(self):
+        sb = json.loads(json.dumps(GOOD))
+        sb["caption_zones"] = [
+            {"in": 3.0, "out": 6.0, "position": "upper-left"},
+            {"in": 5.0, "out": 8.0, "position": "centro"},
+        ]
+        errs, _ = storyboard.validate(sb, ctx())
+        joined = "\n".join(errs)
+        self.assertIn("caption_zones[1].position", joined)
+        self.assertIn("caption_zones[1].in", joined)
+
+        sb["caption_zones"] = [{"in": 3.0, "out": 8.0, "position": "upper-center"}]
+        self.assertEqual(storyboard.validate(sb, ctx())[0], [])
+
     def test_broll_source_timing_rights_and_ads(self):
         sb = json.loads(json.dumps(GOOD))
         clip = {"id": "screen-1", "source": "pantalla-1", "in": 4, "out": 7,
@@ -95,6 +114,13 @@ class TestValidate(unittest.TestCase):
         self.assertIn("broll[0].ads", "\n".join(errs))
         self.assertIn("broll[0].source_in", "\n".join(errs))
         self.assertIn("broll[0].focus_x", "\n".join(errs))
+
+    def test_broll_can_cover_the_frozen_tail(self):
+        sb = json.loads(json.dumps(GOOD))
+        sb["tail_s"] = 1.5
+        sb["broll"] = [{"id": "tail", "source": "pantalla-1", "in": 19.0, "out": 21.0,
+                        "source_in": 0, "fit": "cover", "origin": "persona", "license": "propia"}]
+        self.assertEqual(storyboard.validate(sb, ctx())[0], [])
 
     def test_region_and_phone_legibility_warning(self):
         sb = json.loads(json.dumps(GOOD))

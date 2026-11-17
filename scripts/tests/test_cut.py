@@ -16,7 +16,7 @@ ROOT = SCRIPTS.parent
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT))
 from scripts.core import cutlib  # noqa: E402
-from scripts.pipeline import transcribe  # noqa: E402
+from scripts.pipeline import apply_cut, transcribe  # noqa: E402
 from scripts.tests.support import say_voice_available  # noqa: E402
 
 
@@ -25,6 +25,10 @@ def W(text, a, b):
 
 
 class TestCutLogic(unittest.TestCase):
+    def test_duration_tolerance_accounts_for_frame_rounding_per_segment(self):
+        self.assertEqual(apply_cut.duration_tolerance(1, 30), 0.1)
+        self.assertAlmostEqual(apply_cut.duration_tolerance(19, 30), 19 / 30)
+
     def test_retake_keeps_last(self):
         words = [W("Para", 0, .2), W("eso", .2, .4), W("necesito", .4, .8), W("un", .8, .9), W("agente.", .9, 1.3),
                  W("Para", 2, 2.2), W("eso", 2.2, 2.4), W("necesito", 2.4, 2.8), W("un", 2.8, 2.9),

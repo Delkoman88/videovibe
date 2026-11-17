@@ -1,5 +1,24 @@
 # Changelog
 
+## 0.10.0-alpha — 2026-11-17
+
+Primera pieza real hecha en Windows (WSL) para un canal de DJ; lo que salió de ahí, integrado al motor.
+
+- Estilos opcionales por canal en `brand.json`: `captions.style: "neon"` (palabra activa con color, escala y separación RGB) y `overlays.style: "liquid"` (tarjetas con vidrio amorfo, órbita, cable y medidor). Sin esas claves todo se ve igual que antes.
+- PixiJS 8.23.0 y pixi-filters 6.1.5 (versiones fijas) solo se copian y cargan en piezas cuyas escenas los usan (`@fmt(..., needs=("pixi",))`).
+- Storyboards: nuevas `caption_zones` temporales (`upper-left` o `upper-center`) para apartar subtítulos de rostros, manos y equipo.
+- El orquestador fuerza un informe nuevo de HyperFrames al verificar; una respuesta desde caché ya no provoca el falso error «check no dejó informe».
+- Los cortes con muchos fragmentos toleran la cuantización acumulada a cuadros y el priming declarado por AAC; el mapa adopta la duración reproducible del contenedor para no recortar la última sílaba.
+- Subtítulos: una cola de baja confianza puede repararse con las palabras aprobadas del remapeo, conservando el intervalo real observado en el master y sin duplicar la palabra de la costura.
+- Subtítulos: el prefijo puede restaurarse desde las líneas aprobadas del corte A sin reemplazar un tramo posterior cuya sincronía ya fue revisada.
+- Los insertos pueden sostenerse durante `tail_s`, de modo que una CTA final no revele de nuevo el encuadre base al congelar la última imagen.
+- La cola congelada admite hasta 5 s para cierres y CTA que necesiten más aire.
+- `bin/edit --platform <nombre>` limita render, verificación y entrega a las plataformas solicitadas sin modificar ni invalidar el storyboard aprobado.
+- Subtítulos: se pueden reimportar tiempos por palabra de whisper.cpp sobre el master final para reparar desincronías después de un cambio de corte.
+- Las revisiones abiertas desde Ubuntu en WSL ahora usan la aplicación predeterminada de Windows.
+- Nuevo paquete de cuatro formatos `music` (`signal-spell`, `patchbay-dream`, `pixi-signal`, `pixi-mixer`) para DJs y productores: PixiJS/pixi-filters locales, señal, mezcladora, bloom, glitch y píxeles neón reproducibles con semilla fija.
+- Pixelify Sans (SIL OFL) disponible para subtítulos con palabra activa en glow/RGB split y español completo.
+
 ## Sin publicar — 2026-11-12
 
 - Cambio incompatible: paquetes Python por responsabilidad y nombres de sistema en inglés, sin alias.

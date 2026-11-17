@@ -1,14 +1,14 @@
 # Estado del sistema
 
 > Foto actual del motor. La actualiza el agente al cerrar cada sesión de desarrollo.
-> Última actualización: 2026-11-12 · versión `v0.9.0-alpha` (primera pública).
+> Última actualización: 2026-11-17 · versión `v0.10.0-alpha`.
 
 ## Organización del motor
 
 Paquetes por responsabilidad, validador por secciones y nombres del sistema en inglés, sin alias.
 Migración reversible disponible en `bin/migrate-layout` (ADR 0019; `docs/migration.md`).
 Las revisiones afectadas por la migración requieren aprobación explícita de nuevo.
-Validación: suite de 120 pruebas y dos pruebas adicionales de bloqueo de publicación en verde.
+Validación: suite de 141 pruebas en verde (15 omitidas cuando el entorno no puede generar audio de sistema).
 
 ## Qué funciona hoy
 
@@ -18,14 +18,14 @@ Validación: suite de 120 pruebas y dos pruebas adicionales de bloqueo de public
 | Primeros pasos | ✅ | `bin/welcome` + `docs/getting-started.md`: de cero a la primera pieza (probado con una copia limpia del repo) |
 | Carpetas `input/` y `deliveries/` | ✅ | Originales y finales en la raíz de VideoVibe (fuera de git); el agente siempre muestra las rutas |
 | Piezas nuevas | ✅ | `bin/new-piece` (en la carpeta de canales correcta, con `raw/` y `brief.md`); `bin/edit` se detiene sin material o sin brief completo |
-| Orquestación (`bin/edit`) | ✅ | Avanza hasta cada pausa; A/B presentan resumen, cuatro preguntas, abren archivos y muestran rutas absolutas. Las aprobaciones nuevas requieren revisión vigente; las anteriores conservan validez |
+| Orquestación (`bin/edit`) | ✅ | Avanza hasta cada pausa; A/B presentan resumen, cuatro preguntas, abren archivos y muestran rutas absolutas. En WSL convierte la ruta y usa la aplicación predeterminada de Windows. `--platform` limita render, verificación y entrega sin invalidar el storyboard aprobado. Las aprobaciones nuevas requieren revisión vigente; las anteriores conservan validez |
 | Canales (alta, validación, idiomas) | ✅ | `bin/new-channel`, `bin/doctor --channel`, `lang/es.json`, `lang/en.json` |
 | Ingesta | ✅ | Detecta orientación, tipo de toma y HDR; sincroniza micrófonos externos al milisegundo (con deriva) |
 | Transcripción | ✅ | whisper.cpp local, tramo por tramo; ~75 s por 90 s de audio |
 | Corte en papel (revisión A) | ✅ | Retomas, muletillas, conectores sueltos, fragmentos ≤ 0.3 s, silencios |
 | Aplicar corte | ✅ | HDR→SDR BT.709; ~3.5 min para 90 s con conversión HDR |
-| Subtítulos | ✅ | Palabra por palabra; revisar puntuación a mano (whisper la pierde por tramo) |
-| Plan visual + composición | ✅ | Storyboard validado antes de componer (`scripts/pipeline/storyboard.py`); HyperFrames 0.9.32; cámara, tarjetas HUD, CTA por plataforma, corrección de color, 9 formatos |
+| Subtítulos | ✅ | Palabra por palabra; reimportación desde whisper.cpp y reparación parcial desde el corte aprobado/remapeo para conservar texto y sincronía tras cambios; revisar puntuación a mano |
+| Plan visual + composición | ✅ | Storyboard validado antes de componer (`scripts/pipeline/storyboard.py`); HyperFrames 0.9.32; cámara, overlays orgánicos, CTA por plataforma, corrección de color, 13 formatos (incluye el paquete `music` para DJs/productores, con PixiJS opcional); estilos de subtítulos y tarjetas por canal (`brand.json`) |
 | Render final | ✅ | `hyperframes render -q delivery`; ~5 min por plataforma |
 | Verificación de entrega | ✅ | `scripts/pipeline/verify.py`; después, `deliveries/<Canal>/<fecha> <pieza>/` con los finales (enlaces o copias) y `README.md` |
 | Estado por pieza | ✅ | `status.json` + `bin/status` |
@@ -47,14 +47,15 @@ Canales del motor (los de cada persona viven en su propia carpeta, ver `docs/cha
 
 ## Versiones fijadas
 
-HyperFrames 0.9.32 (`package.json`) · whisper.cpp + `ggml-large-v3-turbo-q5_0` + VAD Silero 5.1.2 ·
+HyperFrames 0.9.32 · PixiJS 8.23.0 + pixi-filters 6.1.5 · GSAP 3.15.0 (`package.json`) ·
+whisper.cpp + `ggml-large-v3-turbo-q5_0` + VAD Silero 5.1.2 ·
 ffmpeg 9 (`ffmpeg-full` para HDR) · Node ≥ 22 · Python 3.14 + numpy (`.venv`).
 
 ## Limitaciones conocidas
 
 - Zonas seguras de las plataformas aproximadas (no medidas con capturas reales).
 - Agentes probados: Claude Code (uso real) y Codex CLI (copia limpia: de la bienvenida a la revisión A). Falta Gemini CLI y Muse Code.
-- Probado en macOS con material real. Linux: la demo de punta a punta pasa en GitHub (Ubuntu 24.04, ffmpeg 6, sin GPU); falta un uso real con video propio.
+- Probado en macOS con material real. Linux: la demo pasa en GitHub (Ubuntu 24.04, ffmpeg 6, sin GPU) y la primera pieza real en Ubuntu/WSL llega a revisión B; falta cerrar una entrega real verificada en Linux.
 - La detección de retomas exige que la nueva toma empiece con las mismas 3 palabras.
 - `compose.py` sobrescribe ediciones manuales hechas en la app de HyperFrames.
 - Las pruebas que necesitan `say` se omiten si macOS genera audio vacío dentro del sandbox; la validación de voz requiere correr la suite con audio real (ADR 0016).

@@ -22,6 +22,9 @@ siguiendo el canal (`CHANNEL.md`, `style.md`, `rhythm.md`, `brand.json`) y el br
     ]
   },
   "emphasis": {"w5": "keyword", "w60": "data", "w93": "punchline", "w168": "warning"},
+  "caption_zones": [
+    {"in": 31.5, "out": 39.833, "position": "upper-left"}
+  ],
   "broll": [
     {"id": "pantalla-demo", "source": "grabacion-pantalla", "in": 12.0, "out": 16.0,
      "source_in": 3.5, "fit": "cover", "focus_x": 65, "focus_y": 50,
@@ -44,12 +47,13 @@ siguiendo el canal (`CHANNEL.md`, `style.md`, `rhythm.md`, `brand.json`) y el br
 
 | Clave | Qué es | Reglas |
 |---|---|---|
-| `tail_s` | Segundos de último cuadro congelado al final | Para que la CTA se lea; 1–2 s |
+| `tail_s` | Segundos de último cuadro congelado al final | Para que la CTA se lea; normalmente 1–2 s, hasta 5 s cuando el cierre necesita más aire |
 | `camera.origin` | Ancla del zoom | Arriba (≈30 %) para no cortar la cabeza |
 | `camera.moves` | `punch` (0.32 s) o `creep` (lento, de `t` a `until`) | Si `until` coincide con un corte, vuelve a 1.0 de golpe; si no, en 0.5 s. Escala 1.05–1.12 |
 | `emphasis` | `id de palabra → rol` (ids de `captions/captions.json`) | Roles de `brand.json → highlight_roles`: keyword, data, punchline, warning (cada canal les asigna color). Máx. 1 rol por grupo de subtítulo, salvo dato + palabra clave |
+| `caption_zones` | Tramos donde los subtítulos cambian de posición | Para no tapar rostro, manos o equipo. Posiciones: `upper-left` y `upper-center`. Los tramos deben ir en orden y no solaparse; fuera de ellos se conserva el preset de plataforma. |
 | `overlays` | Tarjetas en la franja superior (`title`, `card`, `tag`, `cta`) | Una a la vez; nunca sobre la cara; 4–6 s; texto de ≥ 30 px; la `cta` usa el texto de `platforms.<plat>.cta_text` |
-| `broll` | Insertos de video mudo sobre la cámara; `source` es un id de `media.json` con `kind=broll` o `kind=pantalla` | `in`/`out` son segundos del master; `source_in` indica dónde empieza el archivo fuente. No se solapan ni pasan del corte. `fit=cover` recorta horizontal a vertical con `focus_x`/`focus_y` (0–100); `contain` muestra el cuadro completo con fondo. `origin` y `license` son obligatorios; `ads:true` si hay plataforma de anuncio. El audio original del inserto se descarta y la voz aprobada continúa. |
+| `broll` | Insertos de video mudo sobre la cámara; `source` es un id de `media.json` con `kind=broll` o `kind=pantalla` | `in`/`out` son segundos del master; `source_in` indica dónde empieza el archivo fuente. No se solapan; pueden cubrir `tail_s` para sostener el último encuadre bajo la CTA. `fit=cover` recorta horizontal a vertical con `focus_x`/`focus_y` (0–100); `contain` muestra el cuadro completo con fondo. `origin` y `license` son obligatorios; `ads:true` si hay plataforma de anuncio. El audio original del inserto se descarta y la voz aprobada continúa. |
 
 Para texto de una grabación horizontal, usa `fit: "region"` con un rectángulo proporcional de
 la fuente: `"region": {"x": 0.02, "y": 0.10, "w": 0.30, "h": 0.80}`. El motor lo amplía al lienzo

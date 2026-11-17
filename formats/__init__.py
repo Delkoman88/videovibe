@@ -32,10 +32,12 @@ def registry(packs=()):
     return {k: v for k, v in REGISTRY.items() if v["pack"] in allowed}
 
 
-def configure(font_faces="", labels=None):
+def configure(font_faces="", labels=None, channel=None):
     CTX["font_faces"] = font_faces
     if labels:
         CTX["labels"] = labels
+    if channel:  # nombre corto del canal, para rótulos por defecto de los paquetes (p. ej. «<CANAL>–3000»)
+        CTX["channel"] = channel.upper()
 
 
 def default_layout(fmt, packs=()):
@@ -55,3 +57,12 @@ def render(scene, packs=()):
         raise ValueError(f"escena {scene['id']} ({scene['format']}): faltan parámetros {missing}")
     d = round(scene["out"] - scene["in"], 3)
     return meta["fn"](scene["id"], d, params, layout=scene.get("layout") or meta["layout"])
+
+
+def needs(sb):
+    """Librerías opcionales que piden las escenas de un storyboard (p. ej. {"pixi"}).
+    Los paquetes del canal ya están cargados cuando compose.py llama a esto."""
+    out = set()
+    for scene in sb.get("scenes", []):
+        out.update(REGISTRY.get(scene.get("format"), {}).get("needs", ()))
+    return out

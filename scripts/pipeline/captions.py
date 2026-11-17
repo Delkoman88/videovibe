@@ -18,6 +18,7 @@ Con --from-transcript solo rehace los grupos desde transcript/master-cut.json (t
 Salida JSON en stdout. Exit 0 ok, 2 error.
 """
 import argparse
+import json
 import re
 import shutil
 import sys
@@ -108,12 +109,132 @@ def build_groups(words, max_words, max_chars, duration, vocab=None):
     return out
 
 
+def words_from_whisper_json(data):
+    """Convierte el JSON `-ojf -sow -ml 1` de whisper.cpp en palabras del master."""
+    words = []
+    for segment in data.get("transcription", []):
+        text = segment.get("text", "").strip()
+        offsets = segment.get("offsets") or {}
+        if not text or "from" not in offsets or "to" not in offsets:
+            continue
+        tokens = [t for t in segment.get("tokens", []) if not t.get("text", "").startswith("[_")]
+        probability = (sum(t.get("p", 1.0) for t in tokens) / len(tokens)) if tokens else 1.0
+        words.append({"w": text, "start": offsets["from"] / 1000, "end": offsets["to"] / 1000,
+                      "p": round(probability, 3)})
+    return words
+
+
+def regularize_zero_duration_words(words, minimum=0.04):
+    """Reparte tokens simultáneos sin mover los anclajes globales que dio Whisper."""
+    i = 0
+    while i < len(words):
+        if words[i]["end"] - words[i]["start"] >= minimum:
+            i += 1
+            continue
+        start = words[i]["start"]
+        j = i
+        while (j + 1 < len(words) and abs(words[j + 1]["start"] - start) < 0.001
+               and words[j]["end"] - start < minimum):
+            j += 1
+        if words[j]["end"] - start < minimum and j + 1 < len(words) and words[j + 1]["start"] <= start + 0.001:
+            j += 1
+        end = max(words[j]["end"], start + minimum * (j - i + 1))
+        if j + 1 < len(words):
+            end = min(end, words[j + 1]["start"])
+        weights = [max(len(words[k]["w"].strip(".,;:¿?¡!")), 1) for k in range(i, j + 1)]
+        total = sum(weights)
+        cursor = start
+        for k, weight in zip(range(i, j + 1), weights):
+            duration = (end - start) * weight / total
+            words[k]["start"], words[k]["end"] = round(cursor, 3), round(cursor + duration, 3)
+            cursor += duration
+        i = j + 1
+    return words
+
+
+def repair_from_remap(words, remap_words, after, duration):
+    """Sustituye una cola de Whisper por las palabras aprobadas del mapa de corte.
+
+    Conserva los tiempos observados en el master: estira la cola remapeada entre el inicio y final
+    reales detectados por Whisper. Elimina una palabra duplicada en la costura (p. ej. «¿no?»).
+    """
+    import copy
+    import re
+
+    keep = [copy.deepcopy(w) for w in words if w["end"] <= after]
+    observed = [w for w in words if w["start"] >= after]
+    source = [copy.deepcopy(w) for w in remap_words if w["start"] >= after]
+    if not keep or not observed or not source:
+        raise ValueError("no hay palabras suficientes antes y después del punto de reparación")
+
+    def norm(s):
+        return re.sub(r"[^\wáéíóúüñ]+", "", s.casefold())
+
+    while source and norm(source[0]["w"]) == norm(keep[-1]["w"]):
+        source.pop(0)
+    if not source:
+        raise ValueError("la cola remapeada quedó vacía después de quitar la costura duplicada")
+    actual_start, actual_end = observed[0]["start"], min(observed[-1]["end"], duration)
+    source_start, source_end = source[0]["start"], source[-1]["end"]
+    if source_end <= source_start or actual_end <= actual_start:
+        raise ValueError("el intervalo de reparación no tiene duración positiva")
+    scale = (actual_end - actual_start) / (source_end - source_start)
+    for w in source:
+        w["start"] = round(actual_start + (w["start"] - source_start) * scale, 3)
+        w["end"] = round(actual_start + (w["end"] - source_start) * scale, 3)
+    merged = keep + source
+    for i, w in enumerate(merged):
+        w["id"] = f"w{i}"
+        w.pop("src", None)
+    return merged
+
+
+def repair_prefix_from_approved_cut(words, cut, cut_map, before):
+    """Restaura el texto aprobado del corte al inicio y conserva el resto ya alineado.
+
+    Los tiempos se distribuyen dentro de cada segmento aprobado; el tramo posterior (por ejemplo,
+    una sección cuya sincronía ya fue revisada) queda intacto.
+    """
+    import copy
+    import re
+
+    lines = {line["id"]: line for line in cut["lines"]}
+    prefix = []
+    for segment in cut_map["segments"]:
+        if segment["out_out"] > before + 0.001:
+            break
+        text = " ".join(lines[lid]["text"] for lid in segment["lines"]
+                        if lid in lines and lines[lid]["status"] == "keep")
+        tokens = text.split()
+        if not tokens:
+            continue
+        weights = [max(len(re.sub(r"[^\wáéíóúüñ]+", "", token.casefold())), 1) for token in tokens]
+        total = sum(weights)
+        cursor = segment["out_in"]
+        span = segment["out_out"] - segment["out_in"]
+        for token, weight in zip(tokens, weights):
+            end = cursor + span * weight / total
+            prefix.append({"w": token, "start": round(cursor, 3), "end": round(end, 3), "p": 1.0})
+            cursor = end
+    suffix = [copy.deepcopy(w) for w in words if w["start"] >= before - 0.001]
+    merged = prefix + suffix
+    for i, w in enumerate(merged):
+        w["id"] = f"w{i}"
+    return merged
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--project", required=True)
     ap.add_argument("--max-words", type=int, default=4)
     ap.add_argument("--max-chars", type=int)
     ap.add_argument("--from-transcript", action="store_true", help="no transcribe; rehace grupos")
+    ap.add_argument("--from-whisper-json", type=Path,
+                    help="importa tiempos por palabra de un JSON -ojf generado sobre el master final")
+    ap.add_argument("--repair-from-remap-after", type=float,
+                    help="desde este segundo conserva palabras del remapeo aprobado, ajustadas a los tiempos del master")
+    ap.add_argument("--repair-from-approved-cut-before", type=float,
+                    help="hasta este segundo restaura el texto del corte A aprobado y conserva el resto")
     args = ap.parse_args()
 
     P = oslib.project_dir(args.project)
@@ -127,8 +248,42 @@ def main():
     tpath = P / "transcript" / "master-cut.json"
 
     added = []
+    selected = sum(bool(x) for x in (args.from_transcript, args.from_whisper_json,
+                                     args.repair_from_remap_after is not None,
+                                     args.repair_from_approved_cut_before is not None))
+    if selected > 1:
+        oslib.die("usa solo --from-transcript, --from-whisper-json o --repair-from-remap-after")
     if args.from_transcript:
         words = oslib.read_json(tpath)["words"]
+    elif args.from_whisper_json:
+        if not args.from_whisper_json.exists():
+            oslib.die(f"no encuentro {args.from_whisper_json}")
+        words = words_from_whisper_json(json.loads(args.from_whisper_json.read_text(encoding="utf-8")))
+        regularize_zero_duration_words(words)
+        for i, w in enumerate(words):
+            w["id"] = f"w{i}"
+            w.pop("island", None)
+        tidy(words, ch["lang"])
+        oslib.write_json(tpath, {"id": "master-cut", "language": ch["lang"]["code"],
+                                 "source": str(args.from_whisper_json), "words": words})
+    elif args.repair_from_remap_after is not None:
+        base = oslib.read_json(tpath)["words"]
+        remap_path = P / "transcript" / "master-cut.remap.json"
+        if not remap_path.exists():
+            oslib.die("falta transcript/master-cut.remap.json: corre apply_cut.py")
+        try:
+            words = repair_from_remap(base, oslib.read_json(remap_path)["words"],
+                                      args.repair_from_remap_after, duration)
+        except ValueError as e:
+            oslib.die(str(e))
+        oslib.write_json(tpath, {"id": "master-cut", "language": ch["lang"]["code"],
+                                 "source": "master-cut.remap.json (cola reparada)", "words": words})
+    elif args.repair_from_approved_cut_before is not None:
+        words = repair_prefix_from_approved_cut(
+            oslib.read_json(tpath)["words"], oslib.read_json(P / "cut" / "cut-list.json"),
+            oslib.read_json(P / "cut" / "cut-map.json"), args.repair_from_approved_cut_before)
+        oslib.write_json(tpath, {"id": "master-cut", "language": ch["lang"]["code"],
+                                 "source": "cut-list.json (prefijo aprobado)", "words": words})
     else:
         wav = P / "work" / "audio" / "master-cut.wav"
         wav.parent.mkdir(parents=True, exist_ok=True)
@@ -145,7 +300,7 @@ def main():
 
     for i, w in enumerate(words):
         w.setdefault("id", f"w{i}")
-    if not args.from_transcript:
+    if selected == 0:
         tidy(words, ch["lang"])
         oslib.write_json(tpath, {**oslib.read_json(tpath), "words": words})
     groups = build_groups(words, args.max_words, max_chars, duration, vocab=ch["vocab"])

@@ -67,3 +67,15 @@ Los formatos y subtítulos no conocen colores concretos, solo funciones:
 `bg`, `surface`, `surface_line` (fondos) · `depth`, `depth2` (profundidad, nunca texto) ·
 `accent` (palabra clave) · `accent2` (dato) · `accent3` (remate) · `warn` (advertencia) ·
 `text`, `muted` (texto). Cada canal asigna sus colores a esas funciones en `brand.json`.
+
+## Estilo de subtítulos y tarjetas
+
+Por defecto todos los canales usan el estilo sobrio del motor. Un canal puede elegir otro en `brand.json`:
+
+| Clave | Valores | Qué cambia |
+|---|---|---|
+| `captions.style` | `classic` (por defecto) · `neon` | `neon`: el cuerpo queda blanco y la palabra activa cambia de color, escala y glow con separación RGB (pensado para fuentes pixel como Pixelify Sans) |
+| `overlays.style` | `panel` (por defecto) · `liquid` | `liquid`: título, tarjetas y CTA con vidrio amorfo, órbita de deck, cable y medidor (estética de música electrónica) |
+
+Los formatos que necesitan librerías opcionales (hoy PixiJS en `pixi-signal` y `pixi-mixer` del paquete
+`music`) solo las copian y cargan en las piezas que los usan (ADR 0020).

@@ -23,16 +23,19 @@ W, H = 1080, 1920
 BUBBLE = {"x": 744, "y": 186, "d": 312}  # burbuja de cara (compose.py usa los mismos valores)
 
 # Contexto que compose.py fija antes de renderizar (fuentes y etiquetas del canal/idioma).
-CTX = {"font_faces": "", "labels": {"illustrative": "ILLUSTRATIVE"}}
+CTX = {"font_faces": "", "labels": {"illustrative": "ILLUSTRATIVE"}, "channel": "VIDEOVIBE"}
 
 # Registro de formatos: nombre → {fn, layout, required, example, doc, pack}
 REGISTRY = {}
 
 
-def fmt(name, layout="full", required=(), example=None):
-    """Registra un formato. `required` son parámetros obligatorios; `example` sirve a tests y al catálogo."""
+def fmt(name, layout="full", required=(), example=None, needs=()):
+    """Registra un formato. `required` son parámetros obligatorios; `example` sirve a tests y al catálogo.
+    `needs` son librerías opcionales que el formato usa (p. ej. "pixi"): el motor solo las copia y carga
+    en las piezas cuyas escenas las piden."""
     def deco(fn):
         REGISTRY[name] = {"fn": fn, "layout": layout, "required": tuple(required), "example": example or {},
+                          "needs": tuple(needs),
                           "doc": (fn.__doc__ or "").strip(), "pack": fn.__module__.rsplit(".", 1)[-1]}
         return fn
     return deco

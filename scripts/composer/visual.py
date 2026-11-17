@@ -20,20 +20,44 @@ def css_vars(brand):
 
 
 
-def captions_html(caps, emphasis, brand, safe, ctx):
+CAPTION_STYLES = ("classic", "neon")
+OVERLAY_STYLES = ("panel", "liquid")
+
+
+def zone_css(zones):
+    """CSS de `caption_zones`; vacío si la pieza no las usa (el HTML queda igual que sin la función)."""
+    if not zones:
+        return ""
+    return ("\n    .zone-upper-left { bottom: 920px; justify-content: flex-start; padding-left: 72px; padding-right: 220px; }"
+            "\n    .zone-upper-left .line { max-width: 760px; text-align: left; }"
+            "\n    .zone-upper-center { bottom: 920px; }")
+
+
+def captions_html(caps, emphasis, brand, safe, ctx, zones=()):
+    """Subtítulos palabra por palabra. Estilo por canal: brand.json → captions.style
+    (`classic`, por defecto; `neon`: palabra activa con color, escala y separación RGB)."""
+    style = brand["captions"].get("style", "classic")
+    fn = _captions_neon if style == "neon" else _captions_classic
+    return fn(caps, emphasis, brand, safe, ctx, zones)
+
+
+def _captions_classic(caps, emphasis, brand, safe, ctx, zones=()):
     role_color = {r: f"var(--{brand['highlight_roles'][r]})" for r in brand["highlight_roles"]}
     words = {w["id"]: w for w in caps["words"]}
     size = brand["captions"]["size_px"]
     bottom = H - safe["text_bottom"]
     groups, tl = [], []
     for g in caps["groups"]:
+        position = next((z["position"] for z in zones
+                         if g["out"] > z["in"] and g["in"] < z["out"]), None)
+        zone_class = f" zone-{position}" if position else ""
         spans = []
         for wid in g["words"]:
             role = emphasis.get(wid)
             cls = f"w r-{role}" if role else "w"
             spans.append(f'<span id="{wid}" class="{cls}">{esc(words[wid]["w"])}</span>')
         dur = round(g["out"] - g["in"], 3)
-        groups.append(f'    <div id="{g["id"]}" class="cap clip" data-start="{g["in"]}" data-duration="{dur}" '
+        groups.append(f'    <div id="{g["id"]}" class="cap clip{zone_class}" data-start="{g["in"]}" data-duration="{dur}" '
                       f'data-track-index="0"><p class="line">{" ".join(spans)}</p></div>')
         sel = f'"#{g["id"]} .line"'
         tl.append(f'tl.fromTo({sel}, {{opacity: 0, y: 14, filter: "blur(6px)"}}, '
@@ -55,7 +79,76 @@ def captions_html(caps, emphasis, brand, safe, ctx):
              font-weight: {brand['captions']['weight']}; font-size: {size}px; line-height: 1.08; letter-spacing: -0.01em;
              color: var(--text); text-shadow: {brand['captions']['shadow']}; }}
     .w {{ display: inline-block; }}
-{role_css}
+{role_css}{zone_css(zones)}
+  </style>
+  <div id="root" data-composition-id="captions" data-width="{W}" data-height="{H}" data-layout-allow-caption-zone>
+{chr(10).join(groups)}
+  </div>
+  <script>
+    const tl = gsap.timeline({{ paused: true }});
+    {chr(10).join('    ' + x for x in tl).strip()}
+    window.__timelines["captions"] = tl;
+  </script>
+</template>
+"""
+
+
+def _captions_neon(caps, emphasis, brand, safe, ctx, zones=()):
+    colors = brand["colors"]
+    role_color = {r: colors[brand["highlight_roles"][r]] for r in brand["highlight_roles"]}
+    text_color = colors["text"]
+    default_active = colors["accent"]
+    warn = colors["warn"]
+    words = {w["id"]: w for w in caps["words"]}
+    size = brand["captions"]["size_px"]
+    bottom = H - safe["text_bottom"]
+    groups, tl = [], []
+    for g in caps["groups"]:
+        position = next((z["position"] for z in zones
+                         if g["out"] > z["in"] and g["in"] < z["out"]), None)
+        zone_class = f" zone-{position}" if position else ""
+        spans = []
+        for wid in g["words"]:
+            role = emphasis.get(wid)
+            active_color = role_color.get(role, default_active)
+            cls = f"w r-{role}" if role else "w"
+            spans.append(f'<span id="{wid}" class="{cls}">{esc(words[wid]["w"])}</span>')
+        dur = round(g["out"] - g["in"], 3)
+        line_in_duration = min(0.14, max(0.02, dur - 0.08))
+        groups.append(f'    <div id="{g["id"]}" class="cap clip{zone_class}" data-start="{g["in"]}" data-duration="{dur}" '
+                      f'data-track-index="0"><p class="line">{" ".join(spans)}</p></div>')
+        sel = f'"#{g["id"]} .line"'
+        tl.append(f'tl.fromTo({sel}, {{opacity: 0, y: 14, filter: "blur(6px)"}}, '
+                  f'{{opacity: 1, y: 0, filter: "blur(0px)", duration: {line_in_duration:.3f}, '
+                  f'overwrite: "auto", ease: "power3.out"}}, {g["in"]});')
+        for wid in g["words"]:
+            t = max(words[wid]["start"], g["in"])
+            end = min(words[wid]["end"], g["out"])
+            attack = min(0.06, max(0.005, end - t))
+            tl.append(f'tl.fromTo("#{wid}", {{opacity: 1, scale: 1, y: 0, color: "{text_color}"}}, '
+                      f'{{opacity: 1, scale: 1.08, y: -3, color: "{active_color}", duration: {attack:.3f}, '
+                      f'textShadow: "-3px 0 {warn}, 3px 0 {default_active}, 0 0 24px {active_color}, '
+                      f'0 5px 18px rgba(0,0,0,.85)", overwrite: "auto", ease: "steps(2)"}}, {t:.3f});')
+            tl.append(f'tl.to("#{wid}", {{opacity: 1, scale: 1, y: 0, color: "{text_color}", duration: 0.07, '
+                      f'textShadow: "0 4px 18px rgba(0,0,0,.78)", overwrite: "auto", '
+                      f'ease: "steps(2)"}}, {end:.3f});')
+        tl.append(f'tl.to({sel}, {{opacity: 0, duration: 0.08, overwrite: "auto", ease: "power2.in"}}, '
+                  f'{max(g["out"] - 0.08, g["in"]):.3f});')
+    return f"""<template>
+  <style>
+    {ctx.font_faces}
+    #root {{ position: absolute; inset: 0; }}
+    .cap {{ position: absolute; left: 0; right: 0; bottom: {bottom}px; display: flex; justify-content: center;
+            overflow: visible; }}
+    .zone-upper-left {{ bottom: 920px; justify-content: flex-start; padding-left: 72px; padding-right: 220px; }}
+    .zone-upper-left .line {{ max-width: 760px; text-align: left; }}
+    .zone-upper-center {{ bottom: 920px; }}
+    .line {{ margin: 0; max-width: 940px; text-align: center; font-family: var(--font-display);
+             font-weight: {brand['captions']['weight']}; font-size: {size}px; line-height: 1.04; letter-spacing: .015em;
+             color: var(--text); text-shadow: {brand['captions']['shadow']};
+             -webkit-font-smoothing: none; font-smooth: never; }}
+    .w {{ display: inline-block; transform-origin: 50% 75%;
+          -webkit-text-stroke: 1px rgba(0,0,0,.48); }}
   </style>
   <div id="root" data-composition-id="captions" data-width="{W}" data-height="{H}" data-layout-allow-caption-zone>
 {chr(10).join(groups)}
@@ -93,7 +186,60 @@ OVERLAY_CSS = """
 """
 
 
-def overlay_block(o, indent="    "):
+OVERLAY_CSS_LIQUID = """
+    .ov {{ position: absolute; left: 0; right: 0; top: {top}px; display: flex; justify-content: center; }}
+    .panel {{ position:relative;width:920px;min-height:194px;filter:drop-shadow(0 22px 36px rgba(0,0,0,.58)); }}
+    .liquid-main {{ position:absolute;left:112px;right:88px;top:6px;min-height:178px;padding:22px 48px 42px 70px;
+                    background:radial-gradient(circle at 22% 18%,color-mix(in srgb,var(--card-accent) 18%,transparent),
+                    transparent 38%),linear-gradient(145deg,rgba(16,22,34,.94),rgba(2,4,9,.92));
+                    border:2px solid color-mix(in srgb,var(--card-accent) 65%,transparent);
+                    border-radius:42% 58% 48% 52% / 58% 43% 57% 42%;overflow:hidden;
+                    box-shadow:inset 0 0 46px rgba(0,0,0,.72),0 0 24px color-mix(in srgb,var(--card-accent) 24%,transparent); }}
+    .liquid-main::before {{ content:"";position:absolute;width:260px;height:130px;right:-70px;top:-52px;
+                           border-radius:50%;background:color-mix(in srgb,var(--accent3) 15%,transparent);
+                           filter:blur(10px); }}
+    .liquid-main::after {{ content:"";position:absolute;inset:0;background:repeating-linear-gradient(0deg,
+                          transparent 0 8px,rgba(46,230,240,.03) 9px);pointer-events:none; }}
+    .orbit {{ position:absolute;left:18px;top:22px;width:156px;height:156px;border-radius:50%;z-index:3;
+              border:3px solid var(--card-accent);box-shadow:0 0 18px var(--card-accent),inset 0 0 30px rgba(0,0,0,.8);
+              background:radial-gradient(circle,rgba(3,6,12,.96) 0 22%,transparent 24% 43%,rgba(3,6,12,.88) 45% 100%); }}
+    .orbit i {{ position:absolute;border-radius:50%;border:2px solid color-mix(in srgb,var(--card-accent) 70%,transparent); }}
+    .orbit i:nth-child(1) {{ inset:18px; }} .orbit i:nth-child(2) {{ inset:40px;border-color:var(--accent2); }}
+    .orbit i:nth-child(3) {{ left:50%;top:4px;width:5px;height:28px;border:0;background:var(--text); }}
+    .liquid-meter {{ position:absolute;right:12px;top:30px;width:132px;height:132px;border-radius:48% 52% 58% 42% / 44% 56% 44% 56%;
+                     background:conic-gradient(from 215deg,var(--accent2) 0 38%,var(--warn) 39% 49%,#151a24 50% 100%);
+                     padding:15px;z-index:3;box-shadow:0 0 20px color-mix(in srgb,var(--card-accent) 30%,transparent); }}
+    .liquid-meter::after {{ content:"";display:block;width:100%;height:100%;border-radius:50%;background:#070a11;
+                           box-shadow:inset 0 0 18px rgba(0,0,0,.85); }}
+    .liquid-meter i {{ position:absolute;left:62px;top:30px;width:5px;height:48px;background:var(--text);
+                       transform-origin:50% 100%;transform:rotate(32deg);z-index:2;box-shadow:0 0 8px var(--card-accent); }}
+    .liquid-cable {{ position:absolute;inset:-8px 0 0 0;width:920px;height:205px;overflow:visible;z-index:1; }}
+    .liquid-cable path {{ fill:none;stroke:var(--card-accent);stroke-width:5;stroke-linecap:round;
+                          filter:drop-shadow(0 0 7px var(--card-accent));stroke-dasharray:18 12; }}
+    .droplet {{ position:absolute;border-radius:50%;background:var(--card-accent);box-shadow:0 0 14px var(--card-accent);z-index:4; }}
+    .d1 {{ left:184px;top:2px;width:18px;height:18px; }} .d2 {{ right:168px;bottom:0;width:13px;height:13px; }}
+    .topline {{ position:relative;display:flex;align-items:center;justify-content:space-between;gap:20px; }}
+    .kicker {{ font-family: var(--font-mono); font-weight: 600; font-size: 30px; letter-spacing: .14em;
+               text-transform: uppercase; color: var(--card-accent); }}
+    .bpm {{ font:600 19px var(--font-mono);color:var(--accent2);letter-spacing:.08em;white-space:nowrap; }}
+    .t1 {{ position:relative;font-family: var(--font-display); font-weight: 700; font-size: 54px; line-height: 1.0;
+           color: var(--text); letter-spacing: .01em;margin-top:7px;text-shadow:-2px 0 var(--warn),2px 0 var(--accent); }}
+    .t2 {{ font-family: var(--font-mono); font-weight: 400; font-size: 30px; line-height: 1.3;
+           color: var(--muted); margin-top: 6px; white-space: pre-line; }}
+    .mini-wave {{ position:absolute;left:72px;right:74px;bottom:16px;height:24px;display:flex;align-items:center;gap:5px; }}
+    .mini-wave i {{ flex:1;height:var(--h);background:var(--card-accent);box-shadow:0 0 6px var(--card-accent);
+                    transform-origin:50% 50%;opacity:.8; }}
+    .ov-title .t1 {{ font-size: 58px; }}
+    .ov-tag .t1 {{ font-size: 46px; }}
+    .ov-cta .t1 {{ font-size:43px;line-height:1.08; }}
+    .role-keyword {{ --card-accent: var(--accent); }}
+    .role-data {{ --card-accent: var(--accent2); }}
+    .role-punchline {{ --card-accent: var(--accent3); }}
+    .role-warning {{ --card-accent: var(--warn); }}
+"""
+
+
+def _overlay_block_panel(o, indent="    "):
     role = o.get("role", "keyword")
     kicker = f'<div class="kicker">{esc(o.get("kicker"))}</div>' if o.get("kicker") else ""
     var = ' data-var-text="cta_text"' if o["type"] == "cta" else ""
@@ -104,7 +250,22 @@ def overlay_block(o, indent="    "):
             f'{kicker}<div class="t1"{var}>{esc(o.get("text"))}</div>{t2}</div>\n{indent}</div>')
 
 
-def overlay_tweens(o):
+def _overlay_block_liquid(o, indent="    "):
+    role = o.get("role", "keyword")
+    kicker = f'<div class="kicker">{esc(o.get("kicker"))}</div>' if o.get("kicker") else ""
+    var = ' data-var-text="cta_text"' if o["type"] == "cta" else ""
+    t2 = f'<div class="t2">{esc(o.get("text2"))}</div>' if o.get("text2") else ""
+    wave = "".join(f'<i style="--h:{8 + ((i * 13) % 15)}px"></i>' for i in range(22))
+    return (f'{indent}<div id="{o["id"]}" class="ov clip ov-{o["type"]} role-{role}" data-start="{o["in"]}" '
+            f'data-duration="{round(o["out"] - o["in"], 3)}" data-track-index="{3 if o["type"] == "cta" else 0}">\n'
+            f'{indent}  <div class="panel"><svg class="liquid-cable" viewBox="0 0 920 205"><path d="M20 162 C120 18 238 202 358 72 S640 16 900 132"/></svg>'
+            f'<div class="orbit"><i></i><i></i><i></i></div><div class="liquid-main">'
+            f'<div class="topline">{kicker}<span class="bpm" data-layout-ignore>LIVE SIGNAL</span></div>'
+            f'<div class="t1"{var}>{esc(o.get("text"))}</div>{t2}<div class="mini-wave">{wave}</div></div>'
+            f'<div class="liquid-meter"><i></i></div><i class="droplet d1"></i><i class="droplet d2"></i></div>\n{indent}</div>')
+
+
+def _overlay_tweens_panel(o):
     p = f'"#{o["id"]} .panel"'
     tw = [f'tl.fromTo({p}, {{opacity: 0, y: -16, filter: "blur(8px)"}}, '
           f'{{opacity: 1, y: 0, filter: "blur(0px)", duration: 0.45, ease: "expo.out"}}, {o["in"]});',
@@ -116,15 +277,57 @@ def overlay_tweens(o):
     return tw
 
 
+def _overlay_tweens_liquid(o):
+    p = f'"#{o["id"]} .panel"'
+    tw = [f'tl.fromTo({p}, {{opacity: 0, scale: .82, filter: "blur(10px)"}}, '
+          f'{{opacity: 1, scale: 1, filter: "blur(0px)", duration: 0.48, ease: "expo.out"}}, {o["in"]});',
+          f'tl.fromTo("#{o["id"]} .orbit", {{rotation: -70, scale: .55}}, '
+          f'{{rotation: 86, scale: 1, duration: .82, ease: "expo.out"}}, {o["in"] + .02:.3f});',
+          f'tl.fromTo("#{o["id"]} .liquid-main", {{borderRadius: "68% 32% 62% 38% / 38% 64% 36% 62%"}}, '
+          f'{{borderRadius: "42% 58% 48% 52% / 58% 43% 57% 42%", duration: .78, ease: "sine.inOut"}}, {o["in"]:.3f});',
+          f'tl.fromTo("#{o["id"]} .mini-wave i", {{scaleY: .15, opacity: .2}}, '
+          f'{{scaleY: 1, opacity: .85, duration: .22, ease: "steps(3)", stagger: .018}}, {o["in"] + .12:.3f});',
+          f'tl.fromTo("#{o["id"]} .liquid-cable path", {{strokeDashoffset: 160}}, '
+          f'{{strokeDashoffset: 0, duration: .9, ease: "power2.out"}}, {o["in"] + .06:.3f});',
+          f'tl.fromTo("#{o["id"]} .droplet", {{scale:0,opacity:0}}, '
+          f'{{scale:1,opacity:1,duration:.28,ease:"back.out(2)",stagger:.12}}, {o["in"] + .24:.3f});',
+          f'tl.fromTo("#{o["id"]} .liquid-meter i", {{rotation:-42}}, '
+          f'{{rotation:32,duration:.68,ease:"elastic.out(1,.35)"}}, {o["in"] + .1:.3f});']
+    if o["type"] != "cta":
+        tw.append(f'tl.to({p}, {{opacity: 0, filter: "blur(6px)", duration: 0.25, ease: "power2.in"}}, '
+                  f'{o["out"] - 0.27:.3f});')
+    return tw
+
+
+def overlay_style(brand):
+    """Estilo de tarjetas por canal: brand.json → overlays.style (`panel`, por defecto; `liquid`)."""
+    return (brand.get("overlays") or {}).get("style", "panel")
+
+
+def overlay_css(brand, top):
+    css = OVERLAY_CSS_LIQUID if overlay_style(brand) == "liquid" else OVERLAY_CSS
+    return css.format(top=top).replace("{{", "{").replace("}}", "}")
+
+
+def overlay_block(o, indent="    ", brand=None):
+    fn = _overlay_block_liquid if brand and overlay_style(brand) == "liquid" else _overlay_block_panel
+    return fn(o, indent)
+
+
+def overlay_tweens(o, brand=None):
+    fn = _overlay_tweens_liquid if brand and overlay_style(brand) == "liquid" else _overlay_tweens_panel
+    return fn(o)
+
+
 def overlays_html(sb, brand, safe, ctx):
     """Escena con título y tarjetas HUD. La CTA va en la raíz (su texto es variable por plataforma)."""
     blocks, tl = [], []
     for o in sb.get("overlays", []):
         if o["type"] == "cta":
             continue
-        blocks.append(overlay_block(o))
-        tl += overlay_tweens(o)
-    css = OVERLAY_CSS.format(top=safe["text_top"] + 14).replace("{{", "{").replace("}}", "}")
+        blocks.append(overlay_block(o, brand=brand))
+        tl += overlay_tweens(o, brand)
+    css = overlay_css(brand, safe["text_top"] + 14)
     return f"""<template>
   <style>
     {ctx.font_faces}
@@ -214,13 +417,32 @@ def broll_markup(sb, media):
     return "\n".join(clips)
 
 
+PIXI_HEAD = """    <script>
+      globalThis.__videovibeSeed = 0x4d524c4e;
+      globalThis.__videovibeRandom = () => {
+        let x = globalThis.__videovibeSeed >>> 0;
+        x ^= x << 13; x ^= x >>> 17; x ^= x << 5;
+        globalThis.__videovibeSeed = x >>> 0;
+        return globalThis.__videovibeSeed / 4294967296;
+      };
+    </script>
+    <script src="assets/vendor/pixi.min.js"></script>
+    <script src="assets/vendor/pixi-filters.js"></script>
+"""
+
+
+def pixi_head(sb):
+    """Generador fijo + PixiJS, solo si alguna escena usa un formato que lo necesita (ADR 0020)."""
+    return PIXI_HEAD if "pixi" in formats.needs(sb) else ""
+
+
 def index_html(sb, brand, safe, dur, total, cuts, default_cta, audio_els="", ctx=None, music_srcs=None,
                media=None):
     origin = sb.get("camera", {}).get("origin", "50% 30%")
     ctas = [o for o in sb.get("overlays", []) if o["type"] == "cta"]
-    cta_html = "\n".join(overlay_block({**o, "text": default_cta or o.get("text")}, "      ") for o in ctas)
-    cta_tl = "\n      ".join(x for o in ctas for x in overlay_tweens(o))
-    css = OVERLAY_CSS.format(top=safe["text_top"] + 14).replace("{{", "{").replace("}}", "}")
+    cta_html = "\n".join(overlay_block({**o, "text": default_cta or o.get("text")}, "      ", brand) for o in ctas)
+    cta_tl = "\n      ".join(x for o in ctas for x in overlay_tweens(o, brand))
+    css = overlay_css(brand, safe["text_top"] + 14)
     tail = round(total - dur, 3)
     hold = (f'<img id="hold" class="clip" src="assets/last-frame.png" data-start="{dur}" data-duration="{tail}" '
             f'data-track-index="0" style="position:absolute;left:0;top:0;width:{W}px;height:{H}px;object-fit:cover" />'
@@ -236,7 +458,7 @@ def index_html(sb, brand, safe, dur, total, cuts, default_cta, audio_els="", ctx
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width={W}, height={H}" />
-    <script src="assets/vendor/gsap.min.js"></script>
+{pixi_head(sb)}    <script src="assets/vendor/gsap.min.js"></script>
     <style>
       {ctx.font_faces}
       :root {{

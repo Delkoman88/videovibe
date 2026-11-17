@@ -33,6 +33,15 @@ MAX_RESIDUAL_MS = 20.0
 FADE = 0.012
 
 
+def duration_tolerance(segment_count, fps):
+    """Margen por cuantización a cuadros al concatenar muchos fragmentos.
+
+    Cada `fps` puede redondear el final de un fragmento al cuadro vecino; el contenedor AAC también
+    puede declarar unos milisegundos de priming. El margen crece con los segmentos, no con la duración.
+    """
+    return max(0.1, segment_count / fps)
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--project", required=True)
@@ -146,8 +155,9 @@ def main():
                 words_out.append({"w": w["w"], "start": round(c["out_in"] + max(w["start"], c["src_in"]) - c["src_in"], 3),
                                   "end": round(c["out_in"] + min(w["end"], c["src_out"]) - c["src_in"], 3),
                                   "p": w.get("p", 1), "src": c["src"]})
-    oslib.write_json(P / "cut" / "cut-map.json", {"platform_canvas": args.platform, "width": W, "height": H,
-                                                   "fps": FPS, "duration_s": round(t_out, 3), "segments": cmap})
+    cut_map = {"platform_canvas": args.platform, "width": W, "height": H,
+               "fps": FPS, "duration_s": round(t_out, 3), "segments": cmap}
+    oslib.write_json(P / "cut" / "cut-map.json", cut_map)
     # transcripción re-mapeada: archivo aparte; transcript/master-cut.json es de captions.py (puede tener correcciones a mano)
     oslib.write_json(P / "transcript" / "master-cut.remap.json",
                      {"id": "master-cut", "language": ch["lang"]["code"], "words": words_out})
@@ -155,11 +165,18 @@ def main():
     probe = oslib.ffprobe(out)
     real = float(probe["format"]["duration"])
     trc = next(s for s in probe["streams"] if s["codec_type"] == "video").get("color_transfer")
-    ok = abs(real - t_out) <= max(0.1, 2 / FPS) and trc in ("bt709", None)
+    delta = abs(real - t_out)
+    ok = delta <= duration_tolerance(len(segs), FPS) and trc in ("bt709", None)
     if ok:
+        # El resto del pipeline debe usar la duración reproducible del contenedor, incluida su
+        # cuantización final, para no cortar la última sílaba ni adelantar la placa de cierre.
+        cut_map["duration_s"] = round(real, 3)
+        oslib.write_json(P / "cut" / "cut-map.json", cut_map)
         oslib.update_status(P, "corte-aplicado")
     oslib.emit({"ok": ok, "master": str(out.relative_to(P)), "duration_s": round(real, 3), "color_transfer": trc, "tonemapped": sorted(hdr),
-                "expected_s": round(t_out, 3), "segments": len(segs), "kept_lines": len(keep_ids),
+                "expected_s": round(t_out, 3), "duration_delta_s": round(delta, 3),
+                "duration_tolerance_s": round(duration_tolerance(len(segs), FPS), 3),
+                "segments": len(segs), "kept_lines": len(keep_ids),
                 "words": len(words_out),
                 "audio": {"mic": sum(c["audio"] == "mic" for c in cmap),
                           "camara": sum(c["audio"] == "camara" for c in cmap),

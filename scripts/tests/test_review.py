@@ -85,12 +85,26 @@ class TestReview(unittest.TestCase):
     @mock.patch("scripts.core.reviewlib.platform.system", return_value="Linux")
     def test_linux_without_display_reports_manual_path(self, _system, _which, run):
         f = self.P / "cut" / "PAPER-CUT.md"
-        with mock.patch.dict("scripts.core.reviewlib.os.environ", {"DISPLAY": "", "WAYLAND_DISPLAY": ""}):
-            result = reviewlib.open_files([f])[0]
+        with mock.patch.dict("scripts.core.reviewlib.os.environ", {
+                "DISPLAY": "", "WAYLAND_DISPLAY": "", "WSL_INTEROP": "", "WSL_DISTRO_NAME": ""}):
+            with mock.patch("scripts.core.reviewlib._is_wsl", return_value=False):
+                result = reviewlib.open_files([f])[0]
         self.assertFalse(result["opened"])
         self.assertEqual(result["reason"], "no hay interfaz gráfica")
         self.assertEqual(result["path"], str(f.resolve()))
         run.assert_not_called()
+
+    @mock.patch("scripts.core.reviewlib.platform.system", return_value="Linux")
+    @mock.patch("scripts.core.reviewlib.shutil.which", side_effect=lambda name: f"/usr/bin/{name}")
+    @mock.patch("scripts.core.reviewlib._is_wsl", return_value=True)
+    @mock.patch("scripts.core.reviewlib._open_in_windows", return_value=(True, None))
+    def test_wsl_opens_with_windows_default_app(self, open_windows, _wsl, _which, _system):
+        f = self.P / "cut" / "PAPER-CUT.md"
+        with mock.patch.dict("scripts.core.reviewlib.os.environ", {"DISPLAY": "", "WAYLAND_DISPLAY": ""}):
+            result = reviewlib.open_files([f])[0]
+        self.assertTrue(result["opened"])
+        self.assertEqual(result["path"], str(f.resolve()))
+        open_windows.assert_called_once_with(f.resolve())
 
 
 if __name__ == "__main__":

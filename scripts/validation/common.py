@@ -1,7 +1,7 @@
 from dataclasses import dataclass, field
 
 ROOT_KEYS = {"version", "video", "tail_s", "camera", "emphasis", "overlays", "scenes", "platforms", "grading",
-             "audio", "voice", "broll"}
+             "audio", "voice", "broll", "caption_zones"}
 OVERLAY_TYPES = {"title", "card", "tag", "cta"}
 LAYOUTS = {"full", "over", "bubble"}
 MOVE_TYPES = {"punch", "creep"}

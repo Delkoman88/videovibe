@@ -118,7 +118,10 @@ def do_stage(stage, P, pid, plats, sb, quiet):
         return run([PY, "-m", "scripts.pipeline.compose", *pj, *args], P)
     if stage == "check":
         t0 = time.time()
-        subprocess.run([HF, "check", "--json"], cwd=P / "hf", capture_output=True, text=True)
+        # El orquestador necesita un informe nuevo para asociarlo a esta composición. Con la caché,
+        # HyperFrames devuelve el JSON previo por stdout pero no escribe otro archivo y
+        # check_report() no puede distinguirlo de un chequeo que nunca se ejecutó.
+        subprocess.run([HF, "check", "--json", "--no-cache"], cwd=P / "hf", capture_output=True, text=True)
         errors, found = check_report(P, t0)
         if errors:
             raise StageError(f"hyperframes check: {errors} errores — " + " | ".join(found))
@@ -174,6 +177,8 @@ def main():
     ap.add_argument("project")
     ap.add_argument("--from-stage")
     ap.add_argument("--until-stage")
+    ap.add_argument("--platform", action="append",
+                    help="limita esta ejecución a una plataforma (repetible); no cambia el storyboard")
     ap.add_argument("--plan", action="store_true")
     ap.add_argument("--json", action="store_true")
     args = ap.parse_args()
@@ -192,7 +197,13 @@ def main():
 
     def piece_state():
         sb = oslib.read_json(P / "storyboard.json") if (P / "storyboard.json").exists() else {}
-        return sb, editlib.platforms(sb, ch["config"]), load_status(P)
+        configured = editlib.platforms(sb, ch["config"])
+        if args.platform:
+            unknown = [p for p in args.platform if p not in configured]
+            if unknown:
+                oslib.die(f"plataforma no configurada para la pieza: {', '.join(unknown)}")
+            configured = list(dict.fromkeys(args.platform))
+        return sb, configured, load_status(P)
 
     if args.plan:
         sb, plats, st = piece_state()
