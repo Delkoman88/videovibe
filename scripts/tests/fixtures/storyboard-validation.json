@@ -185,7 +185,7 @@
     "expected": [
       [],
       [
-        "unexpected: clave desconocida (se ignora; válidas: audio, beat_fx, broll, camera, caption_zones, emphasis, fx, grading, overlays, platforms, scenes, tail_s, transitions, version, video, voice)"
+        "unexpected: clave desconocida (se ignora; válidas: audio, beat_fx, broll, camera, caption_zones, emphasis, fx, grading, motion, overlays, platforms, scenes, tail_s, transitions, version, video, voice)"
       ]
     ]
   },

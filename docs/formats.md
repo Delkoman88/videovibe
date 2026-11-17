@@ -425,6 +425,20 @@ La frase emerge de una señal de osciloscopio con anillos de deck y glitch contr
 {"id": "s-signal-spell", "format": "signal-spell", "in": 0.0, "out": 3.0, "params": {"text": "MÚSICA = MAGIA", "kicker": "LIVE // SIGNAL", "y": 310}}
 ```
 
+## Paquete `narrative`
+
+### `narrative-sequence`
+
+Proceso, comparación o acercamiento con un elemento persistente y etiquetas sucesivas.
+
+- Layout por defecto: `full`
+- Obligatorios: `recipe`, `steps`
+- Ejemplo:
+
+```json
+{"id": "s-narrative-sequence", "format": "narrative-sequence", "in": 0.0, "out": 3.0, "params": {"recipe": "process", "steps": [{"text": "Observa"}, {"text": "Compara"}, {"text": "Explica"}]}}
+```
+
 ## Paquete `sketch`
 
 ### `sketch-annotate`

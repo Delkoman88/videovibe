@@ -22,3 +22,6 @@ channels/*/assets/lottie/*
 !channels/*/assets/lottie/library.json
 channels/*/assets/models/*
 !channels/*/assets/models/library.json
+
+channels/*/assets/images/*
+!channels/*/assets/images/library.json

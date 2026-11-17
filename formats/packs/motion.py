@@ -6,6 +6,7 @@ Reglas de determinismo (ADR 0022): el texto se parte en Python (no depende de qu
 efecto «descifrar» usa un hash del cuadro, nunca azar en tiempo de render.
 Se activa en un canal con channel.json → "format_packs": [..., "motion"].
 """
+from formats.motion import CURRENT, path_move
 import math
 import re
 
@@ -235,8 +236,9 @@ def draw_diagram(sid, d, p, layout="full"):
             js += [f'tl.fromTo("#{sid}-p{i}", {{drawSVG: "0%"}}, {{drawSVG: "100%", duration: {seg * .8:.3f}, '
                    f'ease: "power1.inOut"}}, {tc:.3f});',
                    f'tl.set("#{sid}-dot", {{opacity: 1}}, {tc:.3f});',
-                   f'tl.to("#{sid}-dot", {{duration: {seg * .8:.3f}, ease: "power1.inOut", '
-                   f'motionPath: {{path: "#{sid}-p{i}"}}}}, {tc:.3f});']
+                   (path_move(f'#{sid}-dot',f'#{sid}-p{i}',round(tc,3),round(seg*.8,3)) if CURRENT.get() else
+                    f'tl.to("#{sid}-dot", {{duration: {seg * .8:.3f}, ease: "power1.inOut", '
+                   f'motionPath: {{path: "#{sid}-p{i}"}}}}, {tc:.3f});')]
     js.append(f'tl.to("#{sid}-dot", {{opacity: 0, duration: .2}}, {0.25 + (n - 1) * seg + 0.3 + seg * .8:.3f});')
     head = ""
     if p.get("title"):
@@ -319,8 +321,10 @@ def morph_icon(sid, d, p, layout="full"):
         if i < n - 1:
             tm = 0.15 + (i + 1) * seg - 0.35
             js += [f'tl.to("#{sid}-l{i}", {{opacity: 0, y: -24, duration: .25, ease: "power2.in"}}, {tm:.3f});',
-                   f'tl.to("#{sid}-path", {{morphSVG: {{shape: "{paths[i + 1]}"}}, duration: .6, '
-                   f'ease: "power3.inOut"}}, {tm:.3f});',
+                   (f'tl.fromTo("#{sid}-path", {{morphSVG: {{shape: "{paths[i]}"}}}}, '
+                    f'{{morphSVG: {{shape: "{paths[i+1]}"}}, duration:.6,ease:"power3.inOut",immediateRender:false}}, {tm:.3f});'
+                    if CURRENT.get() else f'tl.to("#{sid}-path", {{morphSVG: {{shape: "{paths[i + 1]}"}}, duration: .6, '
+                   f'ease: "power3.inOut"}}, {tm:.3f});'),
                    f'tl.to("#{sid}-ic", {{color: vvVar("{ACCENTS[(i + 1) % 3]}"), duration: .6}}, {tm:.3f});',
                    f'tl.fromTo("#{sid}-ic", {{scale: 1}}, {{scale: 1.08, duration: .3, yoyo: true, repeat: 1, '
                    f'ease: "sine.inOut"}}, {tm:.3f});']
@@ -378,10 +382,11 @@ def path_journey(sid, d, p, layout="full"):
                f'tl.fromTo("#{sid}-l{i}", {{opacity: 0, y: 20}}, {{opacity: 1, y: 0, duration: .45, ease: "expo.out"}}, '
                f'{t_arrive + .05:.3f});']
         if i < n - 1:
-            js += [f'tl.fromTo("#{sid}-prog", {{drawSVG: "0% {fr[i] * 100:.2f}%"}}, {{drawSVG: "0% {fr[i + 1] * 100:.2f}%", '
-                   f'duration: {seg_t * .85:.3f}, ease: "power1.inOut"}}, {t_arrive + .1:.3f});',
-                   f'tl.to("#{sid}-dot", {{duration: {seg_t * .85:.3f}, ease: "power1.inOut", '
-                   f'motionPath: {{path: "#{sid}-prog", start: {fr[i]:.4f}, end: {fr[i + 1]:.4f}}}}}, {t_arrive + .1:.3f});']
+            js += [('' if CURRENT.get() else f'tl.fromTo("#{sid}-prog", {{drawSVG: "0% {fr[i] * 100:.2f}%"}}, {{drawSVG: "0% {fr[i + 1] * 100:.2f}%", '
+                   f'duration: {seg_t * .85:.3f}, ease: "power1.inOut"}}, {t_arrive + .1:.3f});'),
+                   (path_move(f'#{sid}-dot',f'#{sid}-prog',round(t_arrive+.1,3),round(seg_t*.85,3),fr[i],fr[i+1],progress=True) if CURRENT.get() else
+                    f'tl.to("#{sid}-dot", {{duration: {seg_t * .85:.3f}, ease: "power1.inOut", '
+                   f'motionPath: {{path: "#{sid}-prog", start: {fr[i]:.4f}, end: {fr[i + 1]:.4f}}}}}, {t_arrive + .1:.3f});')]
     js.insert(0, f'tl.fromTo("#{sid}-track", {{drawSVG: "0%"}}, {{drawSVG: "100%", duration: .8, ease: "power2.out"}}, .05);')
     js.insert(1, f'tl.set("#{sid}-dot", {{opacity: 1, x: {pts[0][0]}, y: {pts[0][1]:.0f}}}, .3);')
     head = ""

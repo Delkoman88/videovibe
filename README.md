@@ -2,7 +2,7 @@
 
 **Vertical video editing driven by AI coding agents.** · [Español](README.es.md)
 
-> **Status: alpha.** Used in production for one real channel; tested on macOS. Expect rough edges.
+> **Status: alpha.** Validated with two real channels, including a delivery from Ubuntu/WSL. The new animation direction upgrade is locally validated on macOS; its WSL and remote CI checks remain pending. Expect rough edges.
 
 You record yourself talking to the camera. You ask your agent (Claude Code, Codex, Gemini CLI…) to
 edit it. VideoVibe does the rest with deterministic scripts, and stops twice for **your** approval:
@@ -22,10 +22,11 @@ edit it. VideoVibe does the rest with deterministic scripts, and stops twice for
   output, and an orchestrator (`bin/edit`) that advances by itself and pauses only where a human must decide.
 - **Multi-channel.** Each channel (person or brand) has its own profile, style, palette, rhythm, sound
   and learnings. The engine knows no channel; your channels can live in a private repo.
-- **Animations and effects à la carte.** 35 animation formats in optional packs (kinetic type, Lottie,
+- **Animations and effects à la carte.** 36 animation formats in optional packs (kinetic type, Lottie,
   3D molecules, cinematic 3D with Three.js, hand-drawn whiteboard, data charts with d3, CC0 science icons),
   effects on the footage (text behind you, background swap, glow, freeze), beat-synced hits and overlay
   transitions — all in your brand colors, deterministic, and loaded only when a scene uses them.
+- **Animation direction per piece.** Compare restrained, balanced and energetic profiles; reuse narrative objects and anchor animation to spoken words. Automated visual checks support the human review. Existing pieces keep their animation settings. See the [animation direction guide](docs/animation-direction.md) (Spanish).
 - **Sound included.** Voice cleanup measured per recording, music with ducking under your voice,
   synthesized sound effects per channel (or your own recordings), and external-mic sync.
 - **Licensing taken seriously.** Every track and effect records its license; an "ad" version swaps to
@@ -82,7 +83,7 @@ installs them; `bin/doctor` checks them.
 | Path | What |
 |---|---|
 | `AGENTS.md` | Entry point for agents (rules, what to read for each task) |
-| `bin/` | `welcome` (onboarding), `setup`, `demo`, `new-channel`, `new-piece`, `edit` (orchestrator), `status`, `doctor` |
+| `bin/` | `welcome` (onboarding), `setup`, `demo`, `new-channel`, `new-piece`, `edit` (orchestrator), `status`, `doctor`, `animation-style` (profile previews and proposal snapshots) |
 | `scripts/` | Pipeline: ingest, transcribe, paper cut, apply cut, voice, captions, compose, verify, sound tools |
 | `formats/` | Animation formats (generic + themed packs) |
 | `channels/` | `_template` (template) and `science-60` (fictional example) |

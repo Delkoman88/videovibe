@@ -1,8 +1,11 @@
-# Recursos visuales: animaciones Lottie, estructuras moleculares y modelos 3D
+# Recursos visuales: Lottie, moléculas, modelos 3D e imágenes
 
 > Para el agente que arma escenas con animaciones de diseñador o moléculas 3D. Formatos: paquetes `lottie`
 > y `molecular`; escenas 3D: paquete `cinematic` (`docs/formats.md`). Decisiones técnicas: ADR 0023 (bibliotecas,
 > Lottie), 0024 (moléculas) y 0027 (3D cinematográfico, modelos).
+
+Las imágenes registradas se usan en objetos narrativos reutilizables; consulta «Imágenes» más abajo
+y [dirección de animaciones](animation-direction.md) (ADR 0030).
 
 ## Qué es y cuándo usarlo
 
@@ -160,3 +163,10 @@ Gráficas:
   `"illustrative": true` agrega la etiqueta «ILUSTRATIVO».
 - `unit` (%, mg, °C…), `decimals` (0–3) y `decimal_comma: true` para escribir 3,5 en vez de 3.5.
 - Nunca inventes datos presentados como reales: si la persona no da la fuente, pregunta.
+
+## Imágenes reutilizables en secuencias
+
+El paquete `narrative` admite fotos PNG/JPEG/WebP registradas con origen, licencia y permiso de anuncios
+en `<canal>/assets/images/library.json`. Alta/listado: `python -m scripts.tools.images --help`.
+La composición incrusta el archivo local y registra créditos en `assets.md`. Ejemplos y anclajes en
+[Dirección de animaciones](animation-direction.md). No se transforman rasgos de personas en las imágenes.

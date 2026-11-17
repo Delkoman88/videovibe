@@ -25,6 +25,7 @@ This project uses or includes the following third-party components:
   copied only into compositions whose scenes use hand-drawn sketches or charts.
 - Lucide icons (https://lucide.dev) — ISC. A selection is included in formats/icons/lucide.json
   (license: formats/icons/LICENSE-lucide.txt).
+- Puppeteer Core (https://pptr.dev) — Apache-2.0. Installed via npm for local scene measurements; no browser download.
 - whisper.cpp (https://github.com/ggml-org/whisper.cpp) — MIT. Installed separately (not included).
 - Whisper large-v3-turbo model (OpenAI, ggml conversion by whisper.cpp) — MIT. Downloaded by bin/setup.
 - Silero VAD model (ggml conversion) — MIT. Downloaded by bin/setup.

@@ -33,6 +33,11 @@ def _payload(kind, it, brand):
                           ensure_ascii=False)
     if kind == "models":  # .glb en base64: GLTFLoader.parse lo lee sin red
         return json.dumps({"glb": base64.b64encode(Path(it["path"]).read_bytes()).decode("ascii")})
+    if kind == 'images':
+        import mimetypes
+        file = Path(it['path']); mime = mimetypes.guess_type(file.name)[0]
+        if mime not in ('image/png', 'image/jpeg', 'image/webp'): raise ValueError('images: PNG, JPEG o WebP obligatorio')
+        return json.dumps({'url': 'data:'+mime+';base64,'+base64.b64encode(file.read_bytes()).decode('ascii')})
     raise KeyError(kind)
 
 

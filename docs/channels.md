@@ -19,6 +19,7 @@ sistema para temáticas, estéticas e idiomas distintos.
 | `fonts/` (opcional) | fuentes propias del canal; si no, se buscan en `assets/fonts/` | scripts |
 | `audio/sfx/` | kit de efectos propio (`scripts/audio/sfx.py --channel <id>`; carácter en `brand.json → sound`) efectos del canal en `recipes.json` y efectos aportados en `user.json` + `user/` (fuera de git) (ver `docs/audio.md`) | compose |
 | `assets/lottie/` | animaciones Lottie del canal: `library.json` (origen, licencia, anuncios, colores) y archivos (los de terceros, fuera de git); `scripts/tools/lottie.py` (ver `docs/visual-assets.md`) | compose |
+| `assets/images/` | imágenes PNG/JPEG/WebP registradas con origen y licencia para objetos narrativos; `scripts.tools.images add` / `list` (fuera de git) | compose |
 | `audio/music/` | biblioteca de música con licencia (`library.json` en git; audios fuera de git). Música propia: `scripts/audio/musicgen.py` (apta para anuncios) | compose |
 | `projects/` | las piezas del canal (fuera de git) | todos |
 
@@ -54,6 +55,18 @@ Después, el agente:
 5. Sonido (`docs/audio.md`): ajusta `brand.json → sound` y genera el kit (`scripts/audio/sfx.py --channel <id>`);
    propone 2–3 paletas de `brand.json → music` con un muestrario de `musicgen.py` y fija la que elija la persona.
 6. Corre `bin/doctor --channel <id>` hasta que salga limpio.
+
+## Preferencia de animaciones
+
+`brand.json → motion.profile` guarda `restrained`, `balanced` o `energetic`. Antes de fijarla,
+presenta dos alternativas con `bin/animation-style --channel <id>`; guarda solo la elección explícita
+mediante `--apply <perfil> --run /ruta/absoluta/candidates.json`. El manifiesto comprueba que los
+previews y la marca siguen vigentes; la elección también queda en `learnings.md`.
+
+Las propuestas nuevas incorporan el perfil con `--snapshot`; cambiar la preferencia del canal no
+reescribe el bloque `motion` de storyboards existentes. Para objetos narrativos activa `narrative`
+en `channel.json → format_packs`. Comandos completos, anclajes y compatibilidad:
+[dirección de animaciones](animation-direction.md).
 
 ## Idiomas
 

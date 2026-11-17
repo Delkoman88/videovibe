@@ -7,6 +7,7 @@ usa semillas fijas. Lo que se prepara antes del primer cuadro (texto con la fuen
 se espera con `window.__hf.buildReady`. La librería es un IIFE construido con esbuild (`formats/vendors.py`).
 Se activa con channel.json → "format_packs": [..., "cinematic"].
 """
+from formats.motion import factor
 import json
 
 from formats.core import esc, fmt, wrap
@@ -195,7 +196,7 @@ def particle_word(sid, d, p, layout="full"):
         pts.rotation.y = (1 - cineOut(u)) * .7;
       }}
       bgDust.rotation.y = t * .03;
-      camera.position.set(0, 0, 9.5 - .9 * cineInOut(t / {d:.3f})); camera.lookAt(0, 0, 0);
+      camera.position.set(0, 0, 9.5 - {factor("camera_ratio", ".9")} * cineInOut(t / {d:.3f})); camera.lookAt(0, 0, 0);
       C.render();
     }};
     cineReady("{sid}", cineFont().then(() => {{
@@ -237,7 +238,7 @@ def logo_3d(sid, d, p, layout="full"):
       group.scale.setScalar(.6 + .4 * e);
       sweep.position.set(-5 + 10 * cineInOut((t - .6) / 1.6), 1.2, 2.2);
       dust.rotation.y = t * .04; dust.position.y = t * .05;
-      camera.position.set(0, 0, 7.9 - .5 * cineInOut(t / {d:.3f})); camera.lookAt(0, .35, 0);
+      camera.position.set(0, 0, 7.9 - {factor("camera_ratio", ".5")} * cineInOut(t / {d:.3f})); camera.lookAt(0, .35, 0);
       C.render();
     }};
     cineReady("{sid}", cineFont().then(() => {{
@@ -295,7 +296,7 @@ def cell_journey(sid, d, p, layout="full"):
     const dust = C.dust(2600, [16, 22, LEN + 10, -LEN / 2], 9, .035);
     const draw = (t) => {{
       const u = cineInOut(t / {d:.3f}), z = 9 - u * (LEN * .62);
-      camera.position.set(Math.sin(t * .45) * .5, Math.cos(t * .37) * .4, z);
+      camera.position.set(Math.sin(t * .45) * {factor("camera_ratio", ".5")}, Math.cos(t * .37) * .4, z);
       camera.lookAt(Math.sin(t * .3) * .3, 0, z - 10);
       lamp.position.set(0, 1, z - 3);
       for (const c of cells) c.g.rotation.set(c.p + t * c.s * .5, c.p + t * c.s, 0);
@@ -362,7 +363,7 @@ def model_showcase(sid, d, p, layout="full"):
       pivot.rotation.y = -.6 + {deg:.1f} * Math.PI / 180 * cineInOut(t / {d:.3f});
       pivot.scale.setScalar(.82 + .18 * e); pivot.position.y = (1 - e) * -.4;
       dust.rotation.y = t * .05;
-      camera.position.set(0, 1.0, 7.2 - .4 * cineInOut(t / {d:.3f})); camera.lookAt(0, .05, 0);
+      camera.position.set(0, 1.0, 7.2 - {factor("camera_ratio", ".4")} * cineInOut(t / {d:.3f})); camera.lookAt(0, .05, 0);
       C.render();
     }};
     cineReady("{sid}", new Promise((ok, fail) => {{
@@ -415,7 +416,7 @@ def space_field(sid, d, p, layout="full"):
     }}
     const draw = (t) => {{
       const u = cineInOut(t / {d:.3f});
-      camera.position.set(Math.sin(t * .25) * .4, .4 + u * .3, 10 - u * 7); camera.lookAt(0, .6, -20);
+      camera.position.set(Math.sin(t * .25) * .4, .4 + u * .3, 10 - u * {factor("camera_ratio", "7")}); camera.lookAt(0, .6, -20);
       orbs.forEach((o) => o.m.scale.setScalar(1 + .25 * Math.sin(t * 1.3 + o.p)));
       dust.rotation.z = t * .01;
       C.render();

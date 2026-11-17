@@ -46,6 +46,12 @@ or set `VIDEOVIBE_CHANNELS`. `bin/doctor` prints which folder is in use.
 
 ## Optional
 
+- **Animation validation (development):** `.venv/bin/python -m scripts.tools.animation_install_check`
+  checks a temporary copy with `npm ci`, a fresh Python environment, tests and a render. System
+  packages and Chrome/Chromium must already be installed. Visual checks use the pinned HyperFrames
+  0.9.32 runtime; see [animation direction](docs/animation-direction.md) and
+  [validation results and pending platforms](docs/status/STATUS.md) (Spanish).
+
 - **Epidemic Sound** (licensed music search via its MCP server): `docs/connectors.md`.
 - **Tests:** `.venv/bin/python -m unittest discover -s scripts/tests` (some need macOS `say` and the models).
 

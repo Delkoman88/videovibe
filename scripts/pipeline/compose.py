@@ -203,20 +203,6 @@ def main():
     safe = {"text_top": max(x["text_top"] for x in safes), "text_bottom": min(x["text_bottom"] for x in safes)}
     for old in list(hf.glob("index-*.html")) + list((hf / "compositions").glob("overlays-*.html")):
         old.unlink()
-    (hf / "compositions" / "captions.html").write_text(
-        captions_html(caps, sb.get("emphasis", {}), brand, safe, ctx, sb.get("caption_zones", [])),
-        encoding="utf-8")
-    (hf / "compositions" / "overlays.html").write_text(overlays_html(sb, brand, safe, ctx), encoding="utf-8")
-    for old in (hf / "compositions").glob("scene-*.html"):
-        old.unlink()
-    for sc in sb.get("scenes", []):
-        (hf / "compositions" / f"scene-{sc['id']}.html").write_text(formats.render(sc, ctx.packs), encoding="utf-8")
-    tr_html = trlayers.composition(sb, ctx.font_faces)
-    tr_file = hf / "compositions" / "transitions.html"
-    if tr_html:
-        tr_file.write_text(tr_html, encoding="utf-8")
-    elif tr_file.exists():
-        tr_file.unlink()
     default_cta = sb.get("platforms", {}).get(args.platform[0], {}).get("cta_text")
     shutil.rmtree(hf / "assets" / "audio", ignore_errors=True)
     plan = audio_markup(sb, ch, caps, total, hf)
@@ -227,11 +213,19 @@ def main():
                      "origin": " · ".join(x for x in (c["set"], c["author"], c["source"]) if x)}
                     for n in sorted(icons.used(sb)) for c in [icons.credit(n)]]
     update_animation_credits(P, used_assets)
-    (hf / "index.html").write_text(index_html(sb, brand, safe, dur, total, cuts, default_cta, plan.els, ctx,
-                                              plan.music_srcs, media, (fx_html, fx_js, fxlayers.css(sb)), beat),
-                                    encoding="utf-8")
+    from scripts.composer.project import write as write_visual_project
+    write_visual_project(hf, sb, caps, brand, safe, ctx, dur, total, cuts, default_cta,
+                         plan.els, plan.music_srcs, media, (fx_html, fx_js, fxlayers.css(sb)), beat)
     apply_grading(sb, hf, ctx.packs)
     out_files = ["hf/index.html"] + platform_variables(hf, sb, args.platform, default_cta, plan.music_srcs)
+    if sb.get('motion'):
+        from scripts.tools.animation_quality import check as check_animation
+        try:
+            report = check_animation(P)
+        except (ValueError, TimeoutError) as e:
+            oslib.die(str(e))
+        if not report['ok']:
+            oslib.emit({'ok': False, 'error': 'calidad visual: corrige textos recortados antes de B', 'report': report}, 2)
     oslib.update_status(P, "composicion", pending="revisión B (hoja + borrador)")
     oslib.emit({"ok": True, "files": out_files, "duration_s": total, "groups": len(caps["groups"]),
                 "overlays": len(sb.get("overlays", [])), "scenes": len(sb.get("scenes", [])),

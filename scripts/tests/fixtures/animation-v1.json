@@ -1,0 +1,218 @@
+{
+  "hud-frame": {
+    "legacy": "7a3e7fed89cd4536d9ed81b4571067f75b6dfe7eef27584978c7e5b149ea3aec",
+    "restrained": "702dd82f8242ee8acfcf8b87f3da1f3951d817061851221d87329c4e58d09c98",
+    "balanced": "1511e284d240d9a1fafe4814268e957266c611e98fda059d7aac439a2d77ee87",
+    "energetic": "b6dfa38049fc3d6b000cf69a825518f2b71416828d3ed487b963ecec5c2f70a3"
+  },
+  "agent-flow": {
+    "legacy": "27f888c3f9d72feb494e53056415694ec9bc91fafba6943f7448ed83b417493a",
+    "restrained": "7cb204ed1c83235969cb468166e22389947d5919341a0780dcd6a6bfcf72b942",
+    "balanced": "db238ef2450045bb5e2e439196e8c075e923375f65398765325bdd9cf82c21ac",
+    "energetic": "99fd70449a4ec23b8020af5770eda53e16eaa21a6b5c907e452c0c9ef6621102"
+  },
+  "terminal": {
+    "legacy": "f9f0d8e2db6069e0d94bdc6d9c31af856fa39f7a6369a685c2a1d1a6fa4618d5",
+    "restrained": "664e76b1c862cc01cb731ea72b01ad5dd8ef7255f32078426fdc85eb55666700",
+    "balanced": "19393bbf97252b8cb6c1133f6c974d3ad90ab590d4040a9c5b04172e4b758ff7",
+    "energetic": "1ba08e420b28305f3e695c21e50f6303cc8b408b59d17b6204aea147a42daf19"
+  },
+  "community": {
+    "legacy": "e371d2dcd0a6f8529dd260345040de54a91688b9eb86a598c5c9e76e6239d60a",
+    "restrained": "0aeb5928988cc495db17f98c6dbf6de994eaddd7f2305f3d8b830f198b69df0b",
+    "balanced": "f594b73dbb89fd66767793437456bfda8ebdb516dc5c4470143d537b3341e650",
+    "energetic": "293b03cb21ac011ca654324d907b3dbf875e878548ac954fb3787a0c59daa089"
+  },
+  "verify-refs": {
+    "legacy": "0077726b97f5c206010d3ac60809fcd62464d7fafc0ceab91f3a30bb45007ac7",
+    "restrained": "8aaf425de99a32afb24becdaafd9aacb93c8862cd0470a0224b3cbbec7612219",
+    "balanced": "2f574ee2188e91bc37b615326a6b4b6643219746f6adba22af4aca8495b20ce0",
+    "energetic": "b21669a9ba3e9adbb06b0e67937d23903343b3b7f62c56c52c93a323519cb20d"
+  },
+  "particle-title": {
+    "legacy": "2625267b640428e52401a43b438e22fdc22372bc6d5f93685324b2d0f2458700",
+    "restrained": "b3f62d18cab99a5a4300e136146eb0e42cda7e07ae264bcb31552d18465c2a6e",
+    "balanced": "fdb0c94d3902e21f0bca6c1b7a87da5eb8b637137542b0504ea349197949f43e",
+    "energetic": "7b8a867a5007427918bd005ffdca3d0bd6c8eb6a44d8e5313a05cc01d82fe9f2"
+  },
+  "lab-network": {
+    "legacy": "bbcb9be8d152832d962d658618a053114d5d5abae2023fc798c9771a5116571f",
+    "restrained": "ccdaa92a7b293e00c2d6c2166a74807df6491bdcf2bbab56620d25c051ae7f25",
+    "balanced": "13c05913672631bf2f71ae6e5a084f600e5a8e57ba4268bb2727733c33448565",
+    "energetic": "92f13a5633ffe704a4dad7147e6887adc2c649edb88a27a2408c0aeff386e7b5"
+  },
+  "dna-helix": {
+    "legacy": "3019b3d912e39abe90f349dac06e6822ff7a4791cfcf56ed91021eda22211796",
+    "restrained": "8bf81a57ec9f1cb89d68f9f9f5404d095d70cf5d6c99bf6df87ab0c7f73fddb1",
+    "balanced": "447e344034ba3395aa2a616d99b831d8db2137acde140d69c1a03c6972625cda",
+    "energetic": "71c8b1074d98554048e6c8fd2fae50b6a3235e4a499431f3ad5f9b0141c0ebb5"
+  },
+  "health-trio": {
+    "legacy": "3da391bf4eeb7d596a16d667d98c915e99c66b2336b09a55b40ac5b711a39d8c",
+    "restrained": "a9792f494369cde7e0b5f7314e8c7d7f97c015477730ac3f995e031cd5e22673",
+    "balanced": "d1120cd26a77889d18e061875c91b23e24597d7b9d43f7cddea3ab6eacd6bc3a",
+    "energetic": "f90419b26fdf6011c5853a0b2a89bc85bb8e9f41f24e759bc81a295a78eb7615"
+  },
+  "particle-word": {
+    "legacy": "249b87ab114bde5ee7f56972cafb6d70a43ecc51fc136985a5b41e8e4b4182d0",
+    "restrained": "8c005b1358d9c6f7a98cbdf10fcea626d2b08e9c12a457ea681629bf7296279d",
+    "balanced": "23f88aeb9bbc592d4fafc141b343d62aaea080ed788ee4ec1c89041a27bee90b",
+    "energetic": "e73945876a76ed2aeec2e2f4b47d89ef93c1f99096997afa82fa8a7c5a08dce4"
+  },
+  "logo-3d": {
+    "legacy": "ba9428fa2179c3c1722e630afc046b9c5add98aa665921d3a70365197138575c",
+    "restrained": "2dbb787d37be3f9400d25197e80dc05288bcc113000a19ff7e970684ab11be65",
+    "balanced": "6a3659da3c9873aaac83544de4970c2d3bf44cdbfd009798884537924eefe2bf",
+    "energetic": "c2936824580329a4cbf3bee6dc7a2985ffa5a1195d8b965ee4437ff648abe771"
+  },
+  "cell-journey": {
+    "legacy": "ddd3b3b8f5183d221fd038fce6e138034ff7b955dbc3867102b21d6f326ee838",
+    "restrained": "2ecc18340b51a78cdfec24f3d2316b63e683876c2a1a26aa0530389ce251c13c",
+    "balanced": "c35d6f9f782221cd5960c317521c8fd8f16c5c1f528304046fa969b664399988",
+    "energetic": "b51f0482a813f955a61058787cfa46a359934035799b16b2edf0c14152f066b8"
+  },
+  "model-showcase": {
+    "legacy": "50df13bc8829b20898a30193b25821301a28eb84818c61bc221bdaedfec08dfb",
+    "restrained": "0830d63537576346bf3e680fe7d0214d2aa1391c3f5b27fbe38395e0baa180a2",
+    "balanced": "8cede90dc56914fca4f535618ab848526fc37efa3bf48f6a1d0a0165777f4cca",
+    "energetic": "f313f3595c7edbbb42318e6f3560a02224949322fc2e1f20fce4e15d249e377c"
+  },
+  "space-field": {
+    "legacy": "cb8b4c3c853c9610861440b4e504c33a05ce3c13caba4c9e30ba67e46e436582",
+    "restrained": "43c59b03111ae62a83f5ef1cc4e0bfade1a704fe3d4cf83dc92b20c71f3f942c",
+    "balanced": "a81b8c6e5f99eccfdb509a55f7a9814cde39e62cb51be1462609d1b350fb46b9",
+    "energetic": "3266b0e679e8d9371eebe21bf75ac246f2b14a3b8474af29496b1024f50c3193"
+  },
+  "chart-bars": {
+    "legacy": "4b19cf815995ae3dd02a1c8b5dc4cd44b23f4cd110605cd028e118aa0936fb78",
+    "restrained": "c2581815668735b443fd669265ac481f51c4148e1b2aca13d5b5c9f382527811",
+    "balanced": "d1a75df44f0882aa48bf351848e235ce0af762bc7b3f7c9d15a3ce50f755f450",
+    "energetic": "0382a73334f1571b97b6abf86e57981dd8081a454a00a8e09b0e09c7c5c6d911"
+  },
+  "chart-line": {
+    "legacy": "36500cfd36b3505d7a370a77760ee5d5a43227ce45ca05de27a0faa60bbb7fea",
+    "restrained": "7550810706727f547cd9e4179d15a1e137bef4e6c907648e4ecfdf47ce565074",
+    "balanced": "38c3ca4383bd81d1e789f8ecf3e397ddd85378c7d868eb8f495ebe8c1efba71a",
+    "energetic": "08ae07f67cfe0ae2a97a43f4f3c5998622ac9b50c26f1bfaae118b340803c3a6"
+  },
+  "chart-compare": {
+    "legacy": "e4cbb55efc10754a05a12b66987956bcd4fa372ca66d3ffe5b76f96c4db92717",
+    "restrained": "2a9981f38b4f3b0918fe473a4cc9fbe6c9492340b584626bd4a118425287477c",
+    "balanced": "21142d83cbf06f9f7a623a356432ed22505bf79624e5c3b0b6435b96859b9118",
+    "energetic": "589c7d771749ec8693e9ecc2502d17b1601c6bd21734ecfdb6c441f71cdda2e0"
+  },
+  "lottie-scene": {
+    "legacy": "64211282c8bb5990c607f7074dc2450f85a7bc9b42b409d4a3afab8719440cf1",
+    "restrained": "6611e7b28322c9770270219df80009ff5fa0f95e9aac7b247eb4e764edc429a6",
+    "balanced": "27d3ee830518c75fffd6e8ff4ea3b14b0acf8e22c594be5d50c07621bc457552",
+    "energetic": "9a4ea002cc3f6ad8b2beda9ec1e9592d7cdc5c0b92ed83d45b474bdac73600a5"
+  },
+  "lottie-accent": {
+    "legacy": "37aa962c1f3e32936f8b4c21660672741cd75381c006df2efad93ca69d2bf1f7",
+    "restrained": "bb004e615dc494ae76d4a857a313700b05a81c563a6879fcf46c3c8327ce7db3",
+    "balanced": "348b37fe618bc06a5282cec68ea892a02a3a1475bdbef4f463bc08897d051ba5",
+    "energetic": "ff7b331e6577df8e38ea51ddb6575c8de97968474ba794048c0d50de050d02c5"
+  },
+  "molecule-spin": {
+    "legacy": "134a588822645ef377cbbeaff1c9bf7171aa6aaa35ec81ab3ec041fb1cd31622",
+    "restrained": "8788789c1009270b406e2381efb32306853656893f7e47217524d3a9e00adccf",
+    "balanced": "d7a67c480f4c5f13132c09691bcb017a7c268d5c7936efe819d685fd35757343",
+    "energetic": "e2a7b1f26f9b6b017a2a4283687be449261ff3438b3de0242ce946d15285194e"
+  },
+  "molecule-focus": {
+    "legacy": "4b2bd9175e4c05eb2f44eccc975b34fd893eea70fc87d5ea47b542994269ff57",
+    "restrained": "3b244aadaf10bc28baea4c481294af516ece38559b609bf4fc4c31e7d29170b8",
+    "balanced": "bee4335060a6a8a98a9ebd233615d8a692bdc52ac426f0727a22aec81cb02fea",
+    "energetic": "86a2e2e8273e443ddd4f56d95a6811383a1848d439f8edc3c399f7b1f9b29b88"
+  },
+  "molecule-compare": {
+    "legacy": "67f83bb10ff93c7f0445c86c90e23ebbcfe4b645fcda45d352959c46420b2e14",
+    "restrained": "66717dcb2dfde408d819e0e9bea14e0c67df7515639bd71779fc6f12d3dc510f",
+    "balanced": "07aa2eefebaf3c746440fafaeff8ed78297b247a636dfa1914f9dad2145b0c9d",
+    "energetic": "a5829125c5f56c307ffbe1d6db3e41db862ad770aeaa3aca400fa5b80490b77d"
+  },
+  "kinetic-title": {
+    "legacy": "bd9fae89f6c4a9efb924429dc1a393c24a21d2e921bc56e6b394abcf5dafdcff",
+    "restrained": "45604f49ff4753bf4864438607f73a564bc3f6a6e789876f3178cdca43ed9dac",
+    "balanced": "508e1761592161681374343109e12bd1c934427e8bc0e6dcd7c095297da01563",
+    "energetic": "214bc89cdde369f2166eb2f4ecb9cc1e86e339e598d4fa87d93886b50ddbc959"
+  },
+  "data-reveal": {
+    "legacy": "57330961ea2e9438da6d58531e17329a4889b6fde71cf2a3dfee7ace97cd310f",
+    "restrained": "81bad279fc450c0850aa35a315ba6eecc0e2db58214778b1d3c22050d72f8c00",
+    "balanced": "66d6825015f9e6b66848c06257f81e9288ec30d6e5287b18094969bc7d9f28cb",
+    "energetic": "ed10a8db87e164282f5d1d2801f0606863af12242a58351d46e7f4775d25b298"
+  },
+  "draw-diagram": {
+    "legacy": "58ae45f6b770a28c31dd1382ab338af909e23cf3399ce8222b26c11bb0e0fe55",
+    "restrained": "499a5761c48804703ee55cc10d6f289d5600f999dc54f49cb9a65067f72d74d1",
+    "balanced": "a52c23d15baf8c5eabcfeb499983100c9f8005f58de0d20389bc36eea96bd33f",
+    "energetic": "a9d7d1978789c8ab5b5cc5c0b9b1b0c04a51f3b7ea9349a3af1a1a9f1d20cd9b"
+  },
+  "morph-icon": {
+    "legacy": "b9276e81524583468dc226bb4ea8aee46d6aabe25e204f641ce7dffbcf39f786",
+    "restrained": "9832b325d430adc325407b40196dd24ec546b40bbfde44c0d5e49decb67c9fee",
+    "balanced": "290f03f3efa8155259d3142072755f63b7574e5a5d26659a85cb4dfedd99bfe5",
+    "energetic": "dde10385241fbfff85daf39bb78ab2267b103254ccd8df017061890bae6dfa97"
+  },
+  "path-journey": {
+    "legacy": "309dc7284426fec40943bd0b264b7087cc8a7746c0625c2b657651fdfcde69dd",
+    "restrained": "7e299ff4c291154073b2713c2946c9838db9b128897c0b9fbc4c10a16d730549",
+    "balanced": "05e237abc25864a68439ab3558937acb7a2a5499a6e51fb9123f01949142cf22",
+    "energetic": "868d5037401e4159cab0658587a13f83dba240528db3585b9cd8e0e2d559c91e"
+  },
+  "particle-burst": {
+    "legacy": "8ac525020e4a81bd682f6d98475795e8744f7aa52643f3020e76a65cffc281b7",
+    "restrained": "347f76d3b776578078f12de105532bb209ec7d9cc464b43e20c4a6d483c0e730",
+    "balanced": "bed372df89196a6b37b271100393540d28157ee3dc3fa3b5c26b06cc040d45f6",
+    "energetic": "83d0789a3f74b9a641664146a5607711fb6d827aef4cc3843d715dcaa3bd89f3"
+  },
+  "signal-spell": {
+    "legacy": "90600d09ab7e93c417f1215fb83d46a22264d9506d998ed83bc48c8c70ebafea",
+    "restrained": "cb265edd3adab264267c1a3116c221a723e8d26c7f03678342e3ef53339e3fc5",
+    "balanced": "e4593afc13249d11f0e8d8d2ac38192d2378ed28ee8cbf724b5a3e89ca446e94",
+    "energetic": "e2c00f0d4c2e782f0055ea72c8d29c0c022249b25adb3782796683a2fb895ae8"
+  },
+  "patchbay-dream": {
+    "legacy": "da3f44b2a8686383070e703dc8ac17999b3f9be9608921f4e8f655fb710b1ff3",
+    "restrained": "058860df20fafd096e2f79ce5ba8bd26a783727e09c77bdd6ed62f93c48dcfba",
+    "balanced": "d4cf75dd0a88b49bb40d7f229e75e9b121cd218e86c5f9632d0157dd1e6f1338",
+    "energetic": "21dd113f3b359650a44628377532dcf5950dbc11e9345c51c6cd9a83b3740838"
+  },
+  "pixi-signal": {
+    "legacy": "4388979fc1883a8a7fa232025b7afa028b3bc2fd3c467ec6fa907a74514d5f43",
+    "restrained": "4177a7a51bb4fe6eabdb6730989c5ec03e41bc7274246b3077ee93145f594bff",
+    "balanced": "2cd78dfb029fc4ddec3648d4f0137046c2bf46db3a38edec6385a8d3aba2e55b",
+    "energetic": "514f4b78b5eafb465057f204a34e45ccaa8e95df93808ceeaa805f83ecee514e"
+  },
+  "pixi-mixer": {
+    "legacy": "a4723c07148a8bf9941e1ef65b50941df853a6cc39fc9803cd555877d9622d34",
+    "restrained": "0dc1e2369d79044a0957f60d2d16d0156d7beb966ad785ed50d2c19885712ee1",
+    "balanced": "6b315e5b42a986e82981aba310adb9cf34f7ff5344d680cae78551c48b6e58a7",
+    "energetic": "f88e4b5c75e2bf138ba4ba9d089982e02301d963b82b5de521e72917c4073d22"
+  },
+  "narrative-sequence": {
+    "legacy": "846fd520862b1c53bc761800a010e5ddc8490a8ea38f91b313266b31c34c958e",
+    "restrained": "3c74c8aba852f5eadf3c8d7eb4ecdafaa3fb1ee8e9bc86ad1b5680ddaa1e17cb",
+    "balanced": "b43644449a4735ca4d0b24efa004838275e7d6b45769d01b9dddacf37a879e23",
+    "energetic": "d4e5e12e73a9f3bdb84f11b0b0ea5461d3f21a1e5012f3926e8aa1c09db61d36"
+  },
+  "sketch-annotate": {
+    "legacy": "585841139a008f27908417365836b97db837931c3f14e5ac1b62411f57c82c45",
+    "restrained": "f389c62a023baeaef640891b0526111ac9e3df1c2201e30219fe39e79c32401a",
+    "balanced": "62f534c47356cc1daf9d1e824f99c4d28e4e187cf642053e4bb3a63ca915ae02",
+    "energetic": "6be3e56341a2078de6326c2d6a4cd69895665d1585b22850a940d1d8249fe139"
+  },
+  "sketch-board": {
+    "legacy": "3cbe4e16f1a2131f357e71a6b6c0aecfc6c18c57e3a635097e5c6b5f7647cc6a",
+    "restrained": "de3b147e54bad3ad0184a68bb88351c7b28537b455f1bdf88855dd12db463123",
+    "balanced": "714be7e0a131f8e617718cf813ca7086c8ed63ad917275576435ca3ff23fbab0",
+    "energetic": "9d181bc6eb9369869de3a367e8e8959892ff4109702e568cbc3c1927f721a02f"
+  },
+  "sketch-diagram": {
+    "legacy": "eca20483adbb4da6a3142ab1a17e53dac293792a2fbfad1ecbfcfc2cd53da671",
+    "restrained": "76fb98ea18bb0fc1cd9194d61f5894faee1591a9a30ef281109a9450da0bbd83",
+    "balanced": "7656c0febd88573e49456adbf16d1b28c3335f7016853af5cdf0dcac7a3a737f",
+    "energetic": "d31aa3349fe313673ab3cf23867fb6a1a6c5de5e45e610067a1bae45031f0526"
+  }
+}

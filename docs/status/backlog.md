@@ -5,13 +5,13 @@
 
 ## P1
 
-- [ ] **Validación real** antes de más funciones: toma con micrófono externo, segundo canal. (Codex: ✅ 2026-11-11, de la bienvenida a la revisión A en una copia limpia.)
+- [ ] **Portabilidad de dirección v2:** ejecutar la versión nueva en WSL y los jobs remotos macOS/Ubuntu.
+  La prueba técnica local está cerrada y no requiere aprobación B ni entrega editorial, según la
+  aclaración de la persona. El canal musical privado no forma parte de esta prueba nueva
+  (la validación histórica sigue cerrada).
 
 - [ ] **Probar audios propios con material real**: una toma de 30–60 s con teléfono + micrófono externo (verificar sincronía de labios en el corte) y 1–2 efectos grabados (`sfx.py add` + `--preview`).
 
-- [ ] **Validar con un segundo canal real** (otra temática y otra persona).
-  Alta con `bin/new-channel` + una pieza corta de punta a punta.
-  *Hecho cuando:* la pieza pasa `verify.py` sin tocar `scripts/` ni `formats/core.py`.
 - [ ] **Probar con Codex** (y luego Gemini CLI, Muse Code): editar una pieza corta leyendo solo `AGENTS.md`.
   *Hecho cuando:* termina sin preguntar nada que esté documentado; lo que faltó queda corregido en docs.
 ## P1 — Efectos sobre la toma, ritmo, 3D, transiciones y estilos (plan aprobado 2026-11-17)
@@ -20,12 +20,13 @@
 - [x] Fase 3 — 3D cinematográfico (2026-11-17): Three.js + postprocessing (IIFE con esbuild y huella), paquete `cinematic` (5 formatos), biblioteca `models` (.glb). ADR 0027.
 - [x] Fase 4 — transiciones (2026-11-17): `storyboard.json → transitions` con seis tipos de superposición (CSS + GSAP, marca del canal, sonido automático), deterministas. ADR 0028.
 - [x] Fase 5 (2026-11-17): iconos científicos CC0 (68 Health Icons, 44 Bioicons; prefijos `health:`/`bio:`), paquete `sketch` (Rough.js) y `data` (d3, `source` obligatorio, datos desde archivos de la pieza). ADR 0029.
-- [ ] Galería con toma de ejemplo (`--with-plate`) para ver `fx`, `beat_fx` y transiciones.
+- [x] Galería con fragmento de toma (`--with-plate`), compositor común y API para `fx`, `beat_fx` y transiciones; escenarios combinados renderizados con dos marcas públicas.
 
 ## P1 — Más y mejores animaciones (plan aprobado 2026-11-17)
 
-- [ ] **Fase 1 — revisión B real con `motion`:** el paquete y `text_fx` están hechos (galería de los dos
-  canales en verde); falta usarlos en una pieza real y aprobarla.
+- [ ] **Adopción editorial del paquete `motion` y `text_fx`:** usarlos en una futura pieza de
+  producción con revisión B. Es un seguimiento editorial del paquete, distinto del bloque
+  `storyboard.motion` v2; no bloquea el cierre de la prueba técnica del upgrade ni exige aprobarla.
 ## P2
 
 - [ ] **Revisar actualización de HyperFrames**: la versión fijada 0.9.32 arrastra `undici` con avisos de seguridad de npm; probar 0.9.58 y migrar solo si la suite, la demo y una pieza real conservan salida y revisiones.
@@ -52,6 +53,14 @@
 - [ ] Respaldo remoto del repo (GitHub privado o público).
 
 ## Hecho
+
+- [x] **Documentación canónica de dirección v2 (2026-11-17):** README en ambos idiomas, storyboard,
+  pipeline, canales, instalación e índice completo de ADR reconciliados con la guía y el estado.
+
+- [x] **Implementación de dirección v2 (2026-11-17; ADR 0030):** adaptadores internos, objetos/anclajes por paso,
+  compositor común, QA con runtime real, matriz renderizada y herramientas de instalación.
+
+- [x] **Segundo canal real validado** (2026-11-16; confirmado por la persona el 2026-11-17): el canal musical privado, canal de DJ, con su primera pieza entregada en TikTok desde Ubuntu/WSL y `verify.py` en verde. Cerradas la validación multicanal y la entrega real en WSL; la prueba de micrófono externo continúa pendiente por separado.
 
 - [x] **Efectos al ritmo (`beat_fx`)** (2026-11-17): golpes en el tiempo del video con la rejilla de la
   biblioteca, envoltura de cámara y avisos de sincronía por canal. ADR 0026.

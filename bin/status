@@ -46,6 +46,12 @@ def main():
 
     P = oslib.project_dir(args.project)
     st = load(P)
+    if args.approve == 'B' and oslib.read_json(P / 'storyboard.json').get('motion'):
+        from scripts.tools.animation_quality import fingerprint as quality_fingerprint
+        report_path = P / 'work' / 'animation-quality.json'
+        report = oslib.read_json(report_path) if report_path.exists() else {}
+        if not report.get('ok') or report.get('fingerprint') != quality_fingerprint(P):
+            oslib.die('control visual pendiente, desactualizado o con errores', 1)
     if args.approve:
         review = st.get("reviews", {}).get(args.approve)
         if not review or review.get("fingerprint") != reviewlib.fingerprint(P, args.approve):

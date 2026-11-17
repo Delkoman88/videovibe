@@ -57,6 +57,10 @@ siguiendo el canal (`CHANNEL.md`, `style.md`, `rhythm.md`, `brand.json`) y el br
 | `caption_zones` | Tramos donde los subtítulos cambian de posición | Para no tapar rostro, manos o equipo. Posiciones: `upper-left` y `upper-center`. Los tramos deben ir en orden y no solaparse; fuera de ellos se conserva el preset de plataforma. |
 | `overlays` | Tarjetas en la franja superior (`title`, `card`, `tag`, `cta`) | Una a la vez; nunca sobre la cara; 4–6 s; texto de ≥ 30 px; la `cta` usa el texto de `platforms.<plat>.cta_text`. `text_fx` (`rise`, `wave`, `blur`, `mask`) arma el texto letra por letra (no en la `cta`); `*palabra*` no aplica aquí |
 | `broll` | Insertos de video mudo sobre la cámara; `source` es un id de `media.json` con `kind=broll` o `kind=pantalla` | `in`/`out` son segundos del master; `source_in` indica dónde empieza el archivo fuente. No se solapan; pueden cubrir `tail_s` para sostener el último encuadre bajo la CTA. `fit=cover` recorta horizontal a vertical con `focus_x`/`focus_y` (0–100); `contain` muestra el cuadro completo con fondo. `origin` y `license` son obligatorios; `ads:true` si hay plataforma de anuncio. El audio original del inserto se descarta y la voz aprobada continúa. |
+| `platforms` | Lo que cambia por plataforma | Hoy: `cta_text`. Se pasa al render como variable |
+| `audio` | Música con ducking y efectos | Ver «Sonido» |
+| `grading` | Corrección de color (`hyperframes media-treatment`) | Solo corrección natural (`rhythm.md` del canal). Partir de `media-treatment --analyze` |
+| `motion` | Perfil resuelto y versionado por pieza | Ver «Dirección de animaciones»; optativo, conserva el perfil de propuestas existentes |
 
 Para texto de una grabación horizontal, usa `fit: "region"` con un rectángulo proporcional de
 la fuente: `"region": {"x": 0.02, "y": 0.10, "w": 0.30, "h": 0.80}`. El motor lo amplía al lienzo
@@ -65,9 +69,32 @@ cambiar de zona, añade otro inserto consecutivo con el mismo `source`, otros `i
 `region`. Conserva `source_in` según el tiempo de la grabación. La revisión B genera
 `snaps/phone-<id>.png` a 360×640 para mirar la legibilidad real; un `contain` horizontal muy
 reducido produce un aviso, no bloquea la composición.
-| `platforms` | Lo que cambia por plataforma | Hoy: `cta_text`. Se pasa al render como variable |
-| `audio` | Música con ducking y efectos | Ver «Sonido» |
-| `grading` | Corrección de color (`hyperframes media-treatment`) | Solo corrección natural (`rhythm.md` del canal). Partir de `media-treatment --analyze` |
+
+## Dirección de animaciones (`motion`, opcional)
+
+`motion` es un perfil **resuelto y versionado**, no solo un nombre. El paquete de formatos
+`motion` y este bloque del storyboard son conceptos distintos. Para preparar una propuesta nueva:
+
+```bash
+bin/animation-style --channel <canal> --project <canal>/<pieza> --snapshot --dry-run
+bin/animation-style --channel <canal> --project <canal>/<pieza> --snapshot
+```
+
+El primer comando muestra el diff y valida sin escribir. El segundo fija en la pieza el perfil del
+canal y resuelve los anclajes; conserva A e invalida B solo si cambia la propuesta. No lo ejecutes sobre una
+pieza aprobada sin un pedido de cambio. Los valores del perfil se generan con la herramienta;
+no se editan individualmente. Sin este bloque se mantiene el comportamiento anterior.
+
+Las escenas aceptan `anchor: {"word_id": "w12", "offset": 0.1}`; el snapshot ajusta `in`/`out`
+conservando su duración. Los pasos de `narrative-sequence` aceptan el mismo anclaje y guardan `at`
+en segundos locales de escena. Los ids deben existir en los subtítulos. Se validan límites,
+orden y tiempo de lectura antes de escribir; la voz permanece en su tiempo original.
+
+`narrative-sequence` (paquete `narrative`) ofrece recetas `process`, `compare` y `locate` con 2–5 pasos
+sobre objetos reutilizables: formas, texto, iconos o imágenes con licencia. Contrato, ejemplos,
+comparación de perfiles y límites del control visual: [dirección de animaciones](animation-direction.md).
+Con `motion`, la composición genera `work/animation-quality.json`; B requiere un informe vigente
+sin errores objetivos y la revisión humana habitual.
 
 ## Sonido (`audio`)
 
@@ -111,6 +138,7 @@ Animaciones que ilustran lo que se dice. Cada escena usa un **formato** del cat�
 | Apertura, tema o frase clave | `kinetic-title` (`over`), o `text_fx` en una tarjeta `title` | `motion` |
 | Un número, porcentaje o cifra | `data-reveal` | `motion` |
 | Un proceso o pasos (2–5) | `draw-diagram` (iconos de Lucide, `health:` o `bio:`) | `motion` |
+| Proceso, comparación o ubicación conservando objetos entre pasos | `narrative-sequence` | `narrative` |
 | Una transformación (antes → después, idea → resultado) | `morph-icon` | `motion` |
 | Una historia o cronología | `path-journey` | `motion` |
 | Un remate, logro o sorpresa | `particle-burst` (`over`) | `motion` |

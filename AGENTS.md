@@ -26,6 +26,7 @@ Los canales de cada persona pueden vivir fuera del repo (repo privado): la carpe
 | Primera vez, canal nuevo o persona que no conoce el sistema | `bin/welcome` + `docs/getting-started.md` |
 | Editar una pieza de un canal | Pieza nueva: `bin/new-piece <canal> <slug> --from <archivos>` (la crea donde viven los canales, con `raw/` y `brief.md`). Después `bin/edit <canal>/<pieza>` y haz lo que indique al pausar. Antes de decisiones creativas: `channels/<canal>/CHANNEL.md`, `style.md`, `rhythm.md`, `learnings.md`. Detalle: `docs/pipeline.md` |
 | Escribir el plan visual (storyboard) | `docs/storyboard.md` + `docs/formats.md` (+ `brand.json` del canal) |
+| Elegir animaciones, comparar estilos, revisar calidad visual | `docs/animation-direction.md` |
 | Sonido (voz, música, efectos) | `docs/audio.md` |
 | Animaciones Lottie, moléculas y modelos 3D (agregar, licencias, colores) | `docs/visual-assets.md` |
 | Efectos sobre la toma y al ritmo (texto detrás de la persona, halo, congelado, fondo, golpes de la música) | `docs/effects.md` |
@@ -73,7 +74,7 @@ Precedencia: **pieza (brief) > canal > motor**, salvo estas reglas universales.
 | `presets/` | Especificación técnica por plataforma |
 | `docs/status/` | Estado del desarrollo: `STATUS.md`, `backlog.md`, `roadmap.md` |
 | `docs/decisions/` | Decisiones técnicas (por qué las cosas son como son) |
-| `bin/` | `welcome` (en qué etapa está la persona), `setup` (instalación), `demo` (prueba de punta a punta), `new-piece` (pieza nueva), `edit` (orquestador), `review` (revisiones A/B guiadas), `open-review` (abrir archivos para la persona), `status`, `doctor`, `new-channel`, `format-catalog`, `format-gallery` (ver los formatos con la marca de un canal), `install-agents` |
+| `bin/` | `welcome` (en qué etapa está la persona), `setup` (instalación), `demo` (prueba de punta a punta), `new-piece` (pieza nueva), `edit` (orquestador), `review` (revisiones A/B guiadas), `open-review` (abrir archivos para la persona), `status`, `doctor`, `new-channel`, `format-catalog`, `format-gallery` (ver los formatos con la marca de un canal), `animation-style` (comparar perfiles y preparar propuestas), `install-agents` |
 | `.agents/skills/edit-video/` | Skill (formato abierto SKILL.md); `.claude/skills` apunta aquí |
 
 ## «Guarda esto en el sistema»

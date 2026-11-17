@@ -53,7 +53,10 @@ def files_for(P, gate):
     if not sheets:
         sheets = [P / "snaps" / "contact-sheet.jpg"]
     phones = [P / "snaps" / f"phone-{clip['id']}.png" for clip in sb.get("broll", [])]
-    return [draft, *sheets, *phones]
+    quality = P / 'work' / 'animation-quality.json'
+    quality_data = oslib.read_json(quality) if sb.get('motion') and quality.exists() else {}
+    frames = quality_data.get('review_frames') or quality_data.get('frames', [])[:2]
+    return [draft, *sheets, *phones, *[Path(f) for f in frames]]
 
 
 def fingerprint(P, gate):
@@ -141,6 +144,22 @@ def packet(P, gate):
                    f"{len(sb.get('broll', []))} insertos de video."]
         for x in (sb.get("broll", []) + sb.get("scenes", []))[:5]:
             summary.append(f"{x.get('in', 0):.1f}–{x.get('out', 0):.1f} s: {x.get('id', x.get('format', 'visual'))}")
+        if sb.get('motion'):
+            from scripts.core.animationqa import inspect
+            import formats
+            ch = oslib.load_channel(P)
+            qa = inspect(sb, formats.registry(ch['config'].get('format_packs', [])))
+            report_path = P / 'work' / 'animation-quality.json'
+            from scripts.tools.animation_quality import fingerprint as quality_fingerprint
+            if not report_path.exists(): oslib.die('control visual pendiente: ejecuta animation_quality antes de B')
+            if report_path.exists():
+                report = oslib.read_json(report_path)
+                if report.get('fingerprint') != quality_fingerprint(P) or not report.get('ok'):
+                    oslib.die('control visual desactualizado o con errores: vuelve a componer')
+                summary += [f"Control de composición: {len(report['issues'])} hallazgos; rostros y claridad requieren inspección."]
+            summary += [f"{i.get('time',0):.1f} s: {i['message']}" for i in report.get('issues',[])[:5]]
+            summary += [f"Movimiento: {sb['motion']['profile']}; revisión visual humana pendiente."]
+            summary += [f"{i['time']:.1f} s: {i['message']}" for i in qa['issues'][:5]]
         questions = ["¿Los visuales corresponden a lo que se dice en esos momentos?",
                      "¿Se leen los subtítulos y los detalles de pantalla en el teléfono?",
                      "¿Moverías, acortarías o quitarías algún visual? Indica el segundo.",

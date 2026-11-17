@@ -86,6 +86,7 @@ def used(obj):
     """Iconos de los conjuntos con prefijo nombrados en cualquier parte de un storyboard (para créditos)."""
     out = set()
     if isinstance(obj, dict):
+        if obj.get('kind')=='icon' and exists(obj.get('icon')): out.add(obj['icon'])
         for v in obj.values():
             out |= used(v)
     elif isinstance(obj, list):

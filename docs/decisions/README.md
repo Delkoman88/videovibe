@@ -6,23 +6,33 @@ reemplace (y marca la vieja como «Reemplazada por NNNN»).
 
 | # | Decisión | Estado |
 |---|---|---|
-| 0001 | Lógica en scripts deterministas, agentes como operadores | vigente |
-| 0002 | Transcribir tramo por tramo | vigente |
-| 0003 | HDR → SDR BT.709 con curva hable | vigente |
-| 0004 | HyperFrames para composición y render | vigente |
-| 0005 | Variantes por plataforma como variables de una sola composición | vigente |
-| 0006 | Motor separado de los canales | vigente |
-| 0007 | Orquestador idempotente con pausas (`bin/edit`) | vigente |
-| 0008 | Sonido: música con licencia por canal y efectos sintetizados | vigente |
-| 0009 | Música distinta para la versión de anuncio | vigente |
-| 0010 | Tratamiento de voz medido, con filtros clásicos | vigente |
-| 0011 | Sonido del canal declarado en archivos (recetas e identidad musical) | vigente |
-| 0012 | Audios aportados por la persona y micrófono externo | vigente |
-| 0013 | Storyboard validado antes de componer; compose dividido; audio en un solo módulo | vigente |
-| 0014 | Insertos visuales de B-roll y pantalla | vigente |
-| 0015 | Regiones fijas de pantalla para video vertical | vigente |
-| 0016 | Pruebas de voz dependientes del entorno | vigente |
-| 0017 | Revisiones guiadas y apertura de archivos | vigente |
-| 0018 | Carpetas `input/` y `deliveries/` en la raíz | vigente |
-
-| 0019 | Paquetes del motor y nombres del sistema en inglés | vigente |
+| 0001 | [Lógica en scripts deterministas; los agentes los operan](0001-deterministic-scripts.md) | vigente |
+| 0002 | [Transcribir tramo por tramo](0002-chunked-transcription.md) | vigente |
+| 0003 | [HDR (HLG/PQ) → SDR BT.709 con curva hable](0003-hdr-to-sdr.md) | vigente |
+| 0004 | [HyperFrames para composición y render](0004-hyperframes.md) | vigente |
+| 0005 | [Variantes por plataforma como variables de una sola composición](0005-variants-as-variables.md) | vigente |
+| 0006 | [Motor separado de los canales](0006-engine-and-channels.md) | vigente |
+| 0007 | [Orquestador idempotente con pausas (`bin/edit`)](0007-orchestrator-with-pauses.md) | vigente |
+| 0008 | [Sonido: música con licencia por canal y efectos sintetizados propios](0008-audio.md) | vigente |
+| 0009 | [Música distinta para la versión de anuncio](0009-music-for-ads.md) | vigente |
+| 0010 | [Tratamiento de voz medido, con filtros clásicos](0010-voice-processing.md) | vigente |
+| 0011 | [Sonido del canal declarado en archivos (recetas e identidad musical)](0011-declarative-channel-audio.md) | vigente |
+| 0012 | [Audios aportados por la persona y micrófono externo](0012-provided-audio-and-microphone.md) | vigente |
+| 0013 | [Storyboard validado antes de componer; compose dividido; audio en un solo módulo](0013-validation-and-modules.md) | vigente |
+| 0014 | [Insertos visuales desde el storyboard](0014-visual-inserts.md) | vigente |
+| 0015 | [Regiones fijas de pantalla para video vertical](0015-screen-regions.md) | vigente |
+| 0016 | [Pruebas de voz dependientes del entorno](0016-sandbox-voice-tests.md) | vigente |
+| 0017 | [Revisiones guiadas y apertura de archivos](0017-guided-reviews.md) | vigente |
+| 0018 | [Carpetas `input/` y `deliveries/` en la raíz](0018-input-and-delivery-folders.md) | vigente |
+| 0019 | [Paquetes del motor y nombres del sistema en inglés](0019-packages-and-english-paths.md) | vigente |
+| 0020 | [Formatos PixiJS deterministas](0020-pixi-deterministic-formats.md) | vigente |
+| 0021 | [Alineación de subtítulos contra el master final](0021-final-master-caption-alignment.md) | vigente |
+| 0022 | [Librerías de animación opcionales y un solo reloj por escena](0022-optional-animation-libraries.md) | vigente |
+| 0023 | [Animaciones Lottie: bibliotecas con licencia, datos locales y color de marca](0023-lottie-libraries.md) | vigente |
+| 0024 | [Moléculas 3D con 3Dmol.js: vista absoluta por cuadro, superficies con espera y datos locales](0024-molecular-structures.md) | vigente |
+| 0025 | [Efectos sobre la toma: recorte local de la persona y capas dentro de la cámara](0025-effects-on-footage.md) | vigente |
+| 0026 | [Efectos al ritmo: rejilla de la biblioteca, fase por ataques y envoltura de cámara](0026-beats.md) | vigente |
+| 0027 | [3D cinematográfico: Three.js empaquetado localmente, un solo reloj y biblioteca de modelos](0027-cinematic-3d.md) | vigente |
+| 0028 | [Transiciones de superposición: una capa propia, solo CSS + GSAP y el máximo en el corte](0028-transitions.md) | vigente |
+| 0029 | [Iconos científicos CC0, pizarrón con Rough.js y gráficas con d3](0029-scientific-icons-sketch-data.md) | vigente |
+| 0030 | [Perfiles versionados, composición compartida y revisión visual](0030-animation-direction.md) | implementado; validación remota pendiente |

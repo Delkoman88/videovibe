@@ -37,7 +37,7 @@ def gallery_storyboard(names, packs, seconds, params=None):
     for i, name in enumerate(names):
         meta = formats.REGISTRY[name]
         layout = meta["layout"] if meta["layout"] != "bubble" else "full"
-        scenes.append({"id": f"g-{name}", "format": name, "in": round(i * seconds, 3),
+        scenes.append({"id": (f"g-{name}-{i}" if names.count(name)>1 else f"g-{name}"), "format": name, "in": round(i * seconds, 3),
                        "out": round((i + 1) * seconds, 3), "layout": layout,
                        "params": dict((params or {}).get(name) or meta["example"])})
     return {"scenes": scenes}
@@ -46,7 +46,7 @@ def gallery_storyboard(names, packs, seconds, params=None):
 def index_html(sb, brand, faces, total):
     hosts, _, _ = scenes_markup(sb)
     labels = "\n".join(
-        f'      <div id="lbl-{esc(s["format"])}" class="clip lbl" data-start="{s["in"]}" '
+        f'      <div id="lbl-{esc(s["id"])}" class="clip lbl" data-start="{s["in"]}" '
         f'data-duration="{round(s["out"] - s["in"], 3)}" data-track-index="2">{esc(s["format"])}'
         f' <span>· {esc(formats.REGISTRY[s["format"]]["pack"])}</span></div>' for s in sb["scenes"])
     return f"""<!doctype html>
@@ -87,18 +87,23 @@ def index_html(sb, brand, faces, total):
 """
 
 
-def build(channel, names=None, seconds=3.2, out=None, params=None):
+def build(channel, names=None, seconds=3.2, out=None, params=None, motion=None, plate=None, plate_start=0, plate_seconds=None, storyboard=None, captions=None, packs_override=None, fx_cuts=None, beat_data=None):
     """Escribe el proyecto de la galería y devuelve (dir hf, storyboard)."""
     ch = oslib.load_channel(oslib.channel_path(channel))
     brand = ch["brand"]
-    packs = tuple(ch["config"].get("format_packs", []))
+    packs = tuple(packs_override if packs_override is not None else ch["config"].get("format_packs", []))
     faces = font_faces(brand)
     formats.configure(faces, ch["lang"]["labels"], ch["config"].get("name"))
     reg = formats.registry(packs)
     names = names or sorted(reg, key=lambda n: (reg[n]["pack"] != "core", reg[n]["pack"], n))
     if bad := [n for n in names if n not in reg]:
         oslib.die(f"formatos no disponibles para {channel}: {bad} (paquetes del canal: {list(packs)})")
-    sb = gallery_storyboard(names, packs, seconds, params)
+    sb = storyboard or gallery_storyboard(names, packs, seconds, params)
+    if motion: sb["motion"] = motion
+    from scripts.core import assetlib
+    for _,kind,ident in formats.uses(sb):
+        ads=any(oslib.load_preset(p).get('ads') for p in sb.get('platforms',{}))
+        if problems:=assetlib.problems(kind,ident,ch['dir'],ads=ads):raise ValueError('; '.join(problems))
     hf = Path(out) if out else ROOT / "work" / "gallery" / channel / "hf"
     if hf.exists():
         shutil.rmtree(hf)
@@ -109,12 +114,56 @@ def build(channel, names=None, seconds=3.2, out=None, params=None):
     if missing := vendors.copy(formats.needs(sb), ROOT / "node_modules", hf / "assets" / "vendor"):
         oslib.die(f"faltan librerías {missing}: corre `npm ci`")
     scene_data.write(hf, sb, ch["dir"], brand)
-    for sc in sb["scenes"]:
-        (hf / "compositions" / f"scene-{sc['id']}.html").write_text(formats.render(sc, packs), encoding="utf-8")
-    total = round(len(names) * seconds, 3)
-    (hf / "index.html").write_text(index_html(sb, brand, faces, total), encoding="utf-8")
+    total = max(sc['out'] for sc in sb['scenes'])
+    if motion and motion['version'] == 2:
+        from scripts.composer.project import write
+        from scripts.composer.context import Ctx
+        prepare_plate(plate, hf/'assets/plate.mp4', total, plate_start, plate_seconds)
+        sb['_duration'] = total
+        from scripts.composer import fx as fxlayers, beat as beatlayers
+        if sb.get('fx') and fx_cuts is None: raise ValueError('fx requiere recortes explícitos para la galería')
+        if sb.get('beat_fx') and beat_data is None: raise ValueError('beat_fx requiere tiempos explícitos para la galería')
+        for ident,cut in (fx_cuts or {}).items():
+            shutil.copy2(cut['file'],hf/'assets'/f"fx-{ident}.{cut['kind']}")
+            if cut.get('frame'): shutil.copy2(cut['frame'],hf/'assets'/f"fx-{ident}-frame.png")
+        fx_html,fx_js=fxlayers.markup(sb,brand,fx_cuts or {})
+        write(hf,sb,captions or {'words': [], 'groups': []},brand,
+              {'text_top':168,'text_bottom':1330},Ctx(brand,packs,faces,ch['lang']['code']),total,total,
+              fx=(fx_html,fx_js,fxlayers.css(sb)),beat=beatlayers.markup(sb,beat_data))
+    else:
+        for sc in sb['scenes']:
+            (hf/'compositions'/f"scene-{sc['id']}.html").write_text(formats.render(sc,packs,motion=motion))
+        page = index_html(sb,brand,faces,total)
+        if plate:
+            prepare_plate(plate,hf/'assets/plate.mp4',total,plate_start,plate_seconds)
+            page = page.replace('<div class="toma"></div>',
+                f'<video id="gallery-plate" class="clip" data-start="0" data-duration="{total}" data-track-index="0" '
+                'data-has-audio="true" src="assets/plate.mp4" style="position:absolute;width:1080px;height:1920px;object-fit:cover"></video>')
+        (hf/'index.html').write_text(page)
+    oslib.write_json(hf.parent/'storyboard.json',sb)
     oslib.write_json(hf / "hyperframes.json", {"paths": {"blocks": "compositions", "assets": "assets"}})
     return hf, sb
+
+
+def prepare_plate(source, target, total, start=0, seconds=None):
+    """Reusable source fragment; read-only input, normalized crop identical across profiles."""
+    if source:
+        source=Path(source).expanduser().resolve()
+        if not source.is_file(): raise ValueError(f'toma inexistente: {source}')
+        duration=float(oslib.ffprobe(source)['format']['duration'])
+        if not 0 <= start < duration: raise ValueError('plate-start fuera de la toma')
+        length=min(seconds or total,duration-start)
+        if length<=0: raise ValueError('plate-seconds debe ser positivo')
+        fragment=target.with_name('fragment.mp4')
+        oslib.run([oslib.FFMPEG,'-v','error','-y','-ss',str(start),'-i',str(source),'-t',str(length),
+                   '-vf','scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920,setsar=1',
+                   '-c:v','libx264','-preset','ultrafast','-crf','24','-pix_fmt','yuv420p','-c:a','aac',str(fragment)])
+        oslib.run([oslib.FFMPEG,'-v','error','-y','-stream_loop','-1','-i',str(fragment),'-t',str(total),'-c','copy',str(target)])
+        fragment.unlink()
+    else:
+        oslib.run([oslib.FFMPEG,'-v','error','-y','-f','lavfi','-i',f'color=c=0x282c34:s=1080x1920:r=30:d={total}',
+                   '-f','lavfi','-i','anullsrc=r=48000:cl=stereo','-t',str(total),'-c:v','libx264',
+                   '-preset','ultrafast','-crf','30','-pix_fmt','yuv420p','-c:a','aac',str(target)])
 
 
 def _hf(args, cwd, timeout=900):
@@ -130,6 +179,8 @@ def snapshot(hf, times, out):
         hits = sorted(out.glob(f"*-at-{t:g}s.png"))
         if hits:
             shots[t] = hits[0]
+    if missing := [t for t in times if t not in shots]:
+        raise ValueError(f"faltan cuadros solicitados: {missing}")
     return shots
 
 
@@ -151,12 +202,17 @@ def main():
     ap.add_argument("--channel", required=True)
     ap.add_argument("--formats", help="lista separada por comas (por defecto, todos los del canal)")
     ap.add_argument("--seconds", type=float, default=3.2, help="duración de cada escena")
+    ap.add_argument("--with-plate", help="toma; reutiliza un fragmento sin tocar el original")
+    ap.add_argument("--plate-start", type=float, default=0)
+    ap.add_argument("--plate-seconds", type=float)
+    ap.add_argument("--motion-profile", choices=["restrained", "balanced", "energetic"])
     ap.add_argument("--check", action="store_true", help="correr hyperframes check")
     ap.add_argument("--determinism", action="store_true", help="capturar dos veces en distinto orden y comparar")
     args = ap.parse_args()
 
     names = [n.strip() for n in args.formats.split(",")] if args.formats else None
-    hf, sb = build(args.channel, names, args.seconds)
+    from formats.direction import resolve
+    hf, sb = build(args.channel, names, args.seconds, motion=resolve(args.motion_profile) if args.motion_profile else None, plate=args.with_plate, plate_start=args.plate_start, plate_seconds=args.plate_seconds)
     times = [round(s["in"] + (s["out"] - s["in"]) * 0.7, 3) for s in sb["scenes"]]
     shots_dir = hf.parent / "snapshots"
     shots = snapshot(hf, times, shots_dir)
@@ -178,6 +234,7 @@ def main():
         diff = []
         for s, t in zip(sb["scenes"], times):
             if t not in shots or t not in again:
+                diff.append(f"{s['format']}: cuadro ausente")
                 continue
             same = hashlib.sha256(shots[t].read_bytes()).digest() == hashlib.sha256(again[t].read_bytes()).digest()
             if not same:

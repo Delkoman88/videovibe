@@ -58,6 +58,23 @@ bin/edit <canal>/<pieza> --plan   # qué haría, sin ejecutar
   `work/edit.log` el detalle de cada comando.
 - Plataformas de la pieza: claves de `storyboard.json → platforms` (o las del canal).
 
+## Dirección de animaciones antes de B
+
+Para elegir un perfil, generar candidatos por intención o preparar anclajes, sigue
+[dirección de animaciones](animation-direction.md). La elección de canal se compara con dos previews;
+solo se guarda después de una elección explícita. Cada propuesta conserva su perfil versionado.
+
+Antes de componer una propuesta nueva con `motion`, revisa `bin/animation-style --channel <canal>
+--project <canal>/<pieza> --snapshot --dry-run` y aplica el snapshot si corresponde al cambio solicitado.
+Valida el storyboard después de resolver los anclajes. `compose.py` ejecuta el control visual real
+para piezas con `motion` y escribe `work/animation-quality.json`, con evidencia en `hf/quality/`.
+Corrige errores y revisa advertencias y cuadros antes de presentar B; un informe obsoleto bloquea
+la aprobación. El control automático no sustituye la inspección de rostros, manos y sentido narrativo.
+
+El ensayo aislado de este upgrade se cerró como prueba técnica, sin entrega editorial ni B;
+ver [estado de validación](status/STATUS.md). Ese resultado no aprueba ninguna pieza para entrega.
+El flujo de producción conserva A, B y `verify.py`.
+
 ## Etapas
 
 | # | Etapa | Script (estado) | Salida |

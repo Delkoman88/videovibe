@@ -3,6 +3,7 @@
 Osciloscopios, señal, patch bays y controles de mezcla con una estética cyberpunk sobria.
 Se activa en un canal con channel.json → "format_packs": ["music"].
 """
+from formats.motion import factor
 import json
 import math
 
@@ -231,7 +232,7 @@ def pixi_signal(sid, d, p, layout="over"):
       }}
       title.alpha=Math.min(1,Math.max(0,(p-.28)*2.4));
       title.scale.set(.92+.08*Math.min(1,p*1.4));
-      if(rgb) {{ rgb.redX=-2-state.glitch*8; rgb.blueX=2+state.glitch*8; }}
+      if(rgb) {{ rgb.redX=-2-state.glitch*{factor("amplitude", "8", 28)}; rgb.blueX=2+state.glitch*{factor("amplitude", "8", 28)}; }}
       pixiApp.render();
     }}
     (async function() {{
@@ -327,7 +328,7 @@ def pixi_mixer(sid, d, p, layout="full"):
       const crossX=260+mixState.out*250,crossY=948+Math.sin(mixState.out*Math.PI)*6;
       mixG.circle(crossX,crossY,26).fill({{color:0x2EE6F0,alpha:.92}}).stroke({{color:0xF5F6F7,width:3,alpha:.8}});
       mixOut.alpha=mixState.out; mixOut.scale.set(.86+.14*mixState.out);
-      if(mixRgb) {{mixRgb.redX=-3-mixState.glitch*10;mixRgb.blueX=3+mixState.glitch*10;}}
+      if(mixRgb) {{mixRgb.redX=-3-mixState.glitch*{factor("amplitude", "10", 28)};mixRgb.blueX=3+mixState.glitch*{factor("amplitude", "10", 28)};}}
       mixApp.render();
     }}
     (async function() {{

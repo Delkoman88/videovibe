@@ -29,7 +29,8 @@ def registry(packs=()):
     """Formatos disponibles para un canal: core + sus paquetes."""
     load_packs(packs)
     allowed = {"core", *packs}
-    return {k: v for k, v in REGISTRY.items() if v["pack"] in allowed}
+    from formats.direction import metadata
+    return {k: {**v, "direction": metadata(k, v)} for k, v in REGISTRY.items() if v["pack"] in allowed}
 
 
 def configure(font_faces="", labels=None, channel=None):
@@ -44,7 +45,7 @@ def default_layout(fmt, packs=()):
     return registry(packs)[fmt]["layout"]
 
 
-def render(scene, packs=()):
+def render(scene, packs=(), motion=None):
     """scene: {id, format, in, out, layout?, params} → HTML de la sub-composición."""
     reg = registry(packs)
     meta = reg.get(scene["format"])
@@ -56,7 +57,29 @@ def render(scene, packs=()):
     if missing:
         raise ValueError(f"escena {scene['id']} ({scene['format']}): faltan parámetros {missing}")
     d = round(scene["out"] - scene["in"], 3)
-    return meta["fn"](scene["id"], d, params, layout=scene.get("layout") or meta["layout"])
+    from formats.motion import CURRENT
+    from formats.direction import budget, validate
+    if motion and (problems := validate(motion)): raise ValueError('; '.join(problems))
+    context = {'profile': motion, 'family': meta['pack'], 'windows': budget(scene, motion)} if motion and motion['version'] == 2 else None
+    token = CURRENT.set(context)
+    try:
+        result = meta["fn"](scene["id"], d, params, layout=scene.get("layout") or meta["layout"])
+    finally:
+        CURRENT.reset(token)
+    if motion and motion["version"] == 1:
+        from formats.direction import validate
+        import json
+        if problems := validate(motion): raise ValueError("; ".join(problems))
+        # The whole scene has its own wrapper; internal/library clocks are never retimed.
+        sid = scene['id']
+        enter, leave = motion['enter_s'], motion['exit_s']
+        if d < enter + leave + .5: raise ValueError('escena demasiado corta para el perfil')
+        target = json.dumps('#'+sid+'-stage')
+        extra = (f'tl.fromTo({target}, {{y:{motion["amplitude"]}}}, '
+                 f'{{y:0,duration:{enter},ease:{json.dumps(motion["ease"])}}},0);'
+                 f'tl.to({target},{{opacity:0,duration:{leave}}},{d-leave});')
+        result = result.replace('    window.__timelines[', '    '+extra+'\n    window.__timelines[',1)
+    return result
 
 
 def needs(sb):

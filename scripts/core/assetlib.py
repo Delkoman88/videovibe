@@ -11,7 +11,7 @@ from pathlib import Path
 
 from scripts.core import oslib
 
-KINDS = ("lottie", "structures", "models")
+KINDS = ("lottie", "structures", "models", "images")
 
 
 def _dirs(kind, channel_dir=None):

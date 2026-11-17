@@ -2,7 +2,7 @@
 
 **Edición de video vertical guiada por agentes de IA.** · [English](README.md)
 
-> **Estado: alfa.** En uso real con un canal; probado en macOS. Habrá asperezas.
+> **Estado: alfa.** Validado con dos canales reales, incluida una entrega desde Ubuntu/WSL. La nueva dirección de animaciones tiene validación local en macOS; sus pruebas nuevas en WSL y CI remoto siguen pendientes. Habrá asperezas.
 
 Te grabas hablando a cámara. Le pides a tu agente (Claude Code, Codex, Gemini CLI…) que lo edite.
 VideoVibe hace el resto con scripts deterministas y se detiene dos veces para que **tú** apruebes:
@@ -22,10 +22,11 @@ VideoVibe hace el resto con scripts deterministas y se detiene dos veces para qu
   con salida JSON y un orquestador (`bin/edit`) que avanza solo y se detiene donde decide una persona.
 - **Multicanal.** Cada canal (persona o marca) tiene su perfil, estilo, paleta, ritmo, sonido y
   aprendizajes. El motor no conoce ningún canal; los tuyos pueden vivir en un repo privado.
-- **Animaciones y efectos a la carta.** 35 formatos de animación en paquetes opcionales (texto cinético,
+- **Animaciones y efectos a la carta.** 36 formatos de animación en paquetes opcionales (texto cinético,
   Lottie, moléculas 3D, 3D cinematográfico con Three.js, pizarrón a mano, gráficas con d3, iconos científicos
   CC0), efectos sobre la toma (texto detrás de ti, fondo cambiado, halo, congelado), golpes al ritmo de la
   música y transiciones — con los colores de tu marca, deterministas y cargados solo si una escena los usa.
+- **Dirección de animaciones por pieza.** Compara perfiles sobrio (`restrained`), equilibrado (`balanced`) y enérgico (`energetic`); reutiliza objetos narrativos y ancla movimientos a palabras. El control visual automático apoya la revisión humana. Las piezas existentes conservan su configuración. Consulta la [guía de dirección de animaciones](docs/animation-direction.md).
 - **Sonido incluido.** Limpieza de voz medida en cada grabación, música que baja sola bajo tu voz,
   efectos sintetizados por canal (o grabados por ti) y sincronía con micrófono externo.
 - **Licencias en serio.** Cada pista y efecto registra su licencia; la versión «anuncio» cambia a música
@@ -80,7 +81,7 @@ macOS o Linux · ffmpeg (con `zscale` para el HDR de los teléfonos) · whisper.
 | Ruta | Qué es |
 |---|---|
 | `AGENTS.md` | Entrada para agentes (reglas, qué leer según la tarea) |
-| `bin/` | `welcome` (primeros pasos), `setup`, `demo`, `new-channel`, `new-piece`, `edit` (orquestador), `status`, `doctor` |
+| `bin/` | `welcome` (primeros pasos), `setup`, `demo`, `new-channel`, `new-piece`, `edit` (orquestador), `status`, `doctor`, `animation-style` (comparación de perfiles y propuestas) |
 | `scripts/` | Pipeline: ingesta, transcripción, corte, voz, subtítulos, composición, verificación, sonido |
 | `formats/` | Formatos de animación (genéricos + paquetes temáticos) |
 | `channels/` | `_template` y `science-60` (ejemplo ficticio) |

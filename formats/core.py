@@ -108,10 +108,21 @@ def wrap(sid, d, layout, css, body, js):
                 f'width:{b["d"] + 12}px;height:{b["d"] + 12}px"></div>')
         js += (f'\ntl.fromTo("#{sid}-ring", {{scale: 0.6, opacity: 0}}, {{scale: 1, opacity: 1, duration: 0.4, '
                f'ease: "expo.out"}}, 0.05);')
+    internal = js
     # entrada y salida de la escena completa
     js = (f'tl.fromTo("#{sid}-stage", {{opacity: 0}}, {{opacity: 1, duration: 0.18, ease: "power2.out"}}, 0);\n'
           + js +
           f'\ntl.to("#{sid}-stage", {{opacity: 0, duration: 0.2, ease: "power2.in"}}, {max(d - 0.22, 0.2):.3f});')
+    from formats.motion import CURRENT, prelude, postlude
+    if context := CURRENT.get():
+        # Build version 2 directly from the format's internal timeline, with its own phase windows.
+        profile = context['profile']
+        # Rebuild the two wrapper transitions through structured parameters; leave v1 untouched.
+        enter = json.dumps({'opacity': 1, 'duration': profile['enter_s'], 'ease': profile['ease']})
+        leave = json.dumps({'opacity': 0, 'duration': profile['exit_s']})
+        exit_at = d - profile['exit_s']
+        js = (prelude(sid) + f'\ntl.fromTo("#{sid}-stage", {{opacity:0}}, {enter}, 0);\n' + internal
+              + f'\ntl.to("#{sid}-stage", {leave}, {exit_at});' + postlude(d))
     return BASE.substitute(fonts=CTX["font_faces"], sid=sid, opaque=opaque, grid=grid, css=css,
                            body=body + ring, js=js)
 
@@ -330,10 +341,11 @@ def particle_title(sid, d, p, layout="over"):
     .pt {{ position: absolute; width: 8px; height: 8px; border-radius: 50%; display: block; }}
     """
     js = []
+    from formats.motion import value
     for i in range(len(text)):
         dx, dy = (r() - 0.5) * 600, (r() - 0.5) * 500
         js.append(f'tl.fromTo("#{sid}-ch{i}", {{x: {dx:.0f}, y: {dy:.0f}, opacity: 0, filter: "blur(10px)"}}, '
-                  f'{{x: 0, y: 0, opacity: 1, filter: "blur(0px)", duration: 0.7, ease: "expo.out"}}, {0.05 + i * 0.025:.3f});')
+                  f'{{x: 0, y: 0, opacity: 1, filter: "blur(0px)", duration: 0.7, ease: "expo.out"}}, {0.05 + i * value("stagger_s", .025):.3f});')
     for i in range(46):
         dx, dy = (r() - 0.5) * 900, (r() - 0.5) * 700
         js.append(f'tl.fromTo("#{sid}-pt{i}", {{x: {dx:.0f}, y: {dy:.0f}, opacity: 0}}, {{x: 0, y: 0, opacity: 0.9, '

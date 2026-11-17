@@ -20,3 +20,11 @@ Esta skill es un atajo. La fuente de verdad está en la raíz del repo:
    `bin/status <canal>/<pieza> --approve A|B` y vuelve a correr `bin/edit`. Al escribir el
    storyboard (valídalo con `scripts/pipeline/storyboard.py`), música y efectos según `docs/audio.md` (la música depende de «¿Publicidad pagada?»).
 5. Termina cuando `bin/edit` diga «ENTREGABLE» (verificación de entrega en verde).
+
+## Dirección de animaciones
+
+Antes de elegir animaciones consulta `docs/animation-direction.md`. Para un canal nuevo o un cambio
+de estilo explícito, presenta dos alternativas y guarda solo la elección confirmada. En una propuesta
+nueva revisa primero `--snapshot --dry-run`, y fija el perfil con `bin/animation-style --channel <canal> --project <pieza> --snapshot`.
+Inspecciona el informe y cuadros de calidad, abre el preview y conserva la revisión B de cuatro preguntas.
+No cambies perfiles ni storyboards ya aprobados sin una solicitud de la persona.

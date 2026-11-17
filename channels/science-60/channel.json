@@ -21,7 +21,8 @@
     "molecular",
     "cinematic",
     "sketch",
-    "data"
+    "data",
+    "narrative"
   ],
   "notes": "Canal de EJEMPLO del motor (ficticio). Úsalo para probar el sistema (bin/demo) o como modelo para tu propio canal: bin/new-channel <id>.",
   "voice": {

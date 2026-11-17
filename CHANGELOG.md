@@ -1,7 +1,29 @@
 # Changelog
 
+## Próxima versión — dirección de animaciones
+
+Actualización del código; todavía sin una nueva etiqueta de versión.
+
+- Documentación canónica reconciliada: README en ambos idiomas (36 formatos y estado multicanal),
+  contrato de storyboard, pipeline, canales, instalación, recursos e índice completo de ADR.
+  Se distingue la validación técnica del upgrade de su adopción editorial y de la portabilidad pendiente.
+
+- Perfiles v2 optativos con controles internos y presupuesto de lectura; compatibilidad exacta del
+  HTML legado/v1. Metadatos y candidatos por intención, capacidad y recursos con licencia.
+- Secuencias con objetos reutilizables (formas, texto, iconos e imágenes) y anclajes por palabra
+  en escenas/pasos. Snapshot validado, diff y escritura atómica antes de invalidar B.
+- Previews por ejecución y compositor visual compartido; galería con fragmentos reutilizables.
+- QA sobre el runtime real: texto, capas y regiones protegidas, evidencia y huellas vigentes para B.
+- Trayectorias y morphs v2 deterministas al buscar cuadros en reversa; matrices renderizadas,
+  escenarios de dos marcas y comprobación de instalación limpia. Workflow macOS/Ubuntu preparado.
+- Resultados ejecutados y verificaciones pendientes separados en STATUS y ADR 0030.
+- Corregida la clasificación del ensayo local: prueba técnica del motor cerrada, sin requerir B
+  ni generar una entrega editorial. Se conserva el flujo de aprobación de las piezas de producción.
+
+
 ## 0.12.0-alpha — 2026-11-17
 
+- Documentación reconciliada con la validación confirmada por la persona: segundo canal real (canal de DJ) y entrega verificada desde Ubuntu/WSL completados el 2026-11-16. Se retiran esos pendientes de estado, backlog y roadmap; micrófono externo y otros agentes siguen pendientes.
 - **Iconos científicos, pizarrón y gráficas**: Health Icons y Bioicons (solo CC0) como `health:<id>` y `bio:<id>` en todos los formatos con iconos, con créditos automáticos; paquete `sketch` (Rough.js: `sketch-annotate`, `sketch-board`, `sketch-diagram`) y paquete `data` (d3: `chart-bars`, `chart-line`, `chart-compare`, fuente obligatoria, datos en `data/*.csv|json` de la pieza). ADR 0029.
 - **Transiciones** (`storyboard.json → transitions`): `flash`, `light-leak`, `scribble`, `word-wall`, `glitch` y `zoom-lines` cubren el corte con el máximo en `at`, en los colores de la marca y con sonido automático del kit; validación de corte cercano y separación ≥ 1.5 s. ADR 0028.
 - **3D cinematográfico** (paquete `cinematic`): `particle-word`, `logo-3d`, `cell-journey`, `model-showcase` y `space-field` con Three.js 0.187 + postprocessing 6.39 (bloom, profundidad de campo, viñeta) en los colores de la marca, deterministas. Three se empaqueta localmente con esbuild (huella por versión). Biblioteca de modelos 3D `.glb` (`scripts/tools/models.py add|list|preview`) con origen y licencia; modelo de ejemplo `flask`. ADR 0027.
