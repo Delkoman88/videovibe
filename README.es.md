@@ -22,6 +22,10 @@ VideoVibe hace el resto con scripts deterministas y se detiene dos veces para qu
   con salida JSON y un orquestador (`bin/edit`) que avanza solo y se detiene donde decide una persona.
 - **Multicanal.** Cada canal (persona o marca) tiene su perfil, estilo, paleta, ritmo, sonido y
   aprendizajes. El motor no conoce ningún canal; los tuyos pueden vivir en un repo privado.
+- **Animaciones y efectos a la carta.** 35 formatos de animación en paquetes opcionales (texto cinético,
+  Lottie, moléculas 3D, 3D cinematográfico con Three.js, pizarrón a mano, gráficas con d3, iconos científicos
+  CC0), efectos sobre la toma (texto detrás de ti, fondo cambiado, halo, congelado), golpes al ritmo de la
+  música y transiciones — con los colores de tu marca, deterministas y cargados solo si una escena los usa.
 - **Sonido incluido.** Limpieza de voz medida en cada grabación, música que baja sola bajo tu voz,
   efectos sintetizados por canal (o grabados por ti) y sincronía con micrófono externo.
 - **Licencias en serio.** Cada pista y efecto registra su licencia; la versión «anuncio» cambia a música

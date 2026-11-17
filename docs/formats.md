@@ -117,6 +117,114 @@ Un nodo central (1 persona + IA) que se expande en módulos biotech con íconos;
 {"id": "s-lab-network", "format": "lab-network", "in": 0.0, "out": 3.0, "params": {"core": "1", "core_label": "persona", "plus": "+ IA", "modules": [["Genómica", "adn"], ["Proteínas", "proteina"], ["Células", "celula"], ["Fármacos", "farmaco"]]}}
 ```
 
+## Paquete `cinematic`
+
+### `cell-journey`
+
+La cámara viaja por un espacio con organelos translúcidos (membranas con brillo en el borde y núcleos de color), polvo y profundidad de campo: lo cercano y lo lejano se desenfocan. Título y pie opcionales; `density` 0.3–2 (cuántos organelos).
+
+- Layout por defecto: `full`
+- Obligatorios: —
+- Librerías: `three`
+- Ejemplo:
+
+```json
+{"id": "s-cell-journey", "format": "cell-journey", "in": 0.0, "out": 3.0, "params": {"kicker": "VIAJE AL INTERIOR", "title": "Dentro de la *célula*", "caption": "Ilustrativo · no a escala"}}
+```
+
+### `logo-3d`
+
+Título o nombre del canal en 3D: letras con volumen (fuente del canal, degradado de acento), entran girando, se asientan con un destello de luz que las recorre y bloom. `text` ≤ 16 caracteres.
+
+- Layout por defecto: `full`
+- Obligatorios: `text`
+- Librerías: `three`
+- Ejemplo:
+
+```json
+{"id": "s-logo-3d", "format": "logo-3d", "in": 0.0, "out": 3.0, "params": {"text": "OPEN LAB", "kicker": "PRESENTA", "caption": "Ciencia abierta, en 3D"}}
+```
+
+### `model-showcase`
+
+Un modelo 3D (.glb de la biblioteca `models`) gira con luz de estudio, reflejos y un piso de luz del color de acento; título arriba y etiqueta abajo. Los materiales `brand-accent*` toman los colores de la marca. `degrees` 0–720 (giro total).
+
+- Layout por defecto: `full`
+- Obligatorios: `model`
+- Librerías: `three`
+- Ejemplo:
+
+```json
+{"id": "s-model-showcase", "format": "model-showcase", "in": 0.0, "out": 3.0, "params": {"model": "flask", "kicker": "EN EL LABORATORIO", "label": "Matraz Erlenmeyer", "sublabel": "Modelo 3D de ejemplo del motor"}}
+```
+
+### `particle-word`
+
+Miles de partículas (semilla fija) vuelan desde el fondo y forman una palabra o cifra con los colores de acento; luego respiran con un brillo suave. `text` ≤ 16 caracteres, `count` 2000–30000.
+
+- Layout por defecto: `full`
+- Obligatorios: `text`
+- Librerías: `three`
+- Ejemplo:
+
+```json
+{"id": "s-particle-word", "format": "particle-word", "in": 0.0, "out": 3.0, "params": {"text": "CRISPR", "kicker": "UNA PALABRA", "caption": "Miles de partículas, siempre las mismas"}}
+```
+
+### `space-field`
+
+Fondo 3D con profundidad para un título: rejilla de luz que se pierde en la niebla, polvo y orbes desenfocados; la cámara avanza despacio. Sirve de portadilla o separador de capítulos.
+
+- Layout por defecto: `full`
+- Obligatorios: `title`
+- Librerías: `three`
+- Ejemplo:
+
+```json
+{"id": "s-space-field", "format": "space-field", "in": 0.0, "out": 3.0, "params": {"kicker": "CAPÍTULO 2", "title": "Lo que *no* vemos", "caption": "Un fondo con profundidad"}}
+```
+
+## Paquete `data`
+
+### `chart-bars`
+
+Barras que crecen desde cero con su valor contando encima; eje con números redondos (d3), una barra resaltada en acento (`highlight` = su etiqueta) y la fuente al pie. 2–8 barras.
+
+- Layout por defecto: `full`
+- Obligatorios: `source`
+- Librerías: `d3`
+- Ejemplo:
+
+```json
+{"id": "s-chart-bars", "format": "chart-bars", "in": 0.0, "out": 3.0, "params": {"kicker": "DATOS ABIERTOS", "title": "Artículos en *acceso* abierto", "unit": "%", "data": [{"label": "2016", "value": 32}, {"label": "2018", "value": 39}, {"label": "2020", "value": 47}, {"label": "2022", "value": 54}, {"label": "2024", "value": 61}], "highlight": "2024", "source": "Fuente: ejemplo para la galería", "illustrative": true}}
+```
+
+### `chart-compare`
+
+Dos grupos lado a lado (control y tratamiento, antes y después): barras con barra de error opcional (`error`), valores que cuentan y la diferencia resaltada con un corchete y «×N» o «+N». Exactamente 2 grupos.
+
+- Layout por defecto: `full`
+- Obligatorios: `source`
+- Librerías: `d3`
+- Ejemplo:
+
+```json
+{"id": "s-chart-compare", "format": "chart-compare", "in": 0.0, "out": 3.0, "params": {"kicker": "RESULTADO", "title": "Con el *tratamiento*", "unit": "%", "decimals": 0, "data": [{"label": "Control", "value": 18, "error": 4}, {"label": "Tratamiento", "value": 63, "error": 6}], "source": "Fuente: ejemplo para la galería", "illustrative": true}}
+```
+
+### `chart-line`
+
+Curva que se traza de izquierda a derecha con área suave debajo; hasta 3 puntos clave (`points`) se marcan con un círculo y una nota cuando la línea llega a ellos. Eje con números redondos (d3).
+
+- Layout por defecto: `full`
+- Obligatorios: `source`
+- Librerías: `d3`, `gsap:DrawSVGPlugin`
+- Ejemplo:
+
+```json
+{"id": "s-chart-line", "format": "chart-line", "in": 0.0, "out": 3.0, "params": {"kicker": "TENDENCIA", "title": "Genomas *secuenciados*", "unit": "", "data": [[2001, 1], [2005, 3], [2008, 12], [2011, 140], [2014, 1200], [2017, 6800], [2020, 21000], [2023, 52000]], "points": [{"x": 2008, "label": "Nueva secuenciación"}, {"x": 2023, "label": "Hoy"}], "source": "Fuente: ejemplo para la galería", "illustrative": true}}
+```
+
 ## Paquete `lottie`
 
 ### `lottie-accent`
@@ -315,4 +423,45 @@ La frase emerge de una señal de osciloscopio con anillos de deck y glitch contr
 
 ```json
 {"id": "s-signal-spell", "format": "signal-spell", "in": 0.0, "out": 3.0, "params": {"text": "MÚSICA = MAGIA", "kicker": "LIVE // SIGNAL", "y": 310}}
+```
+
+## Paquete `sketch`
+
+### `sketch-annotate`
+
+Señala algo de la toma con un trazo a mano: `circle` (lo rodea), `underline`, `box`, `arrow` (flecha que llega desde la etiqueta) o `cross` (tacha), con etiqueta corta opcional. `box` = [x, y, ancho, alto].
+
+- Layout por defecto: `over`
+- Obligatorios: `box`
+- Librerías: `rough`, `gsap:DrawSVGPlugin`
+- Ejemplo:
+
+```json
+{"id": "s-sketch-annotate", "format": "sketch-annotate", "in": 0.0, "out": 3.0, "params": {"box": [300, 560, 480, 360], "shape": "circle", "label": "¡Aquí está!", "role": "accent"}}
+```
+
+### `sketch-board`
+
+Pizarra: un título que se subraya a mano y 2–4 ideas que aparecen una por una con su viñeta dibujada (círculo o el icono que se indique, Lucide, Health Icons o Bioicons), dentro de un marco a mano.
+
+- Layout por defecto: `full`
+- Obligatorios: `title`, `items`
+- Librerías: `rough`, `gsap:DrawSVGPlugin`
+- Ejemplo:
+
+```json
+{"id": "s-sketch-board", "format": "sketch-board", "in": 0.0, "out": 3.0, "params": {"kicker": "EN RESUMEN", "title": "Ciencia *abierta*", "items": [{"text": "Datos que cualquiera revisa", "icon": "health:database"}, {"text": "Métodos paso a paso", "icon": "bio:erlenmeyer-filled"}, {"text": "Resultados replicables", "icon": "check"}]}}
+```
+
+### `sketch-diagram`
+
+Proceso de 2–5 pasos dibujado a mano: cajas con relleno rayado del color de acento, icono y etiqueta, y flechas trazadas de una a otra en zigzag (como draw-diagram, pero en pizarrón).
+
+- Layout por defecto: `full`
+- Obligatorios: `steps`
+- Librerías: `rough`, `gsap:DrawSVGPlugin`
+- Ejemplo:
+
+```json
+{"id": "s-sketch-diagram", "format": "sketch-diagram", "in": 0.0, "out": 3.0, "params": {"title": "Del *gen* a la proteína", "steps": [{"label": "ADN", "icon": "health:dna"}, {"label": "ARN mensajero", "icon": "bio:ribosome"}, {"label": "Proteína", "icon": "health:enzyme"}]}}
 ```

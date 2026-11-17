@@ -22,6 +22,10 @@ edit it. VideoVibe does the rest with deterministic scripts, and stops twice for
   output, and an orchestrator (`bin/edit`) that advances by itself and pauses only where a human must decide.
 - **Multi-channel.** Each channel (person or brand) has its own profile, style, palette, rhythm, sound
   and learnings. The engine knows no channel; your channels can live in a private repo.
+- **Animations and effects à la carte.** 35 animation formats in optional packs (kinetic type, Lottie,
+  3D molecules, cinematic 3D with Three.js, hand-drawn whiteboard, data charts with d3, CC0 science icons),
+  effects on the footage (text behind you, background swap, glow, freeze), beat-synced hits and overlay
+  transitions — all in your brand colors, deterministic, and loaded only when a scene uses them.
 - **Sound included.** Voice cleanup measured per recording, music with ducking under your voice,
   synthesized sound effects per channel (or your own recordings), and external-mic sync.
 - **Licensing taken seriously.** Every track and effect records its license; an "ad" version swaps to

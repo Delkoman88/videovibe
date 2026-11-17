@@ -4,6 +4,7 @@ Cada recurso que declara un formato (`@fmt(..., uses=...)`) se sirve como `hf/as
 define `window.__vv["<tipo>:<id>"]`. Nada se pide por red durante el render (ADR 0022). Lo que sobra de una
 composición anterior se borra; un archivo igual no se reescribe.
 """
+import base64
 import json
 import re
 from pathlib import Path
@@ -30,6 +31,8 @@ def _payload(kind, it, brand):
     if kind == "structures":
         return json.dumps({"format": it["format"], "text": Path(it["path"]).read_text(encoding="utf-8")},
                           ensure_ascii=False)
+    if kind == "models":  # .glb en base64: GLTFLoader.parse lo lee sin red
+        return json.dumps({"glb": base64.b64encode(Path(it["path"]).read_bytes()).decode("ascii")})
     raise KeyError(kind)
 
 

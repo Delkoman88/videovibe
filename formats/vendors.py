@@ -15,7 +15,14 @@ Reglas para agregar una librería (ADR 0022):
 - Los plugins de GSAP se nombran `gsap:<Plugin>` y se registran con `gsap.registerPlugin` tras cargar GSAP.
 """
 import hashlib
+import json
+import os
+import subprocess
 from dataclasses import dataclass
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[1]
+BUILD_DIR = ".videovibe-build"   # dentro de node_modules: lo generado no va a git y se rehace al cambiar versiones
 
 GSAP = ("gsap/dist/gsap.min.js", "gsap.min.js")
 SEED = 0x4d524c4e  # semilla del generador fijo; cambiarla altera el render de las piezas con librerías `seeded`
@@ -40,6 +47,9 @@ class Vendor:
     plugin: str = ""        # nombre global para gsap.registerPlugin (solo plugins de GSAP)
     license: str = ""
     after: str = ""         # script en línea tras cargar la librería (p. ej. renombrar su variable global)
+    build: str = ""         # entrada (relativa al repo) que se empaqueta con esbuild en un IIFE: para librerías
+                            # sin build para navegador (Three.js). `files` nombra la salida dentro de BUILD_DIR.
+    packages: tuple = ()    # paquetes de npm que entran en el build: sus versiones forman parte de la huella
 
 
 def _gsap_plugin(name, file=None):
@@ -57,6 +67,14 @@ VENDORS = {
                      license="MIT", after="globalThis.__vvLottie = globalThis.lottie; delete globalThis.lottie;"),
     # 3Dmol.js: moléculas con WebGL; cada escena dibuja su cuadro desde la línea de tiempo (ADR 0024).
     "3dmol": Vendor(files=(("3dmol/build/3Dmol-min.js", "3Dmol-min.js"),), seeded=True, license="BSD-3-Clause"),
+    # Three.js + postprocessing (pmndrs) + GLTFLoader: escenas 3D con bloom y profundidad de campo (ADR 0027).
+    "three": Vendor(files=((f"{BUILD_DIR}/three-pack.min.js", "three-pack.min.js"),), seeded=True,
+                    license="MIT (three) + Zlib (postprocessing)", build="formats/vendor-src/three-pack.js",
+                    packages=("three", "postprocessing", "esbuild")),
+    # Rough.js: trazos a mano con semilla fija (paquete sketch). d3: escalas y formas de gráficas (paquete data);
+    # d3 solo calcula, GSAP anima (un solo reloj, ADR 0029).
+    "rough": Vendor(files=(("roughjs/bundled/rough.js", "rough.js"),), seeded=True, license="MIT"),
+    "d3": Vendor(files=(("d3/dist/d3.min.js", "d3.min.js"),), seeded=True, license="ISC"),
     "gsap:SplitText": _gsap_plugin("SplitText"),
     "gsap:ScrambleTextPlugin": Vendor(files=(("gsap/dist/ScrambleTextPlugin.min.js", "ScrambleTextPlugin.min.js"),),
                                       seeded=True, plugin="ScrambleTextPlugin", license="GSAP (sin costo)"),
@@ -98,10 +116,52 @@ def _write_if_changed(dst, data):
     return True
 
 
+def _version(node_modules, pkg):
+    f = node_modules / pkg / "package.json"
+    return json.loads(f.read_text(encoding="utf-8"))["version"] if f.exists() else None
+
+
+def fingerprint(key, node_modules):
+    """Huella del build: entrada + versiones exactas de lo que entra. None si falta algún paquete."""
+    v = VENDORS[key]
+    versions = {p: _version(node_modules, p) for p in v.packages}
+    if None in versions.values():
+        return None
+    h = hashlib.sha256((ROOT / v.build).read_bytes())
+    h.update(json.dumps(versions, sort_keys=True).encode())
+    return h.hexdigest()[:16]
+
+
+def build(key, node_modules):
+    """Empaqueta la librería con esbuild si su huella cambió. Devuelve la ruta del IIFE o None si faltan
+    paquetes (corre `npm install`). Salida reproducible: misma huella → mismos bytes."""
+    v = VENDORS[key]
+    node_modules = Path(node_modules)
+    fp = fingerprint(key, node_modules)
+    if not fp:
+        return None
+    out = node_modules / v.files[0][0]
+    stamp = out.with_suffix(".stamp")
+    if out.exists() and stamp.exists() and stamp.read_text() == fp:
+        return out
+    out.parent.mkdir(parents=True, exist_ok=True)
+    esbuild = node_modules / ".bin" / "esbuild"
+    r = subprocess.run([str(esbuild), str(ROOT / v.build), "--bundle", "--format=iife", "--minify",
+                        "--target=es2020", "--legal-comments=eof", "--log-level=warning", f"--outfile={out}"],
+                       capture_output=True, text=True, env={**os.environ, "NODE_PATH": str(node_modules)})
+    if r.returncode:
+        raise RuntimeError(f"no se pudo empaquetar «{key}» con esbuild: {r.stderr.strip()[-600:]}")
+    stamp.write_text(fp)
+    return out
+
+
 def copy(needs, node_modules, vendor_dir):
     """Copia lo necesario a vendor_dir (solo si cambió) y borra lo que sobra. Devuelve faltantes."""
     if bad := unknown(needs):
         raise KeyError(f"librerías desconocidas: {bad} (disponibles: {sorted(VENDORS)})")
+    for key in _ordered(needs):
+        if VENDORS[key].build and not build(key, node_modules):
+            return [f"{p} (npm install)" for p in VENDORS[key].packages if not _version(Path(node_modules), p)]
     wanted = files(needs)
     missing = [src for src, _, _ in wanted if not (node_modules / src).exists()]
     if missing:

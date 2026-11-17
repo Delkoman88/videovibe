@@ -51,6 +51,9 @@ siguiendo el canal (`CHANNEL.md`, `style.md`, `rhythm.md`, `brand.json`) y el br
 | `camera.origin` | Ancla del zoom | Arriba (≈30 %) para no cortar la cabeza |
 | `camera.moves` | `punch` (0.32 s) o `creep` (lento, de `t` a `until`) | Si `until` coincide con un corte, vuelve a 1.0 de golpe; si no, en 0.5 s. Escala 1.05–1.12 |
 | `emphasis` | `id de palabra → rol` (ids de `captions/captions.json`) | Roles de `brand.json → highlight_roles`: keyword, data, punchline, warning (cada canal les asigna color). Máx. 1 rol por grupo de subtítulo, salvo dato + palabra clave |
+| `fx` | Efectos sobre la toma con la persona recortada: `text-behind`, `background-swap`, `subject-glow`, `freeze-cutout` | Ver `docs/effects.md`. Uno a la vez, 2–6 s, nunca dentro de una escena `full`; `freeze-cutout` solo en pausas sin voz |
+| `beat_fx` | Efectos al ritmo de la música: `pulse`, `shake`, `flash`, `strobe` cada `beat`/`half`/`bar`/`2bars` | Ver `docs/effects.md`. No se solapan; fuertes solo sin voz |
+| `transitions` | Transiciones que tapan un corte: `flash`, `light-leak`, `scribble`, `word-wall`, `glitch`, `zoom-lines` | Ver `docs/effects.md`. `at` en el corte o el borde de una escena; ≥ 1.5 s entre una y otra; 2–4 por pieza |
 | `caption_zones` | Tramos donde los subtítulos cambian de posición | Para no tapar rostro, manos o equipo. Posiciones: `upper-left` y `upper-center`. Los tramos deben ir en orden y no solaparse; fuera de ellos se conserva el preset de plataforma. |
 | `overlays` | Tarjetas en la franja superior (`title`, `card`, `tag`, `cta`) | Una a la vez; nunca sobre la cara; 4–6 s; texto de ≥ 30 px; la `cta` usa el texto de `platforms.<plat>.cta_text`. `text_fx` (`rise`, `wave`, `blur`, `mask`) arma el texto letra por letra (no en la `cta`); `*palabra*` no aplica aquí |
 | `broll` | Insertos de video mudo sobre la cámara; `source` es un id de `media.json` con `kind=broll` o `kind=pantalla` | `in`/`out` son segundos del master; `source_in` indica dónde empieza el archivo fuente. No se solapan; pueden cubrir `tail_s` para sostener el último encuadre bajo la CTA. `fit=cover` recorta horizontal a vertical con `focus_x`/`focus_y` (0–100); `contain` muestra el cuadro completo con fondo. `origin` y `license` son obligatorios; `ads:true` si hay plataforma de anuncio. El audio original del inserto se descarta y la voz aprobada continúa. |
@@ -107,12 +110,20 @@ Animaciones que ilustran lo que se dice. Cada escena usa un **formato** del cat�
 |---|---|---|
 | Apertura, tema o frase clave | `kinetic-title` (`over`), o `text_fx` en una tarjeta `title` | `motion` |
 | Un número, porcentaje o cifra | `data-reveal` | `motion` |
-| Un proceso o pasos (2–5) | `draw-diagram` | `motion` |
+| Un proceso o pasos (2–5) | `draw-diagram` (iconos de Lucide, `health:` o `bio:`) | `motion` |
 | Una transformación (antes → después, idea → resultado) | `morph-icon` | `motion` |
 | Una historia o cronología | `path-journey` | `motion` |
 | Un remate, logro o sorpresa | `particle-burst` (`over`) | `motion` |
+| Un concepto clave mientras la persona habla (que se note sin taparla) | `fx` `text-behind` o `subject-glow` (`docs/effects.md`) | — |
+| Un tramo de música (intro, cierre, actuación) | `beat_fx` (`pulse`, `flash`, `strobe`) | — |
 | Una idea con animación de diseñador | `lottie-scene`, `lottie-accent` (`docs/visual-assets.md`) | `lottie` |
 | Una proteína, ADN o molécula; dónde actúa algo; dos moléculas | `molecule-spin`, `molecule-focus`, `molecule-compare` | `molecular` |
+| Un gancho de una palabra o cifra; el nombre del canal | `particle-word`, `logo-3d` | `cinematic` |
+| «Dentro de la célula», un objeto o equipo en 3D, un cambio de capítulo | `cell-journey`, `model-showcase`, `space-field` | `cinematic` |
+| Cambiar de tema o de bloque con energía | `transitions` (`docs/effects.md`) | — |
+| Un dato real que cambia en el tiempo, entre grupos o un antes/después (con fuente) | `chart-line`, `chart-bars`, `chart-compare` | `data` |
+| Resumen, conclusiones o un proceso explicado «a mano» | `sketch-board`, `sketch-diagram` | `sketch` |
+| Señalar algo en la toma (rodear, subrayar, flecha) | `sketch-annotate` (`over`) | `sketch` |
 | Un sistema, equipo o red | `agent-flow`, `community` | `core` |
 | Señalar algo en la toma | `hud-frame` (`over`) | `core` |
 | Comandos o fuentes verificadas | `terminal`, `verify-refs` | `core` |

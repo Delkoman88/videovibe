@@ -1,0 +1,20 @@
+{
+  "_note": "Modelos de ejemplo del motor (generados por scripts/tools/models.py builtins). Los de cada canal van en <canal>/assets/models/ (scripts/tools/models.py add).",
+  "items": [
+    {
+      "id": "flask",
+      "file": "flask.glb",
+      "description": "Matraz Erlenmeyer con líquido del color de la marca (modelo de ejemplo del motor)",
+      "origin": "VideoVibe (generado)",
+      "license": "Apache-2.0 (VideoVibe)",
+      "ads": true,
+      "meshes": 2,
+      "triangles": 2304,
+      "materials": 2,
+      "textures": 0,
+      "animations": 0,
+      "generator": "VideoVibe scripts/tools/models.py",
+      "mb": 0.06
+    }
+  ]
+}

@@ -1,5 +1,25 @@
 # Changelog
 
+## 0.12.0-alpha — 2026-11-17
+
+- **Iconos científicos, pizarrón y gráficas**: Health Icons y Bioicons (solo CC0) como `health:<id>` y `bio:<id>` en todos los formatos con iconos, con créditos automáticos; paquete `sketch` (Rough.js: `sketch-annotate`, `sketch-board`, `sketch-diagram`) y paquete `data` (d3: `chart-bars`, `chart-line`, `chart-compare`, fuente obligatoria, datos en `data/*.csv|json` de la pieza). ADR 0029.
+- **Transiciones** (`storyboard.json → transitions`): `flash`, `light-leak`, `scribble`, `word-wall`, `glitch` y `zoom-lines` cubren el corte con el máximo en `at`, en los colores de la marca y con sonido automático del kit; validación de corte cercano y separación ≥ 1.5 s. ADR 0028.
+- **3D cinematográfico** (paquete `cinematic`): `particle-word`, `logo-3d`, `cell-journey`, `model-showcase` y `space-field` con Three.js 0.187 + postprocessing 6.39 (bloom, profundidad de campo, viñeta) en los colores de la marca, deterministas. Three se empaqueta localmente con esbuild (huella por versión). Biblioteca de modelos 3D `.glb` (`scripts/tools/models.py add|list|preview`) con origen y licencia; modelo de ejemplo `flask`. ADR 0027.
+
+- Efectos sobre la toma (`storyboard.json → fx`): `text-behind` (texto detrás de la persona, colocado solo
+  a la altura de la cabeza), `background-swap`, `subject-glow` y `freeze-cutout` (solo en pausas sin voz).
+  La persona se recorta con el modelo local de HyperFrames, solo en los tramos usados y con caché
+  (`scripts/pipeline/cutout.py`). Guía: `docs/effects.md`. ADR 0025.
+- Recorte estable con cámara fija (`scripts/pipeline/matte.py`): quita lo que parpadea (cortina, silla) sin
+  comer el cuerpo, rellena el cuerpo que el modelo pierde unos cuadros o emborrona por movimiento rápido, y el
+  halo cierra huecos en el tiempo; opacidad sólida y fundidos más suaves.
+- `text-behind` con `depth`: `behind`, `front` o `through` (aparece delante y pasa detrás).
+- Corregido: las letras animadas (`motion`, `text_fx`, efectos) podían diferir en el borde según el orden de los
+  cuadros por `will-change: transform`; ahora el render es determinista.
+- Efectos al ritmo (`storyboard.json → beat_fx`): `pulse`, `shake`, `flash`, `strobe` por golpe o compás.
+  `scripts/pipeline/beats.py` ubica los golpes en el tiempo del video (BPM de la biblioteca + fase por ataques,
+  ±30 ms; o el audio de la toma). `channel.json → beat_snap` avisa cuando algo no cae en el golpe. ADR 0026.
+
 ## 0.11.0-alpha — 2026-11-17
 
 Más y mejores animaciones: de 13 a 24 formatos, todos con la marca de cada canal, validados y deterministas.

@@ -4,6 +4,7 @@ Se activa en un canal con channel.json → "format_packs": ["biotech"].
 """
 import math
 
+from formats import icons
 from formats.core import _rand, esc, fmt, wrap
 
 
@@ -30,10 +31,25 @@ ICONS = {
 
 
 def _icon(name, size=80):
-    return f'<svg width="{size}" height="{size}" viewBox="-40 -40 80 80">{ICONS[name]}</svg>'
+    """Icono propio del paquete (adn, proteina, celula, farmaco…) o de formats/icons (Lucide, health:, bio:)."""
+    if name in ICONS:
+        return f'<svg width="{size}" height="{size}" viewBox="-40 -40 80 80">{ICONS[name]}</svg>'
+    return f'<span style="color:var(--accent);display:inline-flex">{icons.icon(name, size)}</span>'
 
 
-@fmt("lab-network", required=("core", "core_label", "modules"),
+def _check_modules(p):
+    mods = p.get("modules")
+    if not isinstance(mods, list) or not 1 <= len(mods) <= 4:
+        return ["modules: lista de 1 a 4 [nombre, icono]"]
+    errs = []
+    for i, m in enumerate(mods):
+        ic = m[1] if isinstance(m, (list, tuple)) and len(m) > 1 else None
+        if ic not in ICONS and not icons.exists(ic or ""):
+            errs.append(f"modules[{i}]: icono «{ic}» (usa {', '.join(ICONS)}, uno de Lucide, health:… o bio:…)")
+    return errs
+
+
+@fmt("lab-network", required=("core", "core_label", "modules"), check=_check_modules,
      example={"core": "1", "core_label": "persona", "plus": "+ IA",
               "modules": [["Genómica", "adn"], ["Proteínas", "proteina"], ["Células", "celula"], ["Fármacos", "farmaco"]]})
 def lab_network(sid, d, p, layout="full"):

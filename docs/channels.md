@@ -84,3 +84,6 @@ Los formatos que necesitan librerías opcionales (hoy PixiJS en `pixi-signal` y 
 Cambiar `channel.json` o `brand.json` (por ejemplo, activar un paquete) marca las piezas del canal para
 recomponer. Si el HTML resultante no cambia, `bin/edit` lo detecta: las aprobaciones y los renders
 siguen válidos y solo se vuelve a verificar la entrega.
+
+`channel.json → beat_snap: true` (canales musicales): la validación del storyboard avisa cuando una escena,
+tarjeta o efecto no empieza en un golpe de la música (`docs/effects.md`).

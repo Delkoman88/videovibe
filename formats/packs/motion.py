@@ -38,7 +38,7 @@ def _steps(p, key):
     return out
 
 
-def _check_steps(key, lo, hi, need_icon):
+def _check_steps(key, lo, hi, need_icon, morph=False):
     def check(p):
         items, errs = p.get(key), []
         if not isinstance(items, list) or not lo <= len(items) <= hi:
@@ -48,7 +48,11 @@ def _check_steps(key, lo, hi, need_icon):
                 errs.append(f"{key}[{i}].label: obligatorio")
             ic = s.get("icon")
             if (need_icon or ic) and not icons.exists(ic or ""):
-                errs.append(f"{key}[{i}].icon: «{ic}» no existe (formats/icons/selection.txt)")
+                errs.append(f"{key}[{i}].icon: «{ic}» no existe (formats/icons/selection*.txt; Health Icons con "
+                            f"health:, Bioicons con bio:)")
+            elif morph and ic and not icons.morphable(ic):
+                errs.append(f"{key}[{i}].icon: «{ic}» no se puede transformar; morph-icon usa iconos de Lucide "
+                            f"(sin prefijo)")
         return errs
     return check
 
@@ -262,7 +266,7 @@ def draw_diagram(sid, d, p, layout="full"):
 
 
 @fmt("morph-icon", required=("stages",), needs=("gsap:MorphSVGPlugin", "gsap:DrawSVGPlugin"),
-     check=_check_steps("stages", 2, 4, need_icon=True),
+     check=_check_steps("stages", 2, 4, need_icon=True, morph=True),
      example={"kicker": "DE LA IDEA AL RESULTADO",
               "stages": [{"icon": "lightbulb", "label": "Una idea"}, {"icon": "flask-conical", "label": "Un experimento"},
                          {"icon": "trophy", "label": "Un resultado"}]})

@@ -114,6 +114,8 @@ scripts/pipeline/captions.py --project $P --from-transcript
 # tras un cambio de corte: importa anclajes de `whisper-cli -ojf -sow -ml 1` sobre el master final
 scripts/pipeline/captions.py --project $P --from-whisper-json work/alignment/master-cut.json
 # escribir storyboard.json (docs/storyboard.md)
+scripts/pipeline/beats.py    --project $P      # (opcional) golpes de la música → audio/beats.json; compose lo hace solo con beat_fx
+scripts/pipeline/cutout.py   --project $P      # (opcional) recortes de `fx`; compose lo hace solo y los guarda en caché
 scripts/pipeline/compose.py  --project $P --platform tiktok --platform reels
 cd channels/<canal>/projects/<pieza>/hf
 npx hyperframes check --json                 # 0 errores antes de seguir

@@ -1,6 +1,6 @@
 from scripts.core import oslib
 from .common import ROOT_KEYS, _num, State
-from . import overlays, scenes, camera, emphasis, platforms, broll, audio, voice, captions
+from . import overlays, scenes, camera, emphasis, platforms, broll, audio, voice, captions, fx, beat, transitions
 
 def context(P, ch=None):
     """Todo lo que la validación necesita saber de la pieza y su canal."""
@@ -10,12 +10,17 @@ def context(P, ch=None):
     lib_f = ch["dir"] / "audio" / "music" / "library.json"
     kit_f = ch["dir"] / "audio" / "sfx" / "sfx.json"
     packs = tuple(ch["config"].get("format_packs", []))
+    formats.CTX["piece_dir"] = str(P)
     return {
         "duration": oslib.read_json(cmap_f)["duration_s"] if cmap_f.exists() else None,
+        "cuts": [s["out_out"] for s in oslib.read_json(cmap_f)["segments"][:-1]] if cmap_f.exists() else None,
         "word_ids": {w["id"] for w in oslib.read_json(caps_f)["words"]} if caps_f.exists() else None,
+        "speech": [(w["start"], w["end"]) for w in oslib.read_json(caps_f)["words"]] if caps_f.exists() else None,
         "roles": set(ch["brand"].get("highlight_roles", {})),
         "formats": formats.registry(packs),
         "channel_dir": ch["dir"],
+        "beats": oslib.read_json(P / "audio" / "beats.json")["beats"] if (P / "audio" / "beats.json").exists() else None,
+        "beat_snap": bool(ch["config"].get("beat_snap")),
         "library": {t["id"]: t for t in oslib.read_json(lib_f)["tracks"]} if lib_f.exists() else {},
         "kit": oslib.read_json(kit_f)["sounds"] if kit_f.exists() else {},
         "presets": {p.stem: oslib.read_json(p) for p in (oslib.ROOT / "presets").glob("*.json")},
@@ -49,4 +54,7 @@ def validate(sb, ctx):
     captions.validate(sb, state)
     audio.validate(sb, state)
     voice.validate(sb, state)
+    fx.validate(sb, state)
+    beat.validate(sb, state)
+    transitions.validate(sb, state)
     return errs, warns

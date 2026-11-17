@@ -52,9 +52,9 @@ class VendorsTests(unittest.TestCase):
 
     def test_unknown_library_is_rejected(self):
         with self.assertRaises(KeyError):
-            formats.core.fmt("x-bad", needs=("three",))
+            formats.core.fmt("x-bad", needs=("babylon",))
         with self.assertRaises(KeyError):
-            vendors.copy({"three"}, NODE, Path(tempfile.gettempdir()) / "vv-none")
+            vendors.copy({"babylon"}, NODE, Path(tempfile.gettempdir()) / "vv-none")
 
     def test_registered_formats_only_declare_known_libraries(self):
         formats.load_packs(formats.available_packs())

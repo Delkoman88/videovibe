@@ -6,7 +6,7 @@ assets/music/
 assets/sfx/
 node_modules/
 __pycache__/
-models/
+/models/
 .venv/
 work/
 channels/*/audio/music/*
@@ -20,3 +20,5 @@ deliveries/*
 !deliveries/README.md
 channels/*/assets/lottie/*
 !channels/*/assets/lottie/library.json
+channels/*/assets/models/*
+!channels/*/assets/models/library.json

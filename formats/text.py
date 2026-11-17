@@ -30,7 +30,8 @@ KINETIC_CSS = """
     .kw { display: inline-block; overflow: hidden; padding: .14em .02em .1em; margin: -.14em 0 -.1em;
           vertical-align: bottom; }
     .kwi { display: inline-block; }
-    .ch { display: inline-block; will-change: transform; }
+    .ch { display: inline-block; }  /* sin will-change: con él, Chrome rasteriza cada letra una vez y el borde
+                                      depende del orden en que se visitan los cuadros (ADR 0025) */
     .acc { color: var(--accent); text-shadow: 0 0 28px color-mix(in srgb, var(--accent) 55%, transparent); }
 """
 

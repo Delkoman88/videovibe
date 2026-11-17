@@ -1,4 +1,4 @@
-"""Bibliotecas de recursos visuales por tipo (`lottie`; después `structures`): qué hay, de dónde viene y con
+"""Bibliotecas de recursos visuales por tipo (`lottie`, `structures`, `models`): qué hay, de dónde viene y con
 qué licencia. Igual que la música: un `library.json` con los datos y los archivos al lado.
 
 Se buscan en dos lugares; el canal tiene prioridad sobre el motor si repite un id:
@@ -11,7 +11,7 @@ from pathlib import Path
 
 from scripts.core import oslib
 
-KINDS = ("lottie", "structures")
+KINDS = ("lottie", "structures", "models")
 
 
 def _dirs(kind, channel_dir=None):

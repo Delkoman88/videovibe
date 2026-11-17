@@ -17,6 +17,12 @@ This project uses or includes the following third-party components:
   whose scenes show molecules.
 - Example structures in assets/structures/: RCSB PDB entries 1CRN, 1HHO and 1BNA (CC0 1.0, wwPDB) and PubChem
   CIDs 2244 and 2519 (public domain, NCBI).
+- Health Icons (https://healthicons.org, Resolve to Save Lives) — CC0 1.0. A selection is included in
+  formats/icons/health.json.
+- Bioicons (https://bioicons.com) — only icons from its CC0 1.0 folder; a selection is included in
+  formats/icons/bio.json with the author of each icon.
+- Rough.js (https://roughjs.com) — MIT, and D3 (https://d3js.org) — ISC. Installed via npm (not included);
+  copied only into compositions whose scenes use hand-drawn sketches or charts.
 - Lucide icons (https://lucide.dev) — ISC. A selection is included in formats/icons/lucide.json
   (license: formats/icons/LICENSE-lucide.txt).
 - whisper.cpp (https://github.com/ggml-org/whisper.cpp) — MIT. Installed separately (not included).

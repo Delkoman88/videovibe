@@ -47,6 +47,8 @@ proteína 1CRN), las dos manejadas desde GSAP:
 - **Recorridos dentro del SVG de la ruta**, sin `align` de MotionPath: `align` mide la pantalla al construir
   la escena (oculta, tamaño cero) y el punto quedaba en (0, 0).
 - **Nada de `fromTo` con render inmediato para elementos que aparecen después**: usar `set` + `to`.
+- **Nada de `will-change: transform`** en elementos animados: Chrome los rasteriza una vez y el borde
+  depende del orden de los cuadros (ADR 0025).
 - **Colores para tweens** leídos de las variables CSS (`getComputedStyle`): GSAP no interpola `var(--x)`.
 - **Validación por formato** (`@fmt(..., check=fn)`): listas, iconos y valores se validan con el storyboard,
   todos los errores juntos, antes de componer.

@@ -1,0 +1,47 @@
+# Bioicons (solo CC0 1.0) — https://bioicons.com · categoría/nombre (carpeta static/icons/cc-0/).
+# Elegidos porque se ven sobre fondo oscuro (los negros, con recuadro blanco o diminutos se descartaron).
+# Regenerar: scripts/tools/icons.py --sets   (se usan como bio:<nombre en minúsculas con guiones>)
+Lab_apparatus/erlenmeyer_filled
+Lab_apparatus/incubator
+Lab_apparatus/qpcr_machine
+Lab_apparatus/vortex_mixer
+Lab_apparatus/bioreactor
+Lab_apparatus/T75_flask
+Lab_apparatus/chromatography
+Lab_apparatus/dropper
+Lab_apparatus/ln2_tank
+Lab_apparatus/flow-cytometer-cell-sorter
+Lab_apparatus/water_bath
+Lab_apparatus/microfluids_chip
+Cell_culture/96_well_plate
+Cell_culture/CC_dish
+Cell_culture/organoid
+Cell_culture/Bacteria_colonies
+Cell_culture/stem_cell_colony
+Intracellular_components/mitochondria
+Intracellular_components/ribosome
+Intracellular_components/Endoplasmic_Reticulum
+Intracellular_components/proteasome
+Nucleic_acids/plasmid-2
+Nucleic_acids/atp
+Genetics/CRISPR_Cas9
+Genetics/AAV_adenovirus
+Cell_types/redbloodcell
+Cell_types/simple_cell1
+Human_physiology/healthy_liver
+Human_physiology/drugs
+Human_physiology/syringe_with_blood
+Animals/drosophila_fruit_fly
+Animals/Celegans
+Animals/Yeast_new
+Animals/Xenopus_new
+Viruses/virus-sketch
+Microbiology/generic-bacterium
+Microbiology/agarose-gel
+Microbiology/inverted_microscope
+Machine_Learning/neural-network-1
+Computer_hardware/laptop
+Blood_Immunology/blood_sample_tube
+Cell_membrane/Phospholipid
+Cell_membrane/receptor
+Scientific_graphs/qPCR_plot

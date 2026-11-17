@@ -39,6 +39,10 @@ from scripts.composer.context import Ctx, font_faces  # noqa: E402
 from scripts.composer.credits import (AUTO_BEGIN, AUTO_END, audio_credits_md, update_animation_credits,  # noqa: E402,F401
                               update_assets_md, update_broll_credits)
 from scripts.composer import data as scene_data  # noqa: E402
+from scripts.composer import fx as fxlayers  # noqa: E402
+from scripts.composer import beat as beatlayers  # noqa: E402
+from scripts.composer import transitions as trlayers  # noqa: E402
+from scripts.pipeline import beats as beatlib, cutout  # noqa: E402
 from scripts.composer.plate import build_plate  # noqa: E402
 from scripts.composer.visual import captions_html, index_html, overlays_html, safe_zone  # noqa: E402
 
@@ -79,6 +83,38 @@ def prepare_hf(P, ch, brand, needs=()):
     if missing:
         oslib.die(f"faltan librerías de animación {missing}: corre `npm ci` en la raíz del repo (bin/setup lo hace)")
     return hf
+
+
+def _copy_if_changed(src, dst):
+    if dst.exists() and dst.stat().st_size == src.stat().st_size and dst.stat().st_mtime >= src.stat().st_mtime:
+        return
+    shutil.copy2(src, dst)
+
+
+def prepare_fx(P, sb, hf, dur):
+    """Recortes de la persona para `fx` (scripts/pipeline/cutout.py, con caché) copiados a hf/assets/; para
+    `freeze-cutout`, también el cuadro congelado. Borra los de composiciones anteriores."""
+    cuts = cutout.ensure(P, sb, dur) if sb.get("fx") else {}
+    keep = set()
+    for fx in sb.get("fx", []):
+        c = cuts.get(fx["id"])
+        if not c:
+            continue
+        dst = hf / "assets" / f"fx-{fx['id']}.{c['kind']}"
+        _copy_if_changed(c["file"], dst)
+        keep.add(dst.name)
+        if fx["type"] == "freeze-cutout":
+            frame = hf / "assets" / f"fx-{fx['id']}-frame.png"
+            src = c["file"].with_name(c["file"].stem + "-frame.png")
+            if not src.exists():
+                oslib.run([oslib.FFMPEG, "-v", "error", "-y", "-ss", f"{fx['at']:.3f}",
+                           "-i", str(P / "cut" / "master-cut.mp4"), "-frames:v", "1", str(src)])
+            _copy_if_changed(src, frame)
+            keep.add(frame.name)
+    for old in (hf / "assets").glob("fx-*"):
+        if old.name not in keep:
+            old.unlink()
+    return cuts
 
 
 def write_plate(P, ch, sb, hf):
@@ -141,6 +177,7 @@ def main():
     ctx = Ctx(brand=brand, packs=tuple(ch["config"].get("format_packs", [])), font_faces=font_faces(brand),
               lang=ch["lang"]["code"])
     formats.configure(ctx.font_faces, ch["lang"]["labels"], ch["config"].get("name"))
+    formats.CTX["piece_dir"] = str(P)  # datos de gráficas en archivos de la pieza (params.file, paquete data)
     problems, _ = storyboard.validate(sb, storyboard.context(P, ch))  # todos los errores juntos, antes de nada
     if problems:
         oslib.emit({"ok": False, "error": "storyboard.json tiene problemas (scripts/pipeline/storyboard.py)",
@@ -158,6 +195,9 @@ def main():
     total = round(dur + sb.get("tail_s", 0), 3)
     sb["_duration"] = total
     cuts = [s["out_out"] for s in cmap["segments"]]
+    fx_cuts = prepare_fx(P, sb, hf, dur)
+    fx_html, fx_js = fxlayers.markup(sb, brand, fx_cuts)
+    beat = beatlayers.markup(sb, beatlib.ensure(P, sb, ch)) if sb.get("beat_fx") else ("", "", "")
     # zona segura: la más estricta entre las plataformas pedidas
     safes = [safe_zone(oslib.load_preset(p)) for p in args.platform]
     safe = {"text_top": max(x["text_top"] for x in safes), "text_bottom": min(x["text_bottom"] for x in safes)}
@@ -171,20 +211,31 @@ def main():
         old.unlink()
     for sc in sb.get("scenes", []):
         (hf / "compositions" / f"scene-{sc['id']}.html").write_text(formats.render(sc, ctx.packs), encoding="utf-8")
+    tr_html = trlayers.composition(sb, ctx.font_faces)
+    tr_file = hf / "compositions" / "transitions.html"
+    if tr_html:
+        tr_file.write_text(tr_html, encoding="utf-8")
+    elif tr_file.exists():
+        tr_file.unlink()
     default_cta = sb.get("platforms", {}).get(args.platform[0], {}).get("cta_text")
     shutil.rmtree(hf / "assets" / "audio", ignore_errors=True)
     plan = audio_markup(sb, ch, caps, total, hf)
     update_assets_md(P, audio_credits_md(plan.credits))
     update_broll_credits(P, sb.get("broll", []), media)
+    from formats import icons  # iconos de Health Icons y Bioicons: autor y licencia en assets.md
+    used_assets += [{"kind": "icon", "id": n, "license": c["license"], "ads": True,
+                     "origin": " · ".join(x for x in (c["set"], c["author"], c["source"]) if x)}
+                    for n in sorted(icons.used(sb)) for c in [icons.credit(n)]]
     update_animation_credits(P, used_assets)
     (hf / "index.html").write_text(index_html(sb, brand, safe, dur, total, cuts, default_cta, plan.els, ctx,
-                                              plan.music_srcs, media), encoding="utf-8")
+                                              plan.music_srcs, media, (fx_html, fx_js, fxlayers.css(sb)), beat),
+                                    encoding="utf-8")
     apply_grading(sb, hf, ctx.packs)
     out_files = ["hf/index.html"] + platform_variables(hf, sb, args.platform, default_cta, plan.music_srcs)
     oslib.update_status(P, "composicion", pending="revisión B (hoja + borrador)")
     oslib.emit({"ok": True, "files": out_files, "duration_s": total, "groups": len(caps["groups"]),
                 "overlays": len(sb.get("overlays", [])), "scenes": len(sb.get("scenes", [])),
-                "broll": len(sb.get("broll", [])), "audio": plan.used,
+                "broll": len(sb.get("broll", [])), "fx": len(sb.get("fx", [])), "audio": plan.used,
                 "camera_moves": len(sb.get("camera", {}).get("moves", [])),
                 "next": "cd hf && npx hyperframes check --json; luego snapshot --review (punto B)"})
 

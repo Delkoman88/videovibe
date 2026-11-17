@@ -14,6 +14,14 @@
   *Hecho cuando:* la pieza pasa `verify.py` sin tocar `scripts/` ni `formats/core.py`.
 - [ ] **Probar con Codex** (y luego Gemini CLI, Muse Code): editar una pieza corta leyendo solo `AGENTS.md`.
   *Hecho cuando:* termina sin preguntar nada que esté documentado; lo que faltó queda corregido en docs.
+## P1 — Efectos sobre la toma, ritmo, 3D, transiciones y estilos (plan aprobado 2026-11-17)
+
+- [x] Fases 0 (prueba técnica), 1 (`fx`) y 2 (ritmo, `beat_fx`) — ver Hecho.
+- [x] Fase 3 — 3D cinematográfico (2026-11-17): Three.js + postprocessing (IIFE con esbuild y huella), paquete `cinematic` (5 formatos), biblioteca `models` (.glb). ADR 0027.
+- [x] Fase 4 — transiciones (2026-11-17): `storyboard.json → transitions` con seis tipos de superposición (CSS + GSAP, marca del canal, sonido automático), deterministas. ADR 0028.
+- [x] Fase 5 (2026-11-17): iconos científicos CC0 (68 Health Icons, 44 Bioicons; prefijos `health:`/`bio:`), paquete `sketch` (Rough.js) y `data` (d3, `source` obligatorio, datos desde archivos de la pieza). ADR 0029.
+- [ ] Galería con toma de ejemplo (`--with-plate`) para ver `fx`, `beat_fx` y transiciones.
+
 ## P1 — Más y mejores animaciones (plan aprobado 2026-11-17)
 
 - [ ] **Fase 1 — revisión B real con `motion`:** el paquete y `text_fx` están hechos (galería de los dos
@@ -24,6 +32,7 @@
 
 - [ ] **Transcripción más rápida y con progreso**: sin GPU (sandbox de Codex) 19 s de video tardaron 148 s porque se recarga el modelo en cada tramo; usar whisper-server (modelo cargado una vez) y que `bin/edit` muestre el avance («tramo 3/7»). En la prueba con Codex, el agente fue a leer `transcribe.py` porque no sabía si seguía trabajando.
 
+- [ ] **Recorte de video con memoria entre cuadros**: `u2net_human_seg` (HyperFrames) toma objetos pegados a la persona (respaldo de la silla) como persona en todo el tramo; el estabilizador no puede distinguirlos. Evaluar un modelo de matting de video con licencia compatible (RVM es GPL-3.0: descartado) y medir tiempo por segundo.
 - [ ] **Versión corta y clips** desde `clips.json` (render por segmentos del master compuesto).
 - [ ] **B-roll y grabaciones de pantalla**: insertos visuales y encuadre de detalle implementados; falta soportar audio/voz de pantalla como fuente del corte hablado.
 - [ ] **Formatos con datos reales**: animar salidas reales (BLAST, tablas, curvas de simulación) en lugar de ilustrativas.
@@ -43,6 +52,11 @@
 - [ ] Respaldo remoto del repo (GitHub privado o público).
 
 ## Hecho
+
+- [x] **Efectos al ritmo (`beat_fx`)** (2026-11-17): golpes en el tiempo del video con la rejilla de la
+  biblioteca, envoltura de cámara y avisos de sincronía por canal. ADR 0026.
+- [x] **Efectos sobre la toma (`fx`)** (2026-11-17): recorte local de la persona con caché, cuatro efectos
+  y validación (incluido «no congelar mientras se habla»). Probado sobre una pieza real. ADR 0025.
 
 - [x] **Fase 3 de animaciones: paquete `molecular`** (2026-11-17): 3Dmol.js con vista y ángulo absolutos por
   cuadro, superficies con `buildReady`, `scripts/tools/structures.py` (PDB, PubChem) y validación de `focus`. ADR 0024.

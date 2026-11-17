@@ -62,7 +62,7 @@ def update_broll_credits(P, clips, media):
 
 
 ANIM_BEGIN, ANIM_END = "<!-- animations:auto -->", "<!-- /animations:auto -->"
-KIND_LABEL = {"lottie": "Animación Lottie", "structures": "Estructura molecular"}
+KIND_LABEL = {"lottie": "Animación Lottie", "structures": "Estructura molecular", "models": "Modelo 3D", "icon": "Icono"}
 
 
 def update_animation_credits(P, used):

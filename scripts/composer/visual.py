@@ -4,7 +4,7 @@ import json
 
 import formats
 from formats import vendors
-from scripts.composer import data
+from scripts.composer import data, transitions
 from formats.text import KINETIC_CSS, kinetic, kinetic_in, plain
 from scripts.composer.context import H, W
 
@@ -436,7 +436,11 @@ def broll_markup(sb, media):
 
 
 def index_html(sb, brand, safe, dur, total, cuts, default_cta, audio_els="", ctx=None, music_srcs=None,
-               media=None):
+               media=None, fx=("", "", ""), beat=("", "", "")):
+    """`fx` = (html dentro de #cam, js, css) de scripts/composer/fx.py; `beat` = (abrir, cerrar, js) de
+    scripts/composer/beat.py. Vacíos si la pieza no los usa: el HTML es el de siempre."""
+    fx_js = ("\n      " + fx[1]) if fx[1] else ""
+    fx_js += ("\n      " + beat[2]) if beat[2] else ""
     origin = sb.get("camera", {}).get("origin", "50% 30%")
     ctas = [o for o in sb.get("overlays", []) if o["type"] == "cta"]
     cta_html = "\n".join(overlay_block({**o, "text": default_cta or o.get("text")}, "      ", brand) for o in ctas)
@@ -472,20 +476,20 @@ def index_html(sb, brand, safe, dur, total, cuts, default_cta, audio_els="", ctx
       .broll-window {{ position: absolute; inset: 0; overflow: hidden; }}
 {css}
       .bubble {{ position: absolute; border-radius: 50%; overflow: hidden; transform-origin: 50% 50%; }}
-      .bubble-video {{ position: absolute; width: 540px; height: 960px; object-fit: cover; }}
+      .bubble-video {{ position: absolute; width: 540px; height: 960px; object-fit: cover; }}{fx[2]}
     </style>
   </head>
   <body>
     <div id="root" data-composition-id="main" data-start="0" data-duration="{total}" data-width="{W}" data-height="{H}">
-      <div id="cam">
+      {beat[0]}<div id="cam">
         <video id="plate" class="clip" src="assets/plate.mp4" data-start="0" data-duration="{dur}"
                data-track-index="0" data-has-audio="true" data-volume="1" playsinline></video>
-        {hold}
-      </div>
+        {hold}{fx[0]}
+      </div>{beat[1]}
 {broll_markup(sb, media or {})}
 {scene_hosts}
 {bubbles}
-{audio_els}
+{transitions.host(sb, total)}{audio_els}
       <div id="overlays" data-composition-id="overlays" data-composition-src="compositions/overlays.html"
            data-start="0" data-duration="{total}" data-track-index="1" data-track-kind="graphics"
            data-width="{W}" data-height="{H}"></div>
@@ -496,7 +500,7 @@ def index_html(sb, brand, safe, dur, total, cuts, default_cta, audio_els="", ctx
     </div>
     <script>
       const tl = gsap.timeline({{ paused: true }});
-      {camera_js(sb, cuts)}
+      {camera_js(sb, cuts)}{fx_js}
       {bubble_js}
       {cta_tl}
       window.__timelines["main"] = tl;

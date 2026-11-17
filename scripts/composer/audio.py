@@ -149,6 +149,9 @@ def audio_markup(sb, ch, caps, total, hf):
         cues += scene_cues(sb.get("scenes", []), auto_sfx["scenes"], auto_sfx.get("db", -20), entrances)
     if auto_sfx.get("overlays"):
         cues += scene_cues(sb.get("overlays", []), auto_sfx["overlays"], auto_sfx.get("db", -20), entrances)
+    if sb.get("transitions"):  # el sonido de cada transición (ADR 0028); sin kit, sin sonido
+        from scripts.composer import transitions
+        cues += transitions.cues(sb, oslib.read_json(kit_json)["sounds"] if kit_json.exists() else {})
     if auto_sfx.get("exits"):
         cues += exit_cues(sb.get("scenes", []), auto_sfx["exits"],
                           auto_sfx.get("exits_db", auto_sfx.get("db", -20) - 4))

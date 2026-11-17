@@ -27,7 +27,8 @@ Los canales de cada persona pueden vivir fuera del repo (repo privado): la carpe
 | Editar una pieza de un canal | Pieza nueva: `bin/new-piece <canal> <slug> --from <archivos>` (la crea donde viven los canales, con `raw/` y `brief.md`). Después `bin/edit <canal>/<pieza>` y haz lo que indique al pausar. Antes de decisiones creativas: `channels/<canal>/CHANNEL.md`, `style.md`, `rhythm.md`, `learnings.md`. Detalle: `docs/pipeline.md` |
 | Escribir el plan visual (storyboard) | `docs/storyboard.md` + `docs/formats.md` (+ `brand.json` del canal) |
 | Sonido (voz, música, efectos) | `docs/audio.md` |
-| Animaciones Lottie y moléculas 3D (agregar, licencias, colores) | `docs/visual-assets.md` |
+| Animaciones Lottie, moléculas y modelos 3D (agregar, licencias, colores) | `docs/visual-assets.md` |
+| Efectos sobre la toma y al ritmo (texto detrás de la persona, halo, congelado, fondo, golpes de la música) | `docs/effects.md` |
 | Adaptar a una plataforma | `presets/<plataforma>.json` + `docs/platforms.md` |
 | Dar de alta un canal | `docs/channels.md` + `templates/channel-brief.md` |
 | Cambiar el motor (scripts, formatos) | `docs/status/` (backlog, roadmap) + `docs/decisions/` antes de tocar nada |
