@@ -47,3 +47,20 @@ Para desacoplar enlaces duros antiguos sin cambiar sus bytes ni rutas:
 `python -m scripts.tools.migrate_deliveries --directory <carpeta>` simula; añadir `--apply` ejecuta.
 Repetir el comando reanuda el diario `.detach-journal.json`. Rechaza enlaces simbólicos inesperados
 y conflictos. Desacoplar no certifica la aprobación histórica. No hay migración automática.
+
+## Evidencia de versiones anteriores (antes de v0.15)
+
+v0.13.2 cambió el esquema de huellas (rutas relativas; el motor fuera de las etapas editables y de B).
+`bin/edit` migra cada pieza al reanudarla; para migrar todas de una vez:
+
+```bash
+bin/status --migrate          # simula: qué cambiaría en cada pieza (no escribe)
+bin/status --migrate --apply  # guarda
+```
+
+Las piezas con aprobaciones anteriores a v0.13.1 aparecen con `legacy_approvals`: si su revisión
+guardada coincide con la presentación actual, `bin/status <pieza> --attest-legacy A|B --note "…"` deja
+constancia (solo después de que la persona lo confirme); si no, `bin/edit` presenta la revisión de nuevo.
+**v0.15 retira el código de migración**: después de esa versión, la evidencia sin migrar requiere revisar
+y reconstruir.
+

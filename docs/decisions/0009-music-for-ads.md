@@ -17,13 +17,12 @@ veces la decisión de promocionar un video llega después de publicarlo, cuando 
   mismo video con otra pista, sin recomponer.
 - `compose.py` copia cada pista normalizada a −14 LUFS para que ambas usen la misma ganancia y el
   *ducking* sea idéntico.
+- La música propia sale de `scripts/audio/musicgen.py` (síntesis por capas, determinista).
+
+## Alternativas descartadas
+- Modelos de IA de música locales (MusicGen, Stable Audio Open): licencias no comerciales o limitadas.
+- Bibliotecas gratuitas: reclamos de Content ID frecuentes aunque la licencia lo permita.
 
 ## Consecuencias
 - Decidir tarde no cuesta: se añade `anuncio` a las plataformas y `bin/edit` renderiza esa versión.
-- Hace falta al menos una pista propia (o con licencia de anuncios) por canal; hoy la del canal es la
-  pista sintética de prueba. Mejorar la música propia queda en el backlog.
-
-## Actualización (2026-11-11)
-La música propia sale de `scripts/audio/musicgen.py` (síntesis por capas, determinista). Se descartaron
-los modelos de IA de música locales (MusicGen, Stable Audio Open: licencias no comerciales o
-limitadas) y las bibliotecas gratuitas (reclamos de Content ID frecuentes aunque la licencia lo permita).
+- Hace falta al menos una pista propia (o con licencia de anuncios) por canal.

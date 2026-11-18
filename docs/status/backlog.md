@@ -2,14 +2,18 @@
 
 > Tareas del motor priorizadas. P1 = siguiente; P2 = pronto; P3 = cuando haya tiempo.
 > Al terminar una tarea: muévela a «Hecho» con fecha y actualiza `STATUS.md`.
+> Presupuesto: si entra una tarea grande, antes se cierra o se descarta otra (el backlog no solo crece).
 
 ## P1
 
+- [ ] **v0.15 — retirar lo heredado de integridad:** borrar `legacy_digest`, `legacy_fingerprint`, `_inputs_v2`,
+  `scripts/core/legacy/`, `editlib.legacy_dirty` y la regla «sin recibos» de `stage_dirty`. Antes, cada
+  instalación corre `bin/status --migrate --apply` (`docs/migration.md`).
+- [ ] **Portabilidad de dirección v2:** ejecutar la versión nueva en WSL (el job remoto Ubuntu ya pasa).
 - [ ] Reducir lecturas repetidas de huellas en originales grandes; conservar comprobaciones frescas antes/después de render y entrega.
 - [ ] Validar la corrección de integridad en WSL; pruebas macOS no equivalen a portabilidad.
 - [ ] Implementar y validar delegación de trabajadores en Windows nativo; actualmente falla explícitamente y recomienda WSL.
 
-- [ ] **Portabilidad de dirección v2:** ejecutar la versión nueva en WSL y el job remoto Ubuntu (el runner macos-14 no está disponible; macOS se valida localmente).
   La prueba técnica local está cerrada y no requiere aprobación B ni entrega editorial, según la
   aclaración de la persona. El canal musical privado no forma parte de esta prueba nueva
   (la validación histórica sigue cerrada).

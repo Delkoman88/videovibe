@@ -1,6 +1,6 @@
 # 0030 — Perfiles versionados, composición compartida y revisión visual
 
-Fecha: 2026-11-17. Estado: implementado; aceptación editorial y ejecución remota se registran por separado.
+Fecha: 2026-11-17. Estado: vigente (instalación limpia y matriz en CI Ubuntu; la aceptación editorial se registra por pieza).
 
 La propuesta fija `motion` y su versión. La marca es una preferencia para propuestas nuevas; no altera
 piezas ya aprobadas. Se conservan byte a byte los formatos sin motion y con v1. V2 adapta las entradas

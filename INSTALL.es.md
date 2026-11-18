@@ -46,7 +46,7 @@ o usa la variable `VIDEOVIBE_CHANNELS`. `bin/doctor` dice qué carpeta se está 
 
 ## Opcional
 
-- **Validación de animaciones (desarrollo):** `.venv/bin/python -m scripts.tools.animation_install_check`
+- **Validación de animaciones (desarrollo):** `.venv/bin/python -m scripts.dev.animation_install_check`
   comprueba una copia temporal con `npm ci`, un entorno Python nuevo, tests y render. Requiere los
   paquetes del sistema y Chrome/Chromium ya instalados. La integración visual usa HyperFrames 0.9.32
   fijado en el lockfile; consulta [dirección de animaciones](docs/animation-direction.md) y

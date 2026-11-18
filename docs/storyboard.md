@@ -174,6 +174,10 @@ tiene. No repetir el mismo formato dos veces seguidas en una pieza.
 - Quitar tarjetas y movimientos de cámara que caigan dentro de una escena `full`.
 - **Ver antes de elegir:** `bin/format-gallery --channel <id>` renderiza cada formato con la marca del
   canal y deja hojas de contacto (en `work/gallery/<canal>/`); ábrelas con `bin/open-review`.
+- **Preferir lo probado:** `bin/format-catalog --usage` dice qué formatos, efectos y transiciones ya
+  se usaron en piezas entregadas («probado»), solo en borradores («experimental») o nunca («sin uso»).
+  Elige primero entre los probados; uno experimental o sin uso, solo si el brief lo pide o ninguno
+  probado sirve, y revísalo con la galería antes de componer.
 - **Formato nuevo:** función con `@fmt(nombre, layout, required, example, needs)` en `formats/core.py`
   (genérico) o en `formats/packs/<tema>.py`, docstring de una línea, y `bin/format-catalog` para regenerar
   el catálogo. `scripts/tests/test_formats.py` lo valida solo con su `example`.

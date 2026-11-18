@@ -24,7 +24,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
-from scripts.core import editlib, integrity, oslib, reviewlib, state  # noqa: E402
+from scripts.core import editlib, integrity, oslib, reviewlib, stages, state  # noqa: E402
 from scripts.pipeline import storyboard  # noqa: E402
 
 PY = str(ROOT / ".venv" / "bin" / "python")
@@ -90,121 +90,161 @@ def check_report(P, since):
     return errors, sorted(set(found))[:15]
 
 
-def do_stage(stage, P, pid, plats, sb, quiet):
+def run_script(stage, P, plats, *extra):
+    """Etapa simple: corre scripts.pipeline.<script> con los argumentos de plataforma de su fila."""
+    spec = stages.STAGES[stage]
+    plat_args = {"first": ["--platform", plats[0]] if plats else [],
+                 "all": [a for p in plats for a in ("--platform", p)]}.get(spec["platform"], [])
+    return run([PY, "-m", f"scripts.pipeline.{spec['script']}", "--project", str(P), *plat_args, *extra], P)
+
+
+def stage_paper_cut(P, pid, plats, sb, quiet):
+    """Corte en papel; si ya hay corte, solo regenera la vista y conserva sus decisiones."""
+    if (P / "cut" / "cut-list.json").exists():
+        return run([PY, "-m", "scripts.pipeline.paper_cut", "--project", str(P), "--refresh-from-cut"], P)
+    return run_script("corte-en-papel", P, plats)
+
+
+def stage_transcription(P, pid, plats, sb, quiet):
+    """Transcribe las tomas; antes copia las transcripciones existentes (pueden tener correcciones)."""
     pj = ["--project", str(P)]
-    if stage == "ingesta":
-        return run([PY, "-m", "scripts.pipeline.ingest", *pj], P)
-    if stage == "transcripcion":
-        # --force reescribe transcript/<toma>.json: si ya existen (quizá corregidos a mano), copia antes
-        existing = [t for t in sorted((P / "transcript").glob("*.json")) if not t.name.startswith("master-cut")]
-        backup = None
-        if existing:
-            backup = P / "work" / "transcript-backup" / time.strftime("%Y%m%d-%H%M%S")
-            backup.mkdir(parents=True, exist_ok=True)
-            for t in existing:
-                shutil.copy2(t, backup / t.name)
-        out = run([PY, "-m", "scripts.pipeline.transcribe", *pj, "--force"], P) or {}
-        if backup:
-            out["warning"] = (f"se volvió a transcribir; la transcripción anterior quedó en {backup.relative_to(P)} "
-                              "(si tenía correcciones a mano, vuelve a aplicarlas)")
-        return out
-    if stage == "corte-en-papel":
-        if (P / "cut" / "cut-list.json").exists():  # conserva las decisiones del corte existente
-            return run([PY, "-m", "scripts.pipeline.paper_cut", *pj, "--refresh-from-cut"], P)
-        return run([PY, "-m", "scripts.pipeline.paper_cut", *pj, *(["--platform", plats[0]] if plats else [])], P)
-    if stage == "corte-aplicado":
-        return run([PY, "-m", "scripts.pipeline.apply_cut", *pj, *(["--platform", plats[0]] if plats else [])], P)
-    if stage == "subtitulos":
-        # Solo se reutiliza la transcripción del master (con correcciones a mano) si es del corte actual.
-        match = editlib.transcript_matches_cut(P)
-        backup = None
-        if match is False:
-            t = P / "transcript" / "master-cut.json"
-            old = json.loads(t.read_text()).get("cut_fingerprint") or time.strftime("%Y%m%d-%H%M%S")
-            backup = t.with_name(f"master-cut.{old}.json")
-            shutil.copy2(t, backup)
-        out = run([PY, "-m", "scripts.pipeline.captions", *pj, *(["--from-transcript"] if match else [])], P) or {}
-        if backup:
-            out["warning"] = (f"el corte cambió: se transcribió el master nuevo; la transcripción anterior "
-                              f"(con tus correcciones) quedó en {backup.relative_to(P)} — vuelve a aplicarlas")
-        return out
-    if stage == "composicion":
-        args = [a for p in plats for a in ("--platform", p)]
-        return run([PY, "-m", "scripts.pipeline.compose", *pj, *args], P)
-    if stage == "check":
-        t0 = time.time()
-        # El orquestador necesita un informe nuevo para asociarlo a esta composición. Con la caché,
-        # HyperFrames devuelve el JSON previo por stdout pero no escribe otro archivo y
-        # check_report() no puede distinguirlo de un chequeo que nunca se ejecutó.
-        state.run([HF, "check", "--json", "--no-cache"], cwd=P / "hf", capture_output=True, text=True)
-        errors, found = check_report(P, t0)
-        if errors:
-            raise StageError(f"hyperframes check: {errors} errores — " + " | ".join(found))
-        save_status_fields(P, fingerprints={"check": editlib.hf_fingerprint(P)})
-        return {"errors": 0}
-    if stage == "revision":
-        dur = oslib.read_json(P / "cut" / "cut-map.json")["duration_s"] + sb.get("tail_s", 0)
-        times = editlib.review_times(sb, dur)
-        shutil.rmtree(P / "snaps", ignore_errors=True)
-        log(f"   hoja de revisión: {len(times)} momentos", quiet)
-        run([HF, "snapshot", "--at", ",".join(str(t) for t in times), "--no-end", "-o", "../snaps", "--json"],
-            P, cwd=P / "hf", json_out=False)
-        (P / "renders").mkdir(exist_ok=True)
-        log(f"   render borrador ({plats[0]})…", quiet)
-        run([HF, "render", "-q", "draft", "--sdr", "--variables-file", f"variables/{plats[0]}.json",
-             "-o", f"../renders/draft-{plats[0]}.mp4"], P, cwd=P / "hf", json_out=False)
-        phone = run([PY, "-m", "scripts.pipeline.phone_preview", *pj,
-                     "--draft", f"renders/draft-{plats[0]}.mp4"], P)
-        save_status_fields(P, fingerprints={"revision": editlib.hf_fingerprint(P)})
-        return {"snaps": "snaps/", "draft": f"renders/draft-{plats[0]}.mp4", "times": times,
-                "phone_frames": phone["frames"]}
-    if stage == "render":
-        st = load_status(P)
-        record = st.get("stages", {}).get("render", {})
-        previous = record.get("previous") or record
-        outputs_intact = previous.get("outputs") == integrity.outputs(P, "render")
-        done = []
-        for p in plats:  # solo las plataformas cuyo contenido cambió (editlib.platform_fingerprint)
-            if not integrity.valid(P, "B", load_status(P)):
-                raise StageError("aprobación B desactualizada")
-            h = editlib.platform_fingerprint(P, p)
-            render_inputs = integrity.inputs(P, "render")
-            prior = st.get("render_receipts", {}).get(p, {})
-            final = P / "renders" / f"{p}.mp4"
-            reusable = (final.is_file() and prior.get("inputs") == h
-                        and prior.get("output") == integrity.digest_bytes(final))
-            legacy = outputs_intact and st.get("fingerprints", {}).get(f"render:{p}") == h and final.exists()
-            if reusable or legacy:
-                continue
-            log(f"   render final {p}…", quiet)
-            pending = P / "renders" / f".{p}.{uuid.uuid4().hex}.pending.mp4"
-            try:
-                run([HF, "render", "-q", "delivery", "--sdr", "--variables-file", f"variables/{p}.json",
-                     "-o", str(pending)], P, cwd=P / "hf", json_out=False)
-                if not integrity.valid(P, "B", load_status(P)) or integrity.inputs(P, "render") != render_inputs:
-                    raise StageError("contenido cambiado durante render")
-                output_hash = integrity.digest_bytes(pending)
-                os.replace(pending, final)
-                save_status_fields(P, fingerprints={f"render:{p}": h},
-                                   render_receipts={p: {"inputs": h, "output": output_hash}})
-            finally:
-                pending.unlink(missing_ok=True)
-            done.append(p)
-        return {"rendered": done}
-    if stage == "entrega":
-        master = P / "captions" / "master.srt"
-        for p in plats:
-            dst = P / "captions" / f"{p}.srt"
-            if master.exists() and (not dst.exists() or editlib.newer(master, dst)):
-                shutil.copy(master, dst)
-        out = run([PY, "-m", "scripts.pipeline.verify", *pj, *[a for p in plats for a in ("--platform", p)]], P)
-        # finales verificados → carpeta de entregas fácil de encontrar (deliveries/<canal>/<fecha> <pieza>/)
-        dl = run([PY, "-m", "scripts.pipeline.deliver", *pj, *[a for p in plats for a in ("--platform", p)]], P)
-        rf = editlib.delivery_fingerprint(P, plats)
-        save_status_fields(P, fingerprints={"entrega": rf})
-        return {"verified": plats, "ok": out.get("ok") if out else None, "delivery": (dl or {}).get("dir"),
-                "delivery_method": (dl or {}).get("method")}
-    raise KeyError(stage)
+    # --force reescribe transcript/<toma>.json: si ya existen (quizá corregidos a mano), copia antes
+    existing = [t for t in sorted((P / "transcript").glob("*.json")) if not t.name.startswith("master-cut")]
+    backup = None
+    if existing:
+        backup = P / "work" / "transcript-backup" / time.strftime("%Y%m%d-%H%M%S")
+        backup.mkdir(parents=True, exist_ok=True)
+        for t in existing:
+            shutil.copy2(t, backup / t.name)
+    out = run([PY, "-m", "scripts.pipeline.transcribe", *pj, "--force"], P) or {}
+    if backup:
+        out["warning"] = (f"se volvió a transcribir; la transcripción anterior quedó en {backup.relative_to(P)} "
+                          "(si tenía correcciones a mano, vuelve a aplicarlas)")
+    return out
+
+
+def stage_captions(P, pid, plats, sb, quiet):
+    """Subtítulos; reutiliza la transcripción del master solo si es del corte actual."""
+    pj = ["--project", str(P)]
+    # Solo se reutiliza la transcripción del master (con correcciones a mano) si es del corte actual.
+    match = editlib.transcript_matches_cut(P)
+    backup = None
+    if match is False:
+        t = P / "transcript" / "master-cut.json"
+        old = json.loads(t.read_text()).get("cut_fingerprint") or time.strftime("%Y%m%d-%H%M%S")
+        backup = t.with_name(f"master-cut.{old}.json")
+        shutil.copy2(t, backup)
+    out = run([PY, "-m", "scripts.pipeline.captions", *pj, *(["--from-transcript"] if match else [])], P) or {}
+    if backup:
+        out["warning"] = (f"el corte cambió: se transcribió el master nuevo; la transcripción anterior "
+                          f"(con tus correcciones) quedó en {backup.relative_to(P)} — vuelve a aplicarlas")
+    return out
+
+
+def stage_check(P, pid, plats, sb, quiet):
+    """hyperframes check sobre la composición; falla con sus errores."""
+    t0 = time.time()
+    # El orquestador necesita un informe nuevo para asociarlo a esta composición. Con la caché,
+    # HyperFrames devuelve el JSON previo por stdout pero no escribe otro archivo y
+    # check_report() no puede distinguirlo de un chequeo que nunca se ejecutó.
+    state.run([HF, "check", "--json", "--no-cache"], cwd=P / "hf", capture_output=True, text=True)
+    errors, found = check_report(P, t0)
+    if errors:
+        raise StageError(f"hyperframes check: {errors} errores — " + " | ".join(found))
+    save_status_fields(P, fingerprints={"check": editlib.hf_fingerprint(P)})
+    return {"errors": 0}
+
+
+def stage_review(P, pid, plats, sb, quiet):
+    """Hoja de revisión, borrador y vistas de teléfono para la revisión B."""
+    pj = ["--project", str(P)]
+    dur = oslib.read_json(P / "cut" / "cut-map.json")["duration_s"] + sb.get("tail_s", 0)
+    times = editlib.review_times(sb, dur)
+    shutil.rmtree(P / "snaps", ignore_errors=True)
+    log(f"   hoja de revisión: {len(times)} momentos", quiet)
+    run([HF, "snapshot", "--at", ",".join(str(t) for t in times), "--no-end", "-o", "../snaps", "--json"],
+        P, cwd=P / "hf", json_out=False)
+    (P / "renders").mkdir(exist_ok=True)
+    log(f"   render borrador ({plats[0]})…", quiet)
+    run([HF, "render", "-q", "draft", "--sdr", "--variables-file", f"variables/{plats[0]}.json",
+         "-o", f"../renders/draft-{plats[0]}.mp4"], P, cwd=P / "hf", json_out=False)
+    phone = run([PY, "-m", "scripts.pipeline.phone_preview", *pj,
+                 "--draft", f"renders/draft-{plats[0]}.mp4"], P)
+    save_status_fields(P, fingerprints={"revision": editlib.hf_fingerprint(P)})
+    return {"snaps": "snaps/", "draft": f"renders/draft-{plats[0]}.mp4", "times": times,
+            "phone_frames": phone["frames"]}
+
+
+def stage_render(P, pid, plats, sb, quiet):
+    """Render final por plataforma, solo de las que cambiaron; se promueve si B sigue vigente."""
+    st = load_status(P)
+    record = st.get("stages", {}).get("render", {})
+    previous = record.get("previous") or record
+    outputs_intact = previous.get("outputs") == integrity.outputs(P, "render")
+    done = []
+    for p in plats:  # solo las plataformas cuyo contenido cambió (editlib.platform_fingerprint)
+        if not integrity.valid(P, "B", load_status(P)):
+            raise StageError("aprobación B desactualizada")
+        h = editlib.platform_fingerprint(P, p)
+        render_inputs = integrity.inputs(P, "render")
+        prior = st.get("render_receipts", {}).get(p, {})
+        final = P / "renders" / f"{p}.mp4"
+        reusable = (final.is_file() and prior.get("inputs") == h
+                    and prior.get("output") == integrity.digest_bytes(final))
+        legacy = outputs_intact and st.get("fingerprints", {}).get(f"render:{p}") == h and final.exists()
+        if reusable or legacy:
+            continue
+        log(f"   render final {p}…", quiet)
+        pending = P / "renders" / f".{p}.{uuid.uuid4().hex}.pending.mp4"
+        try:
+            run([HF, "render", "-q", "delivery", "--sdr", "--variables-file", f"variables/{p}.json",
+                 "-o", str(pending)], P, cwd=P / "hf", json_out=False)
+            if not integrity.valid(P, "B", load_status(P)) or integrity.inputs(P, "render") != render_inputs:
+                raise StageError("contenido cambiado durante render")
+            output_hash = integrity.digest_bytes(pending)
+            os.replace(pending, final)
+            save_status_fields(P, fingerprints={f"render:{p}": h},
+                               render_receipts={p: {"inputs": h, "output": output_hash}})
+        finally:
+            pending.unlink(missing_ok=True)
+        done.append(p)
+    return {"rendered": done}
+
+
+def stage_delivery(P, pid, plats, sb, quiet):
+    """Verifica y entrega (deliveries/<Canal>/<fecha> <pieza>/)."""
+    pj = ["--project", str(P)]
+    master = P / "captions" / "master.srt"
+    for p in plats:
+        dst = P / "captions" / f"{p}.srt"
+        if master.exists() and (not dst.exists() or editlib.newer(master, dst)):
+            shutil.copy(master, dst)
+    out = run([PY, "-m", "scripts.pipeline.verify", *pj, *[a for p in plats for a in ("--platform", p)]], P)
+    # finales verificados → carpeta de entregas fácil de encontrar (deliveries/<canal>/<fecha> <pieza>/)
+    dl = run([PY, "-m", "scripts.pipeline.deliver", *pj, *[a for p in plats for a in ("--platform", p)]], P)
+    rf = editlib.delivery_fingerprint(P, plats)
+    save_status_fields(P, fingerprints={"entrega": rf})
+    return {"verified": plats, "ok": out.get("ok") if out else None, "delivery": (dl or {}).get("dir"),
+            "delivery_method": (dl or {}).get("method")}
+
+
+RUNNERS = {
+    "ingesta": lambda P, pid, plats, sb, quiet: run_script("ingesta", P, plats),
+    "transcripcion": stage_transcription,
+    "corte-en-papel": stage_paper_cut,
+    "corte-aplicado": lambda P, pid, plats, sb, quiet: run_script("corte-aplicado", P, plats),
+    "subtitulos": stage_captions,
+    "composicion": lambda P, pid, plats, sb, quiet: run_script("composicion", P, plats),
+    "check": stage_check,
+    "revision": stage_review,
+    "render": stage_render,
+    "entrega": stage_delivery,
+}
+assert list(RUNNERS) == stages.ORDER
+
+
+def do_stage(stage, P, pid, plats, sb, quiet):
+    return RUNNERS[stage](P, pid, plats, sb, quiet)
 
 
 def main():
@@ -254,8 +294,12 @@ def main():
         sb, plats, _ = piece_state()
         st = migrated
         act = editlib.next_action(P, st, plats, forced)
-        oslib.emit({"ok": True, "piece": pid, "platforms": plats, "plan": True, "next_action": act,
-                    "stage": st.get("stage"), "approvals": sorted(st.get("approvals", {}))})
+        out = {"ok": True, "piece": pid, "platforms": plats, "plan": True, "next_action": act,
+               "stage": st.get("stage"), "approvals": sorted(st.get("approvals", {}))}
+        if changes:
+            out["migration_pending"] = {"changes": changes,
+                                        "next": "bin/edit la aplica al correr; para todas las piezas: bin/status --migrate --apply"}
+        oslib.emit(out)
 
     ran, notes, result = [], [], None
     while True:

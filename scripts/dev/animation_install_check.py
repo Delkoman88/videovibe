@@ -27,7 +27,7 @@ def main():
         commands=[['npm','ci','--no-audit','--no-fund'],[sys.executable,'-m','venv','.venv'],
                   [str(root/'.venv/bin/pip'),'install','numpy'],
                   [str(root/'.venv/bin/python'),'-m','unittest','discover','-s','scripts/tests'],
-                  [str(root/'.venv/bin/python'),'-m','scripts.tools.animation_matrix','--formats','particle-title,narrative-sequence','--profiles','balanced']]
+                  [str(root/'.venv/bin/python'),'-m','scripts.dev.animation_matrix','--formats','particle-title,narrative-sequence','--profiles','balanced']]
         for cmd in commands:
             r=__import__('scripts.core.state', fromlist=['run']).run(cmd,cwd=root,capture_output=True,text=True,timeout=1800,env={k:v for k,v in os.environ.items() if k!='VIDEOVIBE_CHANNELS'})
             report['steps'].append({'command':cmd,'exit_code':r.returncode,'output':(r.stdout+r.stderr)[-4000:]})

@@ -35,12 +35,10 @@ reemplace (y marca la vieja como «Reemplazada por NNNN»).
 | 0027 | [3D cinematográfico: Three.js empaquetado localmente, un solo reloj y biblioteca de modelos](0027-cinematic-3d.md) | vigente |
 | 0028 | [Transiciones de superposición: una capa propia, solo CSS + GSAP y el máximo en el corte](0028-transitions.md) | vigente |
 | 0029 | [Iconos científicos CC0, pizarrón con Rough.js y gráficas con d3](0029-scientific-icons-sketch-data.md) | vigente |
-| 0030 | [Perfiles versionados, composición compartida y revisión visual](0030-animation-direction.md) | implementado; validación remota pendiente |
+| 0030 | [Perfiles versionados, composición compartida y revisión visual](0030-animation-direction.md) | vigente |
 | 0031 | [Criterio editorial compartido y skills de entrada](0031-editorial-skills.md) | vigente |
 | 0032 | [Lectura por elemento y sustituciones conservadoras](0032-visual-reading-and-cutout-fallbacks.md) | vigente |
 | 0033 | [Estado de revisión y propuestas editoriales](0033-editorial-review-state.md) | vigente |
 | 0034 | [Extractos audiovisuales breves](0034-media-excerpts.md) | vigente |
-
-- [0035 — Audio nativo de B-roll y revisión editorial previa](0035-native-broll-audio.md)
-
-- [0036 — Estado, evidencia y entregas independientes](0036-integrity-state-and-deliveries.md)
+| 0035 | [Audio nativo de B-roll y revisión editorial previa](0035-native-broll-audio.md) | vigente |
+| 0036 | [Estado, evidencia de aprobación y entregas independientes](0036-integrity-state-and-deliveries.md) | vigente |

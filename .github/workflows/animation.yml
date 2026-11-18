@@ -29,7 +29,7 @@ jobs:
       - name: Unit tests
         run: .venv/bin/python -m unittest discover -s scripts/tests
       - name: Render profiles (production runtime and reverse seeks)
-        run: .venv/bin/python -m scripts.tools.animation_matrix --formats particle-title,narrative-sequence --profiles restrained,balanced,energetic
+        run: .venv/bin/python -m scripts.dev.animation_matrix --formats particle-title,narrative-sequence --profiles restrained,balanced,energetic
       - name: Evidence
         if: always()
         uses: actions/upload-artifact@v5

@@ -92,6 +92,27 @@ def labels(P, stage, engine=True):
     return {integrity.label(x, P) for x in paths}
 
 
+class StageTable(unittest.TestCase):
+    """scripts/core/stages.py es la única fuente: la leen integrity, editlib y bin/edit."""
+
+    def test_table_is_consistent_and_used_everywhere(self):
+        from scripts.core import stages
+        self.assertEqual(editlib.STAGES, stages.ORDER)
+        self.assertEqual(list(load_edit().RUNNERS), stages.ORDER)
+        for name, spec in stages.STAGES.items():
+            if spec["script"]:
+                self.assertTrue((oslib.ROOT / "scripts" / "pipeline" / f"{spec['script']}.py").is_file(), name)
+            if spec["editable"]:                      # lo editable no depende del código del motor
+                self.assertFalse(spec.get("engine") or spec.get("npm"), name)
+            self.assertIn(spec["platform"], (None, "first", "all"), name)
+            for k in spec:
+                self.assertIn(k, ("script", "platform", "editable", "outputs", "content", "drop_master", "channel",
+                                  "language", "lang_file", "hook", "engine", "npm"), (name, k))
+            if spec.get("hook"):
+                self.assertIn(spec["hook"], integrity.HOOKS, name)
+        self.assertEqual(integrity.EDITABLE, ("ingesta", "transcripcion", "corte-en-papel", "subtitulos"))
+
+
 class FingerprintScope(unittest.TestCase):
     def setUp(self):
         self.td = tempfile.TemporaryDirectory()
@@ -168,6 +189,27 @@ class FingerprintScope(unittest.TestCase):
         self.assertNotIn("digest_scheme", st)                                    # no modifica el original
         self.assertEqual(integrity.restamp(p, new, plats), (new, []))
         self.assertFalse(editlib.stage_dirty("check", p, {**new, "stages": {}}, plats)[0])
+
+
+class MigrateAll(unittest.TestCase):
+    def test_simulation_does_not_write_and_apply_does(self):
+        import contextlib
+        import io
+        status = load_bin("status")
+        with tempfile.TemporaryDirectory() as td:
+            chans, p = piece(td, plats=("tiktok",))
+            (p / "status.json").write_text(json.dumps({"stage": "entregable", "approvals": {"A": {"at": "x"}}}))
+            before = (p / "status.json").read_bytes()
+            with patch.object(status.oslib, "channel_roots", return_value=[Path(chans)]):
+                out = io.StringIO()
+                with contextlib.redirect_stdout(out):
+                    status.migrate_all(False)
+                report = json.loads(out.getvalue())
+                self.assertEqual((p / "status.json").read_bytes(), before)
+                self.assertEqual(report["piezas"][0]["legacy_approvals"], ["A"])
+                with contextlib.redirect_stdout(io.StringIO()):
+                    status.migrate_all(True)
+            self.assertEqual(json.loads((p / "status.json").read_text())["digest_scheme"], integrity.SCHEME)
 
 
 class Reapproval(unittest.TestCase):

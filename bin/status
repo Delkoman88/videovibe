@@ -6,6 +6,8 @@ Uso:
   bin/status <canal>/<pieza>              detalle de una pieza
   bin/status <canal>/<pieza> --approve A  registra la aprobación A (o B) con fecha y nota opcional
                               [--note "texto"]
+  bin/status --migrate [--apply]          migra la evidencia de todas las piezas al esquema actual
+                              (sin --apply solo simula; obligatorio antes de v0.15, que retira lo heredado)
   bin/status <canal>/<pieza> --attest-legacy B --note "…"  constancia de una aprobación anterior
                               (solo con revisión guardada aprobada que coincida; tras confirmarlo la persona)
 Lee y escribe <pieza>/status.json (lo actualizan también los scripts del pipeline).
@@ -23,6 +25,42 @@ from scripts.core import editlib, integrity, oslib, reviewlib, state  # noqa: E4
 
 def load(P):
     return state.load(P)
+
+
+def all_pieces():
+    return sorted(p for root in oslib.channel_roots() for p in root.glob("*/projects/*/")
+                  if not p.parent.parent.name.startswith("_") and (p / "status.json").exists())
+
+
+def migrate_all(apply):
+    """integrity.restamp en todas las piezas de todos los canales (ADR 0036). Sin apply no escribe."""
+    rows = []
+    for P in all_pieces():
+        row = {"pieza": f"{P.parent.parent.name}/{P.name}"}
+        try:
+            plats = piece_platforms(P)
+            if apply:
+                with state.transaction(P) as st:
+                    migrated, changes = integrity.restamp(P, st, plats)
+                    st.clear()
+                    st.update(migrated)
+            else:
+                migrated, changes = integrity.restamp(P, state.load(P), plats)
+        except RuntimeError as e:          # pieza ocupada por otra operación
+            row["error"] = str(e)
+            rows.append(row)
+            continue
+        legacy = sorted(g for g, a in migrated.get("approvals", {}).items()
+                        if not (isinstance(a, dict) and a.get("version") == 2))
+        row.update(changes=changes)
+        if legacy:
+            row["legacy_approvals"] = legacy
+            row["next"] = (f"aprobación {', '.join(legacy)} anterior a v0.13.1: bin/status {row['pieza']} "
+                           "--attest-legacy <A|B> --note \"…\" (si su revisión guardada coincide; tras confirmarlo "
+                           "la persona) o preséntala de nuevo con bin/edit")
+        rows.append(row)
+    print(json.dumps({"ok": not any("error" in r for r in rows), "apply": apply, "piezas": rows},
+                     ensure_ascii=False, indent=2))
 
 
 def piece_platforms(P):
@@ -114,8 +152,13 @@ def main():
     ap.add_argument("--attest-legacy", choices=["A", "B"],
                     help="convierte una aprobación anterior a v0.13.1 si su revisión guardada coincide")
     ap.add_argument("--note", default="")
+    ap.add_argument("--migrate", action="store_true", help="migra la evidencia de todas las piezas (simula sin --apply)")
+    ap.add_argument("--apply", action="store_true", help="con --migrate: guarda los cambios")
     args = ap.parse_args()
 
+    if args.migrate:
+        migrate_all(args.apply)
+        return
     if not args.project:
         rows = []
         for P in sorted(p for root in oslib.channel_roots() for p in root.glob("*/projects/*/")):

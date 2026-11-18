@@ -1,68 +1,75 @@
 # 0036 — Estado, evidencia de aprobación y entregas independientes
 
-Los controles de continuación deben usar la misma evidencia que el registro de aprobación.
-A/B guardan versión, huella de entradas y de presentación; no basta una fecha. Las aprobaciones
-históricas se conservan, pero al reanudar sin evidencia suficiente se requiere revisión. Las
-consultas no escriben. Rechazo, ajustes y nuevas presentaciones invalidan la aprobación correspondiente.
+**Fecha:** 2026-11-17 (vigente desde v0.13.2; retiro de lo heredado en v0.15) · **Estado:** vigente
 
-El estado se normaliza al leer y se escribe con temporales únicos y reemplazo atómico. Un bloqueo
-por pieza del sistema operativo protege comandos y subprocesos; otro protege transacciones breves.
-La delegación a subprocesos comprueba propietario y token. No se espera indefinidamente: una operación
-incompatible devuelve pieza ocupada. Las etapas registran entradas/salidas por contenido; los
-artefactos derivados antiguos sin evidencia se reconstruyen al reanudar.
+## Contexto
 
-Entregas nuevas: copias independientes en versions/<huella>, manifiesto con hashes, recibo de
-verificación y aprobaciones. Preparación temporal, promoción por rename y current.json atómico.
-Una versión previa permanece intacta; una versión alterada no se reutiliza. Los renders finales se
-escriben a temporal y se reemplazan después de comprobar B nuevamente. La entrega directa exige
-verificación y aprobaciones vigentes. Verificar técnicamente una prueba no implica aprobación editorial.
+Las aprobaciones A/B se comprobaban por fecha y los artefactos por fecha o tamaño; las entregas eran
+enlaces duros. Una edición concurrente, un archivo cambiado sin cambiar su fecha o un render
+sobrescrito podían dejar una entrega distinta de lo aprobado sin que nada lo detectara. Al mismo
+tiempo, la evidencia no debe invalidarse por razones ajenas al contenido (mover carpetas, actualizar
+el motor), porque eso obliga a revisar y renderizar de nuevo sin motivo.
 
-Los enlaces duros antiguos se desacoplan solo mediante migración explícita; no se puede reconstruir
-con certeza una aprobación antigua ni garantizar que sus bytes nunca cambiaron. La migración preserva
-los bytes existentes, no certifica su historia. Sin nuevas dependencias de ejecución.
+## Decisión
 
-Los documentos editoriales (clasificación, transcripción, corte y subtítulos) pueden corregirse a mano:
-una corrección no se sobrescribe como si fuese corrupción de caché. Alimenta las etapas dependientes
-y las revisiones A/B. Refrescar un corte existente conserva sus decisiones; no repite heurísticas.
-B exige además evidencia vigente de construcción de composición y preview. Los temporales y los
-resultados audiovisuales generados se reconstruyen cuando sus huellas dejan de coincidir.
+**Estado y bloqueo** (`scripts/core/state.py`)
+- `status.json` se normaliza al leer y se escribe con temporal único, fsync y reemplazo atómico.
+  Las consultas no escriben.
+- Bloqueo por pieza del sistema operativo, no bloqueante («pieza ocupada»). Los subprocesos de
+  `bin/edit` lo heredan con descriptor y token comprobados, y registran su grupo POSIX: la pieza
+  sigue ocupada mientras viva un trabajador. Windows nativo rechaza la ejecución delegada (usar WSL).
 
+**Etapas** (`scripts/core/stages.py`, `scripts/core/integrity.py`)
+- Una tabla única declara por etapa su script, si es editable a mano, de qué depende y qué produce.
+- Cada etapa terminada deja un recibo (versión 3: plataformas, huella de entradas y de salidas). Las
+  editables (ingesta, transcripción, corte en papel, subtítulos) solo se rehacen si cambian sus fuentes:
+  una corrección a mano no es caché corrupta.
+- Las editables dependen del contenido de la pieza y de lo que el canal les aporta (vocabulario, idioma,
+  marca para subtítulos), no del código del motor. Las derivadas incluyen el código del motor que las
+  produce y las dependencias de npm (no la versión del propio VideoVibe).
+- La transcripción del master guarda la huella del corte que la produjo; con otro corte se transcribe
+  de nuevo y la anterior se conserva. Antes de volver a transcribir las tomas se copia `transcript/`.
 
-Corrección de auditoría: herencia explícita del descriptor POSIX y reservas de grupos de trabajadores;
-el token solo no autoriza delegación. Recibos v3 incluyen plataformas, entradas estables y salidas.
-B incluye la composición compilada. Cada render se promueve después de validar nuevamente entradas
-y aprobación; sus bytes se registran por plataforma para reutilización independiente. Windows nativo
-queda bloqueado para ejecución delegada hasta implementar y validar equivalencia, sin promesa de
-portabilidad basada en tests macOS. Las reservas ambiguas fallan de forma conservadora.
+**Huellas** — SHA-256 del contenido, con cada archivo identificado por una etiqueta relativa
+(`piece:`, `channel:`, `engine:`, `ext:`), nunca por su ruta absoluta.
 
-## Revisión — v0.13.2-alpha (esquema de huellas 3)
+**Aprobaciones**
+- A y B guardan versión, huella de entradas y huella de la presentación que vio la persona.
+  A: corte, tomas y transcripción. B: contenido de la pieza + HTML compilado, sin código del motor
+  (si el motor cambia lo que se ve, cambia el HTML y B se invalida sola).
+- Aprobar exige una revisión presentada vigente. Ajustar o rechazar invalida. Presentar o aprobar A no
+  borra B: B se valida con su propia evidencia.
+- B exige además recibos vigentes de composición y preview, y el control visual al día.
+- Aprobaciones anteriores a v0.13.1: se conservan como historia y requieren revisión, salvo que su
+  revisión guardada coincida con la presentación actual; entonces, con confirmación de la persona,
+  `bin/status --attest-legacy A|B` deja constancia.
 
-La revisión de v0.13.1 encontró que las huellas invalidaban de más y que los subtítulos podían
-quedar ligados a un corte anterior. Se corrige sin relajar la evidencia:
+**Render y entrega**
+- Cada render final se escribe a temporal y se promueve solo si B y sus entradas siguen iguales; sus
+  bytes se registran por plataforma para reutilizarlo.
+- La entrega exige verificación (`verify.py`) y aprobaciones vigentes. Se prepara en temporal y se
+  promueve a `deliveries/<Canal>/<pieza>/versions/<huella>/` (copias independientes, manifiesto con
+  hashes, recibo de verificación y aprobaciones); `current.json` apunta a la vigente. Una versión
+  previa no se modifica; una alterada no se reutiliza.
 
-- **Subtítulos y corte.** `transcript/master-cut.json` guarda la huella del corte que lo produjo.
-  `bin/edit` solo usa `--from-transcript` si coincide; si no, guarda la versión anterior
-  (`transcript/master-cut.<huella>.json`) y transcribe el master nuevo. `captions.py --from-transcript`
-  rechaza una transcripción de otro corte.
-- **Huellas relativas.** Cada archivo entra con una etiqueta `piece:`, `channel:`, `engine:` o `ext:`;
-  nunca con su ruta absoluta. Mover la carpeta de canales o cambiar de máquina no invalida nada.
-- **Alcance.** Las etapas editables (ingesta, transcripción, corte en papel, subtítulos) dependen del
-  contenido de la pieza y de lo que el canal les aporta (vocabulario, idioma, marca para subtítulos), no
-  del código del motor ni de `channel.json` completo: activar un paquete o actualizar npm ya no
-  vuelve a transcribir. Las etapas derivadas conservan el código del motor (rehacerlas es barato y
-  determinista). **B** depende del contenido de la pieza y del HTML compilado, no del código del motor:
-  si el motor cambia lo que se ve, cambia el HTML y B se invalida igual.
-- **Transcripción protegida.** Antes de `transcribe --force`, `bin/edit` copia `transcript/*.json` a
-  `work/transcript-backup/<fecha>/` y lo avisa.
-- **Presentar o aprobar A** no borra B: B guarda su
-  propia evidencia (corte, subtítulos y HTML compilado) y deja de valer sola si el corte cambió.
-- **Migración (`integrity.restamp`).** La evidencia guardada se recalcula con el algoritmo con que se
-  escribió (esquema 1: sha1 por tamaño; esquema 2: rutas absolutas, con los bytes originales de
-  `integrity.py` de v0.13.1 en `scripts/core/legacy/`). Si coincide, se reemplaza por la del esquema 3;
-  si no, se deja y la etapa o aprobación queda pendiente como antes. Las piezas sin recibos reciben
-  recibo solo en las etapas que la lógica anterior consideraba al día, salvo la composición, que se
-  reconstruye. `bin/edit` y `bin/status --approve` migran bajo bloqueo; `--plan` calcula en memoria.
-- **Constancia de aprobaciones anteriores.** `bin/status <pieza> --attest-legacy A|B --note "…"`
-  convierte una aprobación anterior a v0.13.1 solo si la revisión guardada fue aprobada y coincide con
-  la presentación actual (y, para B, con recibos vigentes de composición y preview). El agente la corre
-  solo después de que la persona lo confirme. Sin revisión guardada, hay que presentarla de nuevo.
+**Migración y retiro**
+- `integrity.restamp` convierte la evidencia de esquemas anteriores (1: sha1 por tamaño; 2: rutas
+  absolutas) recalculándola con su algoritmo original; si coincide, se reemplaza. Piezas sin recibos
+  reciben recibo en las etapas que la lógica anterior daba por buenas, salvo la composición, que se
+  reconstruye. `bin/edit` la aplica al reanudar; `bin/status --migrate --apply` la aplica a todas.
+- `migrate_deliveries` desacopla enlaces duros antiguos sin cambiar bytes; no certifica su historia.
+- **v0.15** retira los esquemas 1 y 2, `scripts/core/legacy/` y la decisión sin recibos.
+
+## Alternativas descartadas
+
+- Esperar indefinidamente un bloqueo: oculta conflictos; se prefiere «pieza ocupada».
+- Incluir el código del motor en B y en las etapas editables: invalidaba aprobaciones y transcripciones
+  en cada actualización sin cambiar lo que se ve.
+- Rutas absolutas en las huellas: mover la carpeta de canales invalidaba todo.
+- Reconstruir certezas sobre entregas antiguas: no es posible; la migración preserva bytes, no historia.
+
+## Consecuencias
+
+- Una pieza no avanza si su evidencia no coincide; el motivo se muestra en `bin/edit --plan`.
+- Actualizar el motor recompone (barato y determinista) pero no repite revisiones si el HTML no cambia.
+- Cada entrega nueva ocupa su propia copia en disco.

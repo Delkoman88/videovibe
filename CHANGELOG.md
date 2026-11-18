@@ -1,110 +1,35 @@
 # Changelog
 
+## 0.13.3-alpha — 2026-11-18 · menos complejidad
+
+- `STATUS.md` es solo la foto de hoy (≤ 100 líneas); la historia queda aquí y en los ADR.
+- Tabla única de etapas (`scripts/core/stages.py`): script, si es editable, de qué depende y qué produce.
+- `bin/status --migrate [--apply]` migra la evidencia de todas las piezas; lo heredado se retira en v0.15.
+- Herramientas solo de desarrollo en `scripts/dev/`; `bin/format-catalog --usage` cuenta qué formatos usan tus piezas.
+- Límites automáticos (`test_budget.py`): tamaño de STATUS, de archivos de código y de entradas del CHANGELOG.
+
 ## 0.13.2-alpha — 2026-11-17 · revisión de integridad
 
-- **Subtítulos:** `transcript/master-cut.json` guarda la huella de su corte; tras un corte nuevo, bin/edit
-  transcribe el master nuevo y guarda la versión anterior con sus correcciones (antes se reutilizaba la
-  del corte viejo y los subtítulos podían quedar desfasados).
-- **Huellas relativas (esquema 3):** sin rutas absolutas; mover la carpeta de canales no invalida nada.
-- **Alcance:** etapas editables y aprobación B sin código del motor; `channel.json` completo fuera de la
-  transcripción. Copia de `transcript/` antes de volver a transcribir.
-- **Aprobaciones:** presentar o aprobar A ya no borra B (B guarda su propia evidencia y deja de valer sola si cambia el corte); `bin/status --attest-legacy A|B` deja
-  constancia de una aprobación anterior si su revisión guardada coincide.
-- **Migración:** `integrity.restamp` convierte la evidencia guardada sin rehacer trabajo.
-- **CI:** `animation-install` solo en Ubuntu; acciones actualizadas a Node 24.
-- **Código:** `state.py`, `integrity.py`, `migrate_deliveries.py`, `bin/edit` y `bin/status` reescritos
-  con el estilo del resto del motor; 13 pruebas nuevas (`test_integrity_scope.py`).
+- Subtítulos ligados a su corte: tras un corte nuevo se transcribe el master nuevo y se guarda la versión anterior.
+- Huellas con rutas relativas: mover la carpeta de canales o cambiar de máquina no invalida nada.
+- Etapas editables y B sin código del motor: activar un paquete o actualizar npm no repite trabajo ni aprobaciones.
+- Presentar o aprobar A no borra B; `bin/status --attest-legacy A|B` para aprobaciones anteriores con revisión coincidente.
+- Migración automática de la evidencia guardada; CI de animación solo en Ubuntu. ADR 0036.
 
 ## 0.13.1-alpha — 2026-11-17 · consolidación de integridad
 
-- Validación de correcciones: 288 pruebas correctas, seis regresiones nuevas y guardián de datos personales.
-- Corrección de auditoría: trabajadores POSIX heredan el bloqueo y reservan sus grupos; ejecución delegada Windows nativa bloqueada explícitamente hasta validación.
-- Cambios concurrentes invalidan etapas antes del éxito; B incluye la composición compilada y los renders temporales se promueven solo tras comprobar estabilidad.
-- Recibos v3 con plataformas y evidencia individual de renders; dependencias de marca, idioma, vocabulario, audio y modelos.
-- Reagrupación de subtítulos desde la transcripción vigente; instrucciones canónicas de entrega unificadas.
+- Bloqueo por pieza (también para los subprocesos) y escritura atómica de `status.json`.
+- A/B ligadas a su evidencia (entradas y presentación); recibos de entradas y salidas por etapa.
+- Render a temporal y reemplazo solo si B sigue vigente; entregas versionadas, independientes y con manifiesto.
+- `migrate_deliveries` desacopla enlaces duros antiguos sin cambiar bytes. Windows nativo bloqueado (usar WSL). ADR 0036.
 
-- Aprobaciones ligadas a entradas y presentación; registros antiguos requieren revisión al reanudar.
-- Estado normalizado, temporales únicos y bloqueo por pieza del sistema operativo.
-- Huellas por contenido y evidencia de etapas; contratos comunes separados de composición y herramientas.
-- Entregas versionadas independientes, recibos de verificación y migración explícita de enlaces antiguos.
-- Validación local: 282 tests; copia aislada verificada para TikTok/Reels y prueba de independencia de entrega.
-- Windows/WSL y optimización de lecturas repetidas de huellas quedan pendientes.
+## 0.13.0-alpha — 2026-11-17 · historia, fiabilidad visual y audio de B-roll
 
-
-## 0.13.0-alpha — 2026-11-17
-
-### revisión editorial previa y audio nativo de B-roll
-
-- Procedimiento previo al preview con evidencia de promesa, desarrollo, recursos y cierre; sin gates nuevos.
-- Audio original opcional por inserto: intervalo sincronizado, ganancia, fundidos y atenuación durante voz.
-- Extracción sin kit SFX ni límite de cuatro segundos; caché y huellas por contenido. Compatibilidad muda por defecto.
-- ADR 0035; no modifica las entregas aprobadas ni habilita voz de pantalla como corte.
-- Validación: 271 tests correctos, sincronía audiovisual dentro de un cuadro y copia real verificada para TikTok/Reels.
-
-### extractos audiovisuales breves
-
-- Herramienta de extracción de video y audio con intervalo/fundidos compartidos, sin sobrescribir originales.
-- Cierre con B-roll y sonido aportado sincronizado mediante las capacidades existentes, hasta 4 s.
-- Guía y límites documentados; no habilita reordenamiento de diálogo ni voz de pantalla. ADR 0034.
-- Tercera propuesta del vlog aprobada explícitamente: contexto inicial, efectos temáticos y cierre
-  con sonido original y fundido. Se conservan el corte hablado y los subtítulos.
-- Entrega TikTok/Reels verificada, con portadas, textos y subtítulos; carpeta abierta para el usuario.
-
-### estado y evaluación editorial
-
-- Primera evaluación real del usuario: relato comprensible; solicita más contexto inicial, efectos
-  relacionados con el tema y cierre menos abrupto. Segunda propuesta presentada con esos ajustes;
-  corte y subtítulos conservados. El cierre se ajustó y aprobó en la tercera propuesta.
-
-- Limpieza de pendientes al aprobar o avanzar; consultas de estado sin escritura.
-- La ventana de lectura de kinetic-title respeta su salida interna, anterior al fundido de escena.
-- Preguntas específicas por pieza, incluidas en la huella de revisión y con decisión final obligatoria.
-- Planes narrativos remiten al estado canónico; mantenimiento de referencias sin reescribir propuestas.
-- Evaluación real con respuestas del usuario y ajustes registrados; aprobación explícita tras tres propuestas visuales. ADR 0033.
-
-### fiabilidad visual
-
-- QA con ventanas de lectura por elemento; permite revelados y entradas desde fuera del lienzo,
-  manteniendo el rechazo de texto truncado al asentarse. Agrupa avisos por causa y fase.
-- Subtítulos de hasta 0.32 s sin fundidos de línea, conservando palabras y tiempos.
-- `cutout_review` genera evidencia y sustituye efectos defectuosos/inciertos según el dictamen del
-  agente: tarjetas, etiquetas o toma original. Conserva A, invalida B y muestra los cambios en B.
-- Validación de huellas, archivo del plan previo, ejecución de prueba e idempotencia. Si falta el
-  modelo o la composición, mantiene el dictamen incierto; no certifica la calidad de la máscara.
-- Regresiones públicas sintéticas y ensayo aislado con material real. Sin nuevo modelo ni gate.
-  Guías de efectos, animaciones, storyboard, pipeline y skill reconciliadas; ADR 0032.
-
-### storytelling y criterio editorial
-
-- Skill storytelling para preproducción y material grabado; guías compartidas y copy integrado en edit-video.
-- Adaptaciones editoriales con commits de origen fijados, atribución y licencias conservadas.
-- paper_cut --refresh-from-cut regenera el documento desde decisiones existentes, sin repetir heurísticas ni alterar aprobaciones.
-- Sin reordenamiento de frases, nuevas aprobaciones ni migración de piezas existentes. ADR 0031.
-- Prueba técnica con material real: matriz de 108 combinaciones y suite de 252 pruebas correctas.
-  Documentados límites del recorte junto a objetos y posible falso positivo de QA durante el
-  revelado de letras. Fue evidencia previa a esta corrección; el cambio de modelo sigue pendiente.
-  Sin aprobación editorial implícita.
-
-### Dirección de animaciones
-
-La dirección de animaciones v2, previamente disponible en main, queda incluida en esta versión.
-
-- Documentación canónica reconciliada: README en ambos idiomas (36 formatos y estado multicanal),
-  contrato de storyboard, pipeline, canales, instalación, recursos e índice completo de ADR.
-  Se distingue la validación técnica del upgrade de su adopción editorial y de la portabilidad pendiente.
-
-- Perfiles v2 optativos con controles internos y presupuesto de lectura; compatibilidad exacta del
-  HTML legado/v1. Metadatos y candidatos por intención, capacidad y recursos con licencia.
-- Secuencias con objetos reutilizables (formas, texto, iconos e imágenes) y anclajes por palabra
-  en escenas/pasos. Snapshot validado, diff y escritura atómica antes de invalidar B.
-- Previews por ejecución y compositor visual compartido; galería con fragmentos reutilizables.
-- QA sobre el runtime real: texto, capas y regiones protegidas, evidencia y huellas vigentes para B.
-- Trayectorias y morphs v2 deterministas al buscar cuadros en reversa; matrices renderizadas,
-  escenarios de dos marcas y comprobación de instalación limpia. Workflow macOS/Ubuntu preparado.
-- Resultados ejecutados y verificaciones pendientes separados en STATUS y ADR 0030.
-- Corregida la clasificación del ensayo local: prueba técnica del motor cerrada, sin requerir B
-  ni generar una entrega editorial. Se conserva el flujo de aprobación de las piezas de producción.
-
+- Skill `storytelling` (guion antes de grabar o historia fiel en lo grabado) y revisión editorial previa a A/B.
+- Dirección de animación v2: perfiles, objetos narrativos, anclajes por palabra y QA con el runtime real que bloquea B.
+- QA visual por elemento; `cutout_review` sustituye efectos de recorte dudosos por alternativas conservadoras.
+- Audio original opcional en B-roll y `media_excerpt` para cierres con video y sonido del mismo intervalo.
+- Preguntas de revisión por pieza en la huella; `paper_cut --refresh-from-cut`. ADR 0030–0035.
 
 ## 0.12.0-alpha — 2026-11-17
 

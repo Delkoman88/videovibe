@@ -18,13 +18,9 @@ import os
 from pathlib import Path
 
 from scripts.core import oslib
+from scripts.core.stages import EDITABLE, HF, STAGES
 
 SCHEME = 3
-EDITABLE = ("ingesta", "transcripcion", "corte-en-papel", "subtitulos")
-SCRIPTS = {"ingesta": "ingest", "transcripcion": "transcribe", "corte-en-papel": "paper_cut",
-           "corte-aplicado": "apply_cut", "subtitulos": "captions", "composicion": "compose",
-           "entrega": "deliver"}
-HF = ["hf/index.html", "hf/compositions", "hf/assets", "hf/variables"]
 
 
 # ------------------------------------------------------------------ huellas de archivos
@@ -207,45 +203,44 @@ def dependencies():
     return {k: [v.get("version"), v.get("integrity")] for k, v in sorted(packages.items()) if k}
 
 
+def _transcription_extras(P, ch):
+    """Modelos de whisper y VAD, y el audio aportado de cada toma."""
+    model = os.environ.get("VIDEOVIBE_WHISPER_MODEL") or oslib.ROOT / "models/ggml-large-v3-turbo-q5_0.bin"
+    paths = [Path(model), oslib.ROOT / "models/ggml-silero-v5.1.2.bin"]
+    if (P / "media.json").exists():
+        paths += [P / i["audio"] for i in oslib.read_json(P / "media.json").get("items", []) if i.get("audio")]
+    return paths, []
+
+
+HOOKS = {"transcripcion": _transcription_extras, "composicion": _composition_content}
+
+
 def _paths(P, stage, engine=True):
-    """(archivos, metadatos) de los que depende una etapa en el esquema 3."""
+    """(archivos, metadatos) de los que depende una etapa en el esquema 3, según stages.STAGES."""
+    spec = STAGES[stage]
     P = Path(P)
     ch = channel_dir(P)
-    lang = [] if not ch else [{"language": _language(ch)}]
-    vocab = files(ch, "vocabulary.txt") if ch else []
-    if stage == "ingesta":
-        return files(P, "raw"), []
-    if stage == "transcripcion":
-        paths = _not_master(files(P, "raw", "media.json")) + vocab
-        model = os.environ.get("VIDEOVIBE_WHISPER_MODEL") or oslib.ROOT / "models/ggml-large-v3-turbo-q5_0.bin"
-        paths += [Path(model), oslib.ROOT / "models/ggml-silero-v5.1.2.bin"]
-        if (P / "media.json").exists():
-            paths += [P / i["audio"] for i in oslib.read_json(P / "media.json").get("items", []) if i.get("audio")]
-        return paths, lang
-    if stage == "corte-en-papel":
-        return _not_master(files(P, "transcript", "media.json")) + vocab, lang
-    if stage == "subtitulos":
-        paths = files(P, "cut/cut-map.json", "transcript") + vocab + _lang_file(ch)
-        return paths + (files(ch, "brand.json") if ch else []), lang
-    engine_files = []
-    deps = [{"dependencies": dependencies()}] if engine else []
-    if stage in SCRIPTS:
-        engine_files.append(oslib.ROOT / "scripts/pipeline" / f"{SCRIPTS[stage]}.py")
-    if stage == "corte-aplicado":
-        paths = _not_master(files(P, "cut/cut-list.json", "raw", "media.json", "transcript"))
-        paths += files(oslib.ROOT, "presets", "scripts/core/cutlib.py") + (files(ch, "channel.json") if ch else [])
-        return paths + (engine_files if engine else []), []   # ffmpeg, no npm: HyperFrames no la afecta
-    if stage == "composicion":
-        paths, metadata = _composition_content(P, ch)
-        if engine:
-            paths += files(oslib.ROOT, "formats", "presets", "scripts/composer") + engine_files
-        return paths, metadata + deps
-    if stage in ("check", "revision", "render"):
-        return files(P, *HF), deps
-    if stage == "entrega":
-        paths = files(P, "renders", "copy", "covers", "captions/master.srt", "brief.md", "assets.md")
-        return paths + [oslib.ROOT / "scripts/pipeline/verify.py", oslib.ROOT / "scripts/pipeline/deliver.py"], []
-    raise KeyError(stage)
+    paths = files(P, *spec.get("content", []))
+    if spec.get("drop_master"):
+        paths = _not_master(paths)
+    metadata = []
+    if ch:
+        paths += files(ch, *spec.get("channel", []))
+        if spec.get("language"):
+            metadata.append({"language": _language(ch)})
+        if spec.get("lang_file"):
+            paths += _lang_file(ch)
+    if spec.get("hook"):
+        extra, extra_meta = HOOKS[spec["hook"]](P, ch)
+        paths += extra
+        metadata += extra_meta
+    if engine and not spec["editable"]:
+        paths += files(oslib.ROOT, *spec.get("engine", []))
+        if spec.get("script"):
+            paths.append(oslib.ROOT / "scripts/pipeline" / f"{spec['script']}.py")
+        if spec.get("npm"):
+            metadata.append({"dependencies": dependencies()})
+    return paths, metadata
 
 
 def inputs(P, stage, scheme=SCHEME):
@@ -255,17 +250,9 @@ def inputs(P, stage, scheme=SCHEME):
     return _combine(hasher(P), paths, metadata)
 
 
-OUTPUTS = {"ingesta": ["media.json"], "transcripcion": ["transcript"],
-           "corte-en-papel": ["cut/cut-list.json", "cut/PAPER-CUT.md"],
-           "corte-aplicado": ["cut/master-cut.mp4", "cut/cut-map.json"],
-           "subtitulos": ["captions/captions.json", "captions/master.srt"],
-           "composicion": HF, "check": [], "revision": ["snaps"], "render": ["renders"],
-           "entrega": ["copy", "covers"]}
-
-
 def outputs(P, stage, scheme=SCHEME):
     P = Path(P)
-    paths = files(P, *OUTPUTS[stage])
+    paths = files(P, *STAGES[stage]["outputs"])
     if stage == "entrega":
         from scripts.core.state import load
         destination = load(P).get("delivery")
@@ -348,7 +335,8 @@ def _inputs_v2(P, stage):
             content, metadata = _composition_content(P, ch, relabel=False)
             paths += content
         paths += files(oslib.ROOT, "formats", "presets", "scripts/composer")
-    v2_scripts = {k: v for k, v in SCRIPTS.items() if k != "entrega"}
+    v2_scripts = {"ingesta": "ingest", "transcripcion": "transcribe", "corte-en-papel": "paper_cut",
+                  "corte-aplicado": "apply_cut", "subtitulos": "captions", "composicion": "compose"}
     paths += [oslib.ROOT / "scripts/pipeline" / (v2_scripts.get(stage, stage) + ".py")]
     paths += [oslib.ROOT / "scripts/core/integrity.py", oslib.ROOT / "package-lock.json"]
     return _combine(legacy_digest, paths, metadata)

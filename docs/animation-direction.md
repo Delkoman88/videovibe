@@ -129,9 +129,9 @@ consulta el [estado de validación](status/STATUS.md).
 ## Pruebas reproducibles e instalación
 
 ```sh
-.venv/bin/python -m scripts.tools.animation_matrix
-.venv/bin/python -m scripts.tools.animation_scenarios
-.venv/bin/python -m scripts.tools.animation_install_check
+.venv/bin/python -m scripts.dev.animation_matrix
+.venv/bin/python -m scripts.dev.animation_scenarios
+.venv/bin/python -m scripts.dev.animation_install_check
 .venv/bin/python -m unittest discover -s scripts/tests
 ```
 
@@ -156,7 +156,7 @@ lectura sigue siendo error. Una animación sin intervalo de lectura produce `no_
 Los avisos de zona segura durante movimiento son informativos; durante lectura siguen siendo
 advertencias. El informe agrupa por elemento, texto, causa y fase, conservando primera/última
 ocurrencia y cantidad. Se priorizan errores y advertencias sobre transitorios.
-Regresión pública: `python -m scripts.tools.reliability_scenarios` (revelados y recorte persistente).
+Regresión pública: `python -m scripts.dev.reliability_scenarios` (revelados y recorte persistente).
 
 Los subtítulos de hasta 0.32 s aparecen sin fundido de línea: las animaciones habituales consumirían
 su intervalo de lectura. Se conservan palabras, marcas de tiempo y estilo; los grupos más largos

@@ -2,6 +2,9 @@
 """Genera docs/formats.md (catálogo de formatos de animación) desde el registro de formats/.
 
 Uso: bin/format-catalog [--check]   (--check: exit 1 si docs/formats.md está desactualizado)
+     bin/format-catalog --usage     qué formatos, efectos y transiciones usan las piezas de tus canales:
+                                    «probado» (en una pieza entregada), «experimental» (solo en piezas sin
+                                    entregar) o «sin uso». No toca docs/formats.md (es público).
 """
 import argparse
 import json
@@ -40,10 +43,46 @@ def build():
     return "\n".join(lines)
 
 
+def usage():
+    """Uso real por formato en las piezas de los canales de la persona (oslib.channel_roots)."""
+    from scripts.core import oslib, state
+    seen = {}
+    for root in oslib.channel_roots():
+        for sbf in sorted(root.glob("*/projects/*/storyboard.json")):
+            P, channel = sbf.parent, sbf.parent.parent.parent.name
+            if channel.startswith("_"):
+                continue
+            sb = json.loads(sbf.read_text(encoding="utf-8"))
+            names = {s.get("format") for s in sb.get("scenes", []) if s.get("format")}
+            names |= {f"fx:{x.get('type')}" for x in sb.get("fx", []) if x.get("type")}
+            names |= {f"transition:{x.get('kind')}" for x in sb.get("transitions", []) if x.get("kind")}
+            names |= {f"beat_fx:{x.get('fx')}" for x in sb.get("beat_fx", []) if x.get("fx")}
+            delivered = state.load(P).get("stage") == "entregable"
+            for n in names:
+                row = seen.setdefault(n, {"pieces": 0, "channels": set(), "delivered": 0})
+                row["pieces"] += 1
+                row["channels"].add(channel)
+                row["delivered"] += delivered
+    reg = formats.registry(formats.available_packs())
+    rows = []
+    for name in sorted(set(reg) | set(seen)):
+        u = seen.get(name, {"pieces": 0, "channels": set(), "delivered": 0})
+        status = "probado" if u["delivered"] else "experimental" if u["pieces"] else "sin uso"
+        rows.append({"format": name, "pack": reg.get(name, {}).get("pack"), "pieces": u["pieces"],
+                     "channels": len(u["channels"]), "status": status})
+    rows.sort(key=lambda r: ({"probado": 0, "experimental": 1, "sin uso": 2}[r["status"]], -r["pieces"], r["format"]))
+    totals = {k: sum(r["status"] == k for r in rows) for k in ("probado", "experimental", "sin uso")}
+    return {"ok": True, "totals": totals, "formats": rows}
+
+
 def main():
-    ap = argparse.ArgumentParser(description=__doc__)
+    ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--check", action="store_true")
+    ap.add_argument("--usage", action="store_true", help="uso real en las piezas de tus canales")
     args = ap.parse_args()
+    if args.usage:
+        print(json.dumps(usage(), ensure_ascii=False, indent=2))
+        return
     text = build()
     if args.check:
         ok = OUT.exists() and OUT.read_text(encoding="utf-8") == text

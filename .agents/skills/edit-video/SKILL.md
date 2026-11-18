@@ -18,7 +18,8 @@ Esta skill es un atajo. La fuente de verdad está en la raíz del repo:
    se abren automáticamente y sus rutas quedan visibles. Para cualquier otro archivo que la persona
    deba revisar, usa `bin/open-review <archivo> [<archivo>…]`. Registra las aprobaciones explícitas con
    `bin/status <canal>/<pieza> --approve A|B` y vuelve a correr `bin/edit`. Al escribir el
-   storyboard (valídalo con `scripts/pipeline/storyboard.py`), música y efectos según `docs/audio.md` (la música depende de «¿Publicidad pagada?»).
+   storyboard (valídalo con `scripts/pipeline/storyboard.py`; prefiere los formatos «probado» de
+   `bin/format-catalog --usage`), música y efectos según `docs/audio.md` (la música depende de «¿Publicidad pagada?»).
 5. Termina cuando `bin/edit` diga «ENTREGABLE» (verificación de entrega en verde).
 
 ## Dirección de animaciones

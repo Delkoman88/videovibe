@@ -39,7 +39,7 @@ class IntegrityTests(unittest.TestCase):
             self.assertTrue(state.load(p)['custom'])
     def test_boundaries(self):
         root=Path(__file__).resolve().parents[2]/'scripts'
-        forbidden={'core':{'tools','pipeline','validation','composer'},'validation':{'composer','pipeline','tools'},'composer':{'pipeline','tools'}}
+        forbidden={'core':{'tools','dev','pipeline','validation','composer'},'validation':{'composer','pipeline','tools','dev'},'composer':{'pipeline','tools','dev'},'tools':{'dev'}}
         errors=[]
         for group,blocked in forbidden.items():
             for p in (root/group).glob('*.py'):

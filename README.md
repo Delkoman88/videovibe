@@ -2,7 +2,7 @@
 
 **Vertical video editing driven by AI coding agents.** · [Español](README.es.md)
 
-> **v0.13.2-alpha.** Real multi-channel deliveries, including Ubuntu/WSL, and 301 passing tests in the latest local validation. The integrity update is validated locally on macOS; WSL and remote CI validation remain pending. Delegated execution on native Windows is currently blocked. See [status and limitations](docs/status/STATUS.md) (Spanish).
+> **v0.13.3-alpha.** Real multi-channel deliveries, including Ubuntu/WSL, and a fully passing test suite. Validated locally on macOS and in remote CI (Ubuntu); WSL validation of the current integrity layer is pending. Delegated execution on native Windows is currently blocked. See [status and limitations](docs/status/STATUS.md) (Spanish).
 
 Bring your camera footage, B-roll or screen recordings. Ask your agent (Claude Code, Codex, Gemini CLI…) to
 edit a piece for your channel. VideoVibe does the rest with deterministic scripts, and stops twice for **your** approval:

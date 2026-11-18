@@ -9,8 +9,9 @@ import json
 import re
 from pathlib import Path
 
-STAGES = ["ingesta", "transcripcion", "corte-en-papel", "corte-aplicado", "subtitulos",
-          "composicion", "check", "revision", "render", "entrega"]
+from scripts.core import stages as _stages
+
+STAGES = _stages.ORDER  # tabla única de etapas: scripts/core/stages.py
 TOL = 1.0  # s de tolerancia al comparar fechas (aprobaciones con resolución de segundos)
 
 
@@ -193,6 +194,8 @@ def stage_dirty(stage, P, st, plats):
 
 def editable_done(stage, P):
     """¿Existen ya los documentos de una etapa editable? (Se corrigen a mano: no son caché.)"""
+    if not _stages.STAGES[stage]["editable"]:
+        return False
     if stage == "ingesta":
         return (P / "media.json").is_file()
     if stage == "transcripcion":

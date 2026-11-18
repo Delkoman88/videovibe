@@ -70,7 +70,7 @@ Precedencia: **pieza (brief) > canal > motor**, salvo estas reglas universales.
 | `input/` | Originales de la persona: deja ahí sus videos; `bin/new-piece … --from <nombre>` los busca ahí (fuera de git) |
 | `deliveries/` | Finales verificados por canal y pieza (`deliveries/<Canal>/<fecha> <pieza>/`): copias independientes en `versions/<huella>/` + portada, texto y `README.md`; `current.json` indica la versión vigente. Los llena `bin/edit` al entregar; dile siempre a la persona la ruta (fuera de git) |
 | `channels/_template/`, `channels/science-60/` | Esqueleto para canales nuevos (`bin/new-channel`) y canal de ejemplo (`bin/demo`) |
-| `scripts/` | Paquetes `pipeline/`, `audio/`, `core/`, `composer/`, `validation/`, `tools/`, `tests/`. Pipeline (ver `docs/pipeline.md`). `--project` acepta `<canal>/<pieza>`. `compose.py` orquesta `scripts/composer/` (visual, audio, créditos, placa) |
+| `scripts/` | Paquetes `pipeline/`, `audio/`, `core/`, `composer/`, `validation/`, `tools/` (los usan la persona o el agente), `dev/` (solo para probar el motor: matrices, escenarios, instalación limpia), `tests/`. Etapas en una sola tabla: `scripts/core/stages.py`. Pipeline (ver `docs/pipeline.md`). `--project` acepta `<canal>/<pieza>`. `compose.py` orquesta `scripts/composer/` (visual, audio, créditos, placa) |
 | `formats/` | Animaciones: `core.py` (genéricas) + `packs/` (temáticas), `vendors.py` (librerías opcionales), `icons/` (Lucide). Catálogo: `docs/formats.md`; galería: `bin/format-gallery` |
 | `lang/` | Paquetes de idioma (muletillas, conectores, reglas de subtítulos, etiquetas) |
 | `presets/` | Especificación técnica por plataforma |
@@ -93,7 +93,12 @@ Clasifica la nota antes de escribirla:
 
 Actualiza `docs/status/STATUS.md` (si cambió lo que funciona), `docs/status/backlog.md` (hecho/nuevo),
 `CHANGELOG.md`, y crea `docs/decisions/NNNN-*.md` si tomaste una decisión técnica. Corre los
-tests: `.venv/bin/python -m unittest discover -s scripts/tests`.
+tests: `.venv/bin/python -m unittest discover -s scripts/tests`. Cada documento tiene un solo trabajo
+(lo vigila `scripts/tests/test_budget.py`):
+- `STATUS.md` es la foto de **hoy**, sin historia ni «en esta sesión»; máximo 100 líneas.
+- `CHANGELOG.md`: 5–8 líneas por versión, escritas para quien usa el motor; el detalle va al ADR.
+- Un ADR que cambia se reescribe como una sola decisión vigente (sin secciones «Revisión» apiladas);
+  si se reemplaza, se marca «reemplazada por NNNN» en `docs/decisions/README.md`.
 
 ## Idioma
 
