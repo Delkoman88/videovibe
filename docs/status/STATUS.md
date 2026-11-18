@@ -1,11 +1,24 @@
 # Estado del sistema
 
 > Foto actual del motor. La actualiza el agente al cerrar cada sesión de desarrollo.
-> Última actualización: 2026-11-17 · versión `v0.13.1-alpha`.
+> Última actualización: 2026-11-17 · versión `v0.13.2-alpha`.
 
-La clasificación sigue siendo **alpha**: hay entregas reales verificadas y 288 pruebas correctas,
+La clasificación sigue siendo **alpha**: hay entregas reales verificadas y 301 pruebas correctas,
 pero faltan la validación de la dirección v2 actual en WSL/CI remoto, otros agentes y más evaluación
 editorial real. La cobertura técnica no equivale a calidad editorial garantizada.
+
+## Revisión de integridad — v0.13.2-alpha
+
+- Subtítulos ligados al corte que los produjo: un corte nuevo ya no reutiliza la transcripción del
+  master anterior (se guarda una copia con las correcciones).
+- Huellas con rutas relativas (esquema 3): mover la carpeta de canales o cambiar de máquina no invalida.
+- Etapas editables y B sin código del motor: activar un paquete o actualizar npm no vuelve a transcribir
+  ni pide aprobar otra vez; B se invalida si cambia el HTML compilado.
+- Presentar o aprobar A no borra B (B se valida con su propia evidencia); `bin/status --attest-legacy` (también desde el historial) para aprobaciones anteriores
+  con revisión guardada coincidente.
+- Migración automática de la evidencia guardada (`integrity.restamp`), comprobada contra el código
+  original de v0.13.1 en todas las piezas reales: reproduce sus huellas sin diferencias.
+- CI `animation-install` solo en Ubuntu (el runner macos-14 no está disponible); macOS se valida localmente.
 
 ## Consolidación de integridad — v0.13.1-alpha
 
@@ -170,7 +183,7 @@ ni aprobación B.
 | Primeros pasos | ✅ | `bin/welcome` + `docs/getting-started.md`: de cero a la primera pieza (probado con una copia limpia del repo) |
 | Carpetas `input/` y `deliveries/` | ✅ | Originales y finales en la raíz de VideoVibe (fuera de git); el agente siempre muestra las rutas |
 | Piezas nuevas | ✅ | `bin/new-piece` (en la carpeta de canales correcta, con `raw/` y `brief.md`); `bin/edit` se detiene sin material o sin brief completo |
-| Orquestación (`bin/edit`) | ✅ | Avanza hasta cada pausa; A/B presentan resumen, cuatro preguntas, abren archivos y muestran rutas absolutas. En WSL convierte la ruta y usa la aplicación predeterminada de Windows. `--platform` limita render, verificación y entrega sin invalidar el storyboard aprobado. Las aprobaciones nuevas requieren revisión vigente; las anteriores conservan validez |
+| Orquestación (`bin/edit`) | ✅ | Avanza hasta cada pausa; A/B presentan resumen, cuatro preguntas, abren archivos y muestran rutas absolutas. En WSL convierte la ruta y usa la aplicación predeterminada de Windows. `--platform` limita render, verificación y entrega sin invalidar el storyboard aprobado. Las aprobaciones requieren revisión vigente; las anteriores a v0.13.1 se reconocen con `--attest-legacy` si su revisión guardada coincide, o se presentan de nuevo |
 | Canales (alta, validación, idiomas) | ✅ | `bin/new-channel`, `bin/doctor --channel`, `lang/es.json`, `lang/en.json`; segundo canal real validado con el canal musical privado y su primera entrega en TikTok (2026-11-16; confirmado por la persona el 2026-11-17) |
 | Ingesta | ✅ | Detecta orientación, tipo de toma y HDR; sincroniza micrófonos externos al milisegundo (con deriva) |
 | Transcripción | ✅ | whisper.cpp local, tramo por tramo; ~75 s por 90 s de audio |

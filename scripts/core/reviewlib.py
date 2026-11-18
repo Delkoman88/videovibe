@@ -213,7 +213,7 @@ def present(P, gate, *, no_open=False, reopen=False, simulated=False):
               "simulated": simulated}
     if not same:
         from scripts.core.state import invalidate
-        invalidate(st,gate,'nueva presentación')
+        invalidate(st, gate, "nueva presentación", cascade=False)
     from scripts.core.integrity import approval_inputs
     record['inputs'] = approval_inputs(P,gate)
     st.setdefault("reviews", {})[gate] = record

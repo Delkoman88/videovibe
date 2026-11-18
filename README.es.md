@@ -2,7 +2,7 @@
 
 **Edición de video vertical guiada por agentes de IA.** · [English](README.md)
 
-> **v0.13.1-alpha.** Entregas reales en varios canales, incluida Ubuntu/WSL, y 288 pruebas correctas en la última validación local. La consolidación de integridad está validada localmente en macOS; faltan WSL y CI remoto. La ejecución delegada en Windows nativo está bloqueada actualmente. Consulta el [estado y las limitaciones](docs/status/STATUS.md).
+> **v0.13.2-alpha.** Entregas reales en varios canales, incluida Ubuntu/WSL, y 301 pruebas correctas en la última validación local. La consolidación de integridad está validada localmente en macOS; faltan WSL y CI remoto. La ejecución delegada en Windows nativo está bloqueada actualmente. Consulta el [estado y las limitaciones](docs/status/STATUS.md).
 
 Aportas tomas a cámara, B-roll o grabaciones de pantalla. Le pides a tu agente (Claude Code, Codex, Gemini CLI…) que edite una pieza para tu canal.
 VideoVibe hace el resto con scripts deterministas y se detiene dos veces para que **tú** apruebes:

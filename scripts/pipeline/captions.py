@@ -238,9 +238,8 @@ def main():
     args = ap.parse_args()
 
     P = oslib.project_dir(args.project)
-    if True:
-        from scripts.core.state import hold
-        hold(P)
+    from scripts.core.state import hold
+    hold(P)
     master = P / "cut" / "master-cut.mp4"
     if not master.exists():
         oslib.die("falta cut/master-cut.mp4: corre scripts/pipeline/apply_cut.py")
@@ -249,6 +248,8 @@ def main():
     max_chars = args.max_chars or brand["captions"]["max_chars_per_line"]
     duration = float(oslib.ffprobe(master)["format"]["duration"])
     tpath = P / "transcript" / "master-cut.json"
+    from scripts.core import editlib
+    cut_fp = editlib.cut_fingerprint(P)  # cada transcripción del master queda ligada a su corte
 
     added = []
     selected = sum(bool(x) for x in (args.from_transcript, args.from_whisper_json,
@@ -257,6 +258,11 @@ def main():
     if selected > 1:
         oslib.die("usa solo --from-transcript, --from-whisper-json o --repair-from-remap-after")
     if args.from_transcript:
+        if not tpath.exists():
+            oslib.die("falta transcript/master-cut.json: corre sin --from-transcript")
+        if editlib.transcript_matches_cut(P) is False:
+            oslib.die("transcript/master-cut.json es de otro corte: corre sin --from-transcript para "
+                      "transcribir el master actual y vuelve a aplicar tus correcciones")
         words = oslib.read_json(tpath)["words"]
     elif args.from_whisper_json:
         if not args.from_whisper_json.exists():
@@ -267,7 +273,7 @@ def main():
             w["id"] = f"w{i}"
             w.pop("island", None)
         tidy(words, ch["lang"])
-        oslib.write_json(tpath, {"id": "master-cut", "language": ch["lang"]["code"],
+        oslib.write_json(tpath, {"id": "master-cut", "cut_fingerprint": cut_fp, "language": ch["lang"]["code"],
                                  "source": str(args.from_whisper_json), "words": words})
     elif args.repair_from_remap_after is not None:
         base = oslib.read_json(tpath)["words"]
@@ -279,13 +285,13 @@ def main():
                                       args.repair_from_remap_after, duration)
         except ValueError as e:
             oslib.die(str(e))
-        oslib.write_json(tpath, {"id": "master-cut", "language": ch["lang"]["code"],
+        oslib.write_json(tpath, {"id": "master-cut", "cut_fingerprint": cut_fp, "language": ch["lang"]["code"],
                                  "source": "master-cut.remap.json (cola reparada)", "words": words})
     elif args.repair_from_approved_cut_before is not None:
         words = repair_prefix_from_approved_cut(
             oslib.read_json(tpath)["words"], oslib.read_json(P / "cut" / "cut-list.json"),
             oslib.read_json(P / "cut" / "cut-map.json"), args.repair_from_approved_cut_before)
-        oslib.write_json(tpath, {"id": "master-cut", "language": ch["lang"]["code"],
+        oslib.write_json(tpath, {"id": "master-cut", "cut_fingerprint": cut_fp, "language": ch["lang"]["code"],
                                  "source": "cut-list.json (prefijo aprobado)", "words": words})
     else:
         wav = P / "work" / "audio" / "master-cut.wav"
@@ -299,17 +305,16 @@ def main():
         for i, w in enumerate(words):
             w["id"] = f"w{i}"
             w.pop("island", None)
-        oslib.write_json(tpath, {"id": "master-cut", "language": ch["lang"]["code"], "islands": islands, "words": words})
+        oslib.write_json(tpath, {"id": "master-cut", "cut_fingerprint": cut_fp, "language": ch["lang"]["code"], "islands": islands, "words": words})
 
     for i, w in enumerate(words):
         w.setdefault("id", f"w{i}")
     if selected == 0:
         tidy(words, ch["lang"])
-        oslib.write_json(tpath, {**oslib.read_json(tpath), "words": words})
+        oslib.write_json(tpath, {**oslib.read_json(tpath), "cut_fingerprint": cut_fp, "words": words})
     groups = build_groups(words, args.max_words, max_chars, duration, vocab=ch["vocab"])
-    from scripts.core import editlib
     oslib.write_json(P / "captions" / "captions.json",
-                     {"duration_s": round(duration, 3), "cut_fingerprint": editlib.cut_fingerprint(P), "words": [{k: w[k] for k in ("id", "w", "start", "end")} for w in words],
+                     {"duration_s": round(duration, 3), "cut_fingerprint": cut_fp, "words": [{k: w[k] for k in ("id", "w", "start", "end")} for w in words],
                       "groups": groups})
     srt = []
     for n, g in enumerate(groups, 1):

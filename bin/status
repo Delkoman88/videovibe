@@ -6,6 +6,8 @@ Uso:
   bin/status <canal>/<pieza>              detalle de una pieza
   bin/status <canal>/<pieza> --approve A  registra la aprobación A (o B) con fecha y nota opcional
                               [--note "texto"]
+  bin/status <canal>/<pieza> --attest-legacy B --note "…"  constancia de una aprobación anterior
+                              (solo con revisión guardada aprobada que coincida; tras confirmarlo la persona)
 Lee y escribe <pieza>/status.json (lo actualizan también los scripts del pipeline).
 """
 import argparse
@@ -16,19 +18,101 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
-from scripts.core import oslib  # noqa: E402
-from scripts.core import reviewlib  # noqa: E402
+from scripts.core import editlib, integrity, oslib, reviewlib, state  # noqa: E402
 
 
 def load(P):
-    from scripts.core.state import load
-    return load(P)
+    return state.load(P)
+
+
+def piece_platforms(P):
+    """Plataformas de la pieza (para migrar su evidencia); [] si no está dentro de un canal."""
+    if integrity.channel_dir(P) is None:
+        return []
+    sb = oslib.read_json(P / "storyboard.json") if (P / "storyboard.json").exists() else {}
+    return editlib.platforms(sb, oslib.load_channel(P)["config"])
+
+
+def fail(msg):
+    oslib.die(msg, 1)
+
+
+def check_B_evidence(P, st):
+    """B exige control visual vigente y recibos vigentes de composición y preview."""
+    if oslib.read_json(P / "storyboard.json").get("motion"):
+        from scripts.tools.animation_quality import fingerprint as quality_fingerprint
+        report_path = P / "work" / "animation-quality.json"
+        report = oslib.read_json(report_path) if report_path.exists() else {}
+        if not report.get("ok") or report.get("fingerprint") != quality_fingerprint(P):
+            fail("control visual pendiente, desactualizado o con errores")
+    built = st.get("stages", {}).get("composicion", {})
+    shown = st.get("stages", {}).get("revision", {})
+    stale = (built.get("status") in ("running", "failed") or shown.get("status") in ("running", "failed")
+             or built.get("inputs") != integrity.inputs(P, "composicion")
+             or built.get("outputs") != integrity.outputs(P, "composicion")
+             or shown.get("inputs") != integrity.inputs(P, "revision")
+             or shown.get("outputs") != integrity.outputs(P, "revision"))
+    if stale:
+        fail("composición o preview sin evidencia vigente; corre bin/edit")
+
+
+def record(P, gate, note, **extra):
+    return {"at": datetime.datetime.now().isoformat(timespec="seconds"), "note": note, "version": 2,
+            "inputs": integrity.approval_inputs(P, gate), "presentation": reviewlib.fingerprint(P, gate), **extra}
+
+
+def approve(P, st, gate, note):
+    review = st.get("reviews", {}).get(gate)
+    if (not review or review.get("inputs") != integrity.approval_inputs(P, gate)
+            or review.get("fingerprint") != reviewlib.fingerprint(P, gate)):
+        fail(f"revisión {gate} ausente o desactualizada; corre bin/review <pieza> --gate {gate}")
+    if gate == "B":
+        check_B_evidence(P, st)
+    if any(not Path(path).is_file() for path in review.get("files", [])):
+        fail("faltan archivos de la revisión; genéralos y presenta la revisión de nuevo")
+    if review.get("decision") in ("adjust", "reject"):
+        fail("la revisión pide ajustes o fue rechazada; presenta una versión nueva antes de aprobar")
+    old = st.get("approvals", {}).get(gate)
+    new = record(P, gate, note)
+    # Aprobar A nunca arrastra a B: B guarda su propia evidencia (corte, subtítulos y HTML compilado)
+    # y deja de valer sola si el corte cambió.
+    state.invalidate(st, gate, "nueva aprobación explícita", cascade=False)
+    st.setdefault("approvals", {})[gate] = new
+    review["decision"] = "approved"
+    if st.get("pending") == f"aprobación {gate}":
+        st.pop("pending", None)
+
+
+def attest(P, st, gate, note):
+    """Deja constancia en el esquema actual de una aprobación anterior a v0.13.1, solo con evidencia:
+    la revisión guardada fue aprobada y coincide con lo que se presentaría hoy."""
+    old = st.get("approvals", {}).get(gate)
+    if not old:  # quitada al presentar o aprobar otra etapa: la última del historial
+        past = [h["approval"] for h in st.get("approval_history", []) if h.get("gate") == gate]
+        old = past[-1] if past else None
+    if not old:
+        fail(f"no hay aprobación {gate} que convertir")
+    if isinstance(old, dict) and old.get("version") == 2:
+        fail(f"la aprobación {gate} ya tiene evidencia actual")
+    review = st.get("reviews", {}).get(gate) or {}
+    if review.get("decision") != "approved" or review.get("fingerprint") != reviewlib.fingerprint(P, gate):
+        fail(f"sin revisión {gate} aprobada que coincida con la presentación actual; "
+             f"preséntala con bin/review <pieza> --gate {gate} y apruébala con --approve {gate}")
+    if gate == "B":
+        check_B_evidence(P, st)
+    if not note:
+        fail("--note es obligatorio: anota quién confirmó y cuándo")
+    st.setdefault("approvals", {})[gate] = record(P, gate, note, attested_from=old)
+    if st.get("pending") == f"aprobación {gate}":
+        st.pop("pending", None)
 
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("project", nargs="?")
     ap.add_argument("--approve", choices=["A", "B"])
+    ap.add_argument("--attest-legacy", choices=["A", "B"],
+                    help="convierte una aprobación anterior a v0.13.1 si su revisión guardada coincide")
     ap.add_argument("--note", default="")
     args = ap.parse_args()
 
@@ -45,41 +129,20 @@ def main():
         return
 
     P = oslib.project_dir(args.project)
-    if args.approve:
-        from scripts.core.state import hold
-        hold(P)
+    if args.approve and args.attest_legacy:
+        oslib.die("usa --approve o --attest-legacy, no ambos")
+    if args.approve or args.attest_legacy:
+        state.hold(P)
+        plats = piece_platforms(P)
+        with state.transaction(P) as st:
+            migrated, _ = integrity.restamp(P, st, plats)
+            st.clear()
+            st.update(migrated)
+            if args.approve:
+                approve(P, st, args.approve, args.note)
+            else:
+                attest(P, st, args.attest_legacy, args.note)
     st = load(P)
-    if args.approve == 'B' and oslib.read_json(P / 'storyboard.json').get('motion'):
-        from scripts.tools.animation_quality import fingerprint as quality_fingerprint
-        report_path = P / 'work' / 'animation-quality.json'
-        report = oslib.read_json(report_path) if report_path.exists() else {}
-        if not report.get('ok') or report.get('fingerprint') != quality_fingerprint(P):
-            oslib.die('control visual pendiente, desactualizado o con errores', 1)
-    if args.approve:
-        review = st.get("reviews", {}).get(args.approve)
-        from scripts.core.integrity import approval_inputs
-        if not review or review.get('inputs') != approval_inputs(P,args.approve) or review.get("fingerprint") != reviewlib.fingerprint(P, args.approve):
-            oslib.die(f"revisión {args.approve} ausente o desactualizada; corre bin/review <pieza> --gate {args.approve}", 1)
-        if args.approve == 'B':
-            from scripts.core.integrity import inputs, outputs
-            built=st.get('stages',{}).get('composicion',{})
-            shown=st.get('stages',{}).get('revision',{})
-            if built.get('status') in ('running','failed') or shown.get('status') in ('running','failed') or built.get('outputs') != outputs(P,'composicion') or built.get('inputs')!=inputs(P,'composicion') or shown.get('inputs')!=inputs(P,'revision') or shown.get('outputs')!=outputs(P,'revision'):
-                oslib.die('composición o preview sin evidencia vigente; corre bin/edit',1)
-        if any(not Path(path).is_file() for path in review.get("files", [])):
-            oslib.die("faltan archivos de la revisión; genéralos y presenta la revisión de nuevo", 1)
-        if review.get("decision") in ("adjust", "reject"):
-            oslib.die("la revisión pide ajustes o fue rechazada; presenta una versión nueva antes de aprobar", 1)
-        from scripts.core.state import invalidate
-        invalidate(st,args.approve,'nueva aprobación explícita')
-        st.setdefault("approvals", {})[args.approve] = {
-            "at": datetime.datetime.now().isoformat(timespec="seconds"), "note": args.note,
-            "version": 2, "inputs": __import__('scripts.core.integrity',fromlist=['approval_inputs']).approval_inputs(P,args.approve),
-            "presentation": reviewlib.fingerprint(P,args.approve)}
-        review["decision"] = "approved"
-        if st.get("pending") == f"aprobación {args.approve}":
-            st.pop("pending", None)
-        oslib.write_json(P / "status.json", st)
     shown = str(P.relative_to(oslib.ROOT)) if P.is_relative_to(oslib.ROOT) else str(P)
     print(json.dumps({"ok": True, "pieza": shown, **st}, ensure_ascii=False, indent=2))
 

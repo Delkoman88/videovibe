@@ -216,8 +216,11 @@ intervalo y conserva silencios. Véanse docs/audio.md y docs/storyboard.md. A/B 
 
 ## Integridad de etapas y entregas (ADR 0036)
 A/B se vinculan a contenido y presentación; cambios relevantes requieren revisión. Aprobaciones
-antiguas sin evidencia se conservan como historia, pero requieren revisión al reanudar. Consultar
-estado no migra archivos. Las etapas guardan huellas de entradas/salidas; copia y portada no invalidan B.
+antiguas sin evidencia se conservan como historia, pero requieren revisión al reanudar, salvo que
+su revisión guardada coincida con la presentación actual: entonces, con confirmación de la persona,
+`bin/status <pieza> --attest-legacy A|B --note "…"` deja constancia sin repetir la revisión. Consultar
+estado no migra archivos. Las huellas usan rutas relativas (mover la carpeta de canales no invalida
+nada) y la evidencia de versiones anteriores se migra sola al reanudar (`integrity.restamp`). Las etapas guardan huellas de entradas/salidas; copia y portada no invalidan B.
 Entregas nuevas: `deliveries/<Canal>/<pieza>/versions/<huella>/`, copias independientes con manifiesto;
 `current.json` indica la versión actual y bin/edit abre su ruta. No se sobrescriben versiones previas.
 
@@ -233,6 +236,11 @@ Los recibos v3 incluyen plataformas y huellas de entradas/salidas. El render con
 por plataforma y comprueba B y sus entradas antes de promover un temporal único. Cambios concurrentes
 invalidan la operación; el final anterior no se reemplaza. B vincula también la composición generada.
 Cambiar las reglas de subtítulos reagrupa la transcripción vigente sin descartar correcciones.
+`transcript/master-cut.json` guarda la huella de su corte: si el corte cambia, bin/edit guarda la versión
+anterior (`transcript/master-cut.<huella>.json`) y transcribe el master nuevo; las correcciones se
+vuelven a aplicar a mano. Antes de volver a transcribir las tomas, copia `transcript/` a
+`work/transcript-backup/<fecha>/`. Las etapas editables y la aprobación B no dependen del código
+del motor (ADR 0036, revisión v0.13.2).
 
 Los trabajadores POSIX heredan el bloqueo y registran su grupo de procesos. Tras morir el orquestador,
 la pieza continúa ocupada mientras queden trabajadores. Las reservas de grupos terminados se limpian

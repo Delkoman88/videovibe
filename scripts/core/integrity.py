@@ -1,139 +1,408 @@
-"""Huellas por contenido y evidencia de etapas/aprobaciones."""
+"""Huellas por contenido y evidencia de etapas/aprobaciones (ADR 0036).
+
+Esquema 3 (actual):
+- Cada archivo entra a la huella con una etiqueta relativa (`piece:`, `channel:`, `engine:`, `ext:`),
+  nunca con su ruta absoluta: mover la carpeta de canales o cambiar de máquina no invalida nada.
+- Las etapas editables (ingesta, transcripción, corte en papel, subtítulos) dependen solo del
+  contenido de la pieza y del canal que las afecta, no del código del motor.
+- La aprobación B depende del contenido de la pieza y del HTML compilado, no del código del motor:
+  si el motor cambia lo que se ve, cambia el HTML y B se invalida igual.
+
+El esquema 2 (rutas absolutas, motor en todas las huellas) se conserva solo para `restamp`, que
+migra la evidencia guardada sin rehacer trabajo.
+"""
+import copy
 import hashlib
 import json
 import os
 from pathlib import Path
+
 from scripts.core import oslib
 
+SCHEME = 3
+EDITABLE = ("ingesta", "transcripcion", "corte-en-papel", "subtitulos")
+SCRIPTS = {"ingesta": "ingest", "transcripcion": "transcribe", "corte-en-papel": "paper_cut",
+           "corte-aplicado": "apply_cut", "subtitulos": "captions", "composicion": "compose",
+           "entrega": "deliver"}
+HF = ["hf/index.html", "hf/compositions", "hf/assets", "hf/variables"]
 
-def digest(paths):
-    h=hashlib.sha256()
-    for p in sorted({Path(p).resolve() for p in paths}):
-        h.update(str(p).encode())
-        if not p.is_file():h.update(b':missing');continue
-        with p.open('rb') as f:
-            for b in iter(lambda:f.read(1048576),b''):h.update(b)
+
+# ------------------------------------------------------------------ huellas de archivos
+
+def channel_dir(P):
+    for d in Path(P).resolve().parents:
+        if (d / "channel.json").exists():
+            return d
+    return None
+
+
+def label(p, P=None):
+    """Nombre estable de un archivo dentro de una huella (sin ruta absoluta)."""
+    p = Path(p).resolve()
+    bases = []
+    if P is not None:
+        bases.append(("piece", Path(P).resolve()))
+        ch = channel_dir(P)
+        if ch:
+            bases.append(("channel", ch))
+    bases.append(("engine", oslib.ROOT.resolve()))
+    for kind, base in bases:
+        if p.is_relative_to(base):
+            return f"{kind}:{p.relative_to(base).as_posix()}"
+    return f"ext:{p.name}"
+
+
+def digest(paths, P=None):
+    """SHA-256 del contenido de los archivos, cada uno con su etiqueta relativa."""
+    h = hashlib.sha256()
+    for name, p in sorted({label(p, P): Path(p) for p in paths}.items()):
+        h.update(name.encode())
+        if not p.is_file():
+            h.update(b":missing")
+            continue
+        with p.open("rb") as f:
+            for b in iter(lambda: f.read(1048576), b""):
+                h.update(b)
     return h.hexdigest()
 
 
-def files(P,*names):
-    out=[]
-    for name in names:
-        p=Path(P)/name
-        out.extend(sorted(x for x in p.rglob('*') if x.is_file() and not x.name.startswith('.') and '__pycache__' not in x.parts) if p.is_dir() else [p])
-    return out
+LEGACY_INTEGRITY = Path(__file__).with_name("legacy") / "integrity-0.13.1.py.txt"
 
 
-def inputs(P,stage):
-    P=Path(P)
-    groups={'ingesta':['raw'],'transcripcion':['raw','media.json'],
-            'corte-en-papel':['transcript','media.json'], 'corte-aplicado':['cut/cut-list.json','raw','media.json','transcript'],
-            'subtitulos':['cut/cut-map.json','transcript'],
-            'composicion':['storyboard.json','captions/captions.json','captions/master.srt','cut/master-cut.mp4','cut/cut-map.json','media.json','raw'],
-            'check':['hf/index.html','hf/compositions','hf/assets','hf/variables'],
-            'revision':['hf/index.html','hf/compositions','hf/assets','hf/variables'],
-            'render':['hf/index.html','hf/compositions','hf/assets','hf/variables'],
-            'entrega':['renders','copy','covers','captions/master.srt','brief.md','assets.md']}
-    paths=files(P,*groups[stage])
-    if stage in ('transcripcion','corte-en-papel','corte-aplicado'):
-        paths=[x for x in paths if not x.name.startswith('master-cut')]
-    for channel in P.parents:
-        if (channel/'channel.json').exists():
-            if stage in ('transcripcion','corte-en-papel','corte-aplicado','subtitulos'):
-                paths += files(channel,'channel.json','brand.json','vocabulary.txt')
-                paths += files(oslib.ROOT,'lang','presets','scripts/core/cutlib.py')
-            break
-    if stage == 'transcripcion':
-        paths += [Path(os.environ.get('VIDEOVIBE_WHISPER_MODEL') or oslib.ROOT/'models/ggml-large-v3-turbo-q5_0.bin'),
-                  oslib.ROOT/'models/ggml-silero-v5.1.2.bin']
-    if stage == 'transcripcion' and (P/'media.json').exists():
-        for item in oslib.read_json(P/'media.json').get('items', []):
-            if item.get('audio'):
-                paths.append(P/item['audio'])
-    metadata=[]
-    if stage=='composicion':
-        for d in P.parents:
-            if (d/'channel.json').exists():
-                paths+=files(d,'channel.json','brand.json','fonts')
-                sb=oslib.read_json(P/'storyboard.json') if (P/'storyboard.json').exists() else {}
-                cfg=oslib.read_json(d/'channel.json')
-                music=sb.get('audio',{}).get('music') or {}
-                library=d/'audio/music/library.json'
-                if music and library.exists():
-                    tracks=oslib.read_json(library).get('tracks',[])
-                    chosen={music.get('track'),music.get('ads_track')}
-                    for track in tracks:
-                        if track['id'] in chosen or (not music.get('ads_track') and track.get('ads')):
-                            metadata.append(track);paths.append(d/'audio/music'/track['file'])
-                kit=d/'audio/sfx/sfx.json'
-                if kit.exists() and (sb.get('audio',{}).get('sfx') or sb.get('audio',{}).get('sfx_auto') or sb.get('transitions')):
-                    data=oslib.read_json(kit);metadata.append(data)
-                    paths += [d/'audio/sfx'/v['file'] for v in data.get('sounds',{}).values()]
-                import formats
-                from scripts.core import assetlib
-                formats.load_packs(cfg.get('format_packs',[]))
-                for _,kind,ident in formats.uses(sb):
-                    item=assetlib.item(kind,ident,d)
-                    metadata.append(item)
-                    if item:paths.append(Path(item['path']))
-                for scene in sb.get('scenes',[]):
-                    if scene.get('params',{}).get('file'):paths.append(P/scene['params']['file'])
-                break
-        paths+=files(oslib.ROOT,'formats','presets','scripts/composer')
-    paths += [oslib.ROOT/'scripts/pipeline'/({'ingesta':'ingest','transcripcion':'transcribe','corte-en-papel':'paper_cut','corte-aplicado':'apply_cut','subtitulos':'captions','composicion':'compose'}.get(stage,stage)+'.py')]
-    paths += [Path(__file__),oslib.ROOT/'package-lock.json']
-    return hashlib.sha256((digest(paths)+json.dumps(metadata,sort_keys=True)).encode()).hexdigest()
+def legacy_digest(paths):
+    """Esquema 2 (v0.13.1): rutas absolutas. Solo para migrar evidencia guardada.
+
+    v0.13.1 metía su propio integrity.py en cada huella: se usan sus bytes originales (guardados en
+    legacy/) para que la evidencia de entonces se pueda reconocer.
+    """
+    me = Path(__file__).resolve()
+    h = hashlib.sha256()
+    for p in sorted({Path(p).resolve() for p in paths}):
+        h.update(str(p).encode())
+        if p == me:
+            h.update(LEGACY_INTEGRITY.read_bytes())
+            continue
+        if not p.is_file():
+            h.update(b":missing")
+            continue
+        with p.open("rb") as f:
+            for b in iter(lambda: f.read(1048576), b""):
+                h.update(b)
+    return h.hexdigest()
 
 
-def outputs(P,stage):
-    groups={'ingesta':['media.json'],'transcripcion':['transcript'], 'corte-en-papel':['cut/cut-list.json','cut/PAPER-CUT.md'],
-            'corte-aplicado':['cut/master-cut.mp4','cut/cut-map.json'], 'subtitulos':['captions/captions.json','captions/master.srt'],
-            'composicion':['hf/index.html','hf/compositions','hf/assets','hf/variables'],
-            'check':[], 'revision':['snaps'], 'render':['renders'], 'entrega':['copy','covers']}
-    paths=files(P,*groups[stage])
-    if stage=='entrega':
-        from scripts.core.state import load
-        destination=load(P).get('delivery')
-        if destination:paths+=files(Path(destination),'.')+[Path(destination)/'.videovibe-delivery.json']
-    if stage=='revision':paths+=list((Path(P)/'renders').glob('draft-*.mp4'))
-    if stage=='transcripcion':paths=[p for p in paths if not p.name.startswith('master-cut')]
-    return digest(paths)
+def legacy_fingerprint(paths):
+    """Esquema 1 (hasta v0.13.0, editlib.fingerprint): texto por contenido, binarios por tamaño."""
+    h = hashlib.sha1()
+    for p in sorted(Path(x) for x in paths):
+        if not p.exists():
+            h.update(f"{p}:missing".encode())
+        elif p.suffix in (".html", ".json", ".md", ".srt", ".txt"):
+            h.update(p.name.encode() + p.read_bytes())
+        else:
+            h.update(f"{p.name}:{p.stat().st_size}".encode())
+    return h.hexdigest()[:16]
 
 
-def approval_inputs(P,gate):
-    P=Path(P)
-    if gate=='A':return digest([x for x in files(P,'cut/cut-list.json','raw','transcript','media.json') if not x.name.startswith('master-cut')])
-    return hashlib.sha256((inputs(P,'composicion') + outputs(P,'composicion')).encode()).hexdigest()
-
-
-def valid(P,gate,st):
-    from scripts.core.reviewlib import fingerprint
-    a=st.get('approvals',{}).get(gate,{})
-    return isinstance(a,dict) and a.get('version')==2 and a.get('inputs')==approval_inputs(P,gate) and a.get('presentation')==fingerprint(P,gate)
-
-
-def verification(P,plats):
-    return digest(files(P,'storyboard.json','cut/cut-map.json','captions','copy','covers','assets.md','brief.md')+
-                  [Path(P)/'renders'/f'{p}.mp4' for p in plats]+[oslib.ROOT/'presets'/f'{p}.json' for p in plats])
+def hasher(P, scheme=SCHEME):
+    """Función de huella de archivos para un esquema."""
+    if scheme == 1:
+        return legacy_fingerprint
+    if scheme == 2:
+        return legacy_digest
+    return lambda paths: digest(paths, P)
 
 
 def digest_bytes(path):
-    h=hashlib.sha256()
-    with Path(path).open('rb') as f:
-        for b in iter(lambda:f.read(1048576),b''):h.update(b)
+    h = hashlib.sha256()
+    with Path(path).open("rb") as f:
+        for b in iter(lambda: f.read(1048576), b""):
+            h.update(b)
     return h.hexdigest()
+
+
+def files(P, *names):
+    out = []
+    for name in names:
+        p = Path(P) / name
+        if p.is_dir():
+            out.extend(sorted(x for x in p.rglob("*") if x.is_file() and not x.name.startswith(".")
+                              and "__pycache__" not in x.parts))
+        else:
+            out.append(p)
+    return out
+
+
+def _not_master(paths):
+    return [x for x in paths if not x.name.startswith("master-cut")]
+
+
+def _combine(h, paths, metadata=()):
+    return hashlib.sha256((h(paths) + json.dumps(list(metadata), sort_keys=True)).encode()).hexdigest()
+
+
+# ------------------------------------------------------------------ entradas por etapa (esquema 3)
+
+def _language(ch):
+    if not ch or not (ch / "channel.json").exists():
+        return None
+    cfg = oslib.read_json(ch / "channel.json")
+    return cfg.get("language") or cfg.get("lang")
+
+
+def _lang_file(ch):
+    code = _language(ch)
+    code = code.get("code") if isinstance(code, dict) else code
+    return [oslib.ROOT / "lang" / f"{code}.json"] if code else []
+
+
+def _composition_content(P, ch, relabel=True):
+    """Contenido de la pieza y del canal que usa la composición (sin código del motor).
+    `relabel=False` reproduce los metadatos del esquema 2 (con rutas absolutas)."""
+    paths = files(P, "storyboard.json", "captions/captions.json", "captions/master.srt", "cut/master-cut.mp4",
+                  "cut/cut-map.json", "media.json", "raw")
+    metadata = []
+    if not ch:
+        return paths, metadata
+    paths += files(ch, "channel.json", "brand.json", "fonts")
+    sb = oslib.read_json(P / "storyboard.json") if (P / "storyboard.json").exists() else {}
+    cfg = oslib.read_json(ch / "channel.json")
+    audio = sb.get("audio", {})
+    music = audio.get("music") or {}
+    library = ch / "audio/music/library.json"
+    if music and library.exists():
+        chosen = {music.get("track"), music.get("ads_track")}
+        for track in oslib.read_json(library).get("tracks", []):
+            if track["id"] in chosen or (not music.get("ads_track") and track.get("ads")):
+                metadata.append(track)
+                paths.append(ch / "audio/music" / track["file"])
+    kit = ch / "audio/sfx/sfx.json"
+    if kit.exists() and (audio.get("sfx") or audio.get("sfx_auto") or sb.get("transitions")):
+        data = oslib.read_json(kit)
+        metadata.append(data)
+        paths += [ch / "audio/sfx" / v["file"] for v in data.get("sounds", {}).values()]
+    import formats
+    from scripts.core import assetlib
+    formats.load_packs(cfg.get("format_packs", []))
+    for _, kind, ident in formats.uses(sb):
+        item = assetlib.item(kind, ident, ch)
+        if item:
+            paths.append(Path(item["path"]))
+            if relabel:
+                item = {**item, "path": label(item["path"], P)}  # sin ruta absoluta en los metadatos
+        metadata.append(item)
+    for scene in sb.get("scenes", []):
+        if scene.get("params", {}).get("file"):
+            paths.append(P / scene["params"]["file"])
+    return paths, metadata
+
+
+def dependencies():
+    """Versiones e integridad de las dependencias de npm (package-lock sin la versión del propio motor):
+    publicar una versión nueva de VideoVibe no invalida nada; cambiar HyperFrames o una librería sí."""
+    lock = oslib.ROOT / "package-lock.json"
+    if not lock.exists():
+        return {}
+    packages = oslib.read_json(lock).get("packages", {})
+    return {k: [v.get("version"), v.get("integrity")] for k, v in sorted(packages.items()) if k}
+
+
+def _paths(P, stage, engine=True):
+    """(archivos, metadatos) de los que depende una etapa en el esquema 3."""
+    P = Path(P)
+    ch = channel_dir(P)
+    lang = [] if not ch else [{"language": _language(ch)}]
+    vocab = files(ch, "vocabulary.txt") if ch else []
+    if stage == "ingesta":
+        return files(P, "raw"), []
+    if stage == "transcripcion":
+        paths = _not_master(files(P, "raw", "media.json")) + vocab
+        model = os.environ.get("VIDEOVIBE_WHISPER_MODEL") or oslib.ROOT / "models/ggml-large-v3-turbo-q5_0.bin"
+        paths += [Path(model), oslib.ROOT / "models/ggml-silero-v5.1.2.bin"]
+        if (P / "media.json").exists():
+            paths += [P / i["audio"] for i in oslib.read_json(P / "media.json").get("items", []) if i.get("audio")]
+        return paths, lang
+    if stage == "corte-en-papel":
+        return _not_master(files(P, "transcript", "media.json")) + vocab, lang
+    if stage == "subtitulos":
+        paths = files(P, "cut/cut-map.json", "transcript") + vocab + _lang_file(ch)
+        return paths + (files(ch, "brand.json") if ch else []), lang
+    engine_files = []
+    deps = [{"dependencies": dependencies()}] if engine else []
+    if stage in SCRIPTS:
+        engine_files.append(oslib.ROOT / "scripts/pipeline" / f"{SCRIPTS[stage]}.py")
+    if stage == "corte-aplicado":
+        paths = _not_master(files(P, "cut/cut-list.json", "raw", "media.json", "transcript"))
+        paths += files(oslib.ROOT, "presets", "scripts/core/cutlib.py") + (files(ch, "channel.json") if ch else [])
+        return paths + (engine_files if engine else []), []   # ffmpeg, no npm: HyperFrames no la afecta
+    if stage == "composicion":
+        paths, metadata = _composition_content(P, ch)
+        if engine:
+            paths += files(oslib.ROOT, "formats", "presets", "scripts/composer") + engine_files
+        return paths, metadata + deps
+    if stage in ("check", "revision", "render"):
+        return files(P, *HF), deps
+    if stage == "entrega":
+        paths = files(P, "renders", "copy", "covers", "captions/master.srt", "brief.md", "assets.md")
+        return paths + [oslib.ROOT / "scripts/pipeline/verify.py", oslib.ROOT / "scripts/pipeline/deliver.py"], []
+    raise KeyError(stage)
+
+
+def inputs(P, stage, scheme=SCHEME):
+    if scheme < 3:
+        return _inputs_v2(P, stage)
+    paths, metadata = _paths(P, stage)
+    return _combine(hasher(P), paths, metadata)
+
+
+OUTPUTS = {"ingesta": ["media.json"], "transcripcion": ["transcript"],
+           "corte-en-papel": ["cut/cut-list.json", "cut/PAPER-CUT.md"],
+           "corte-aplicado": ["cut/master-cut.mp4", "cut/cut-map.json"],
+           "subtitulos": ["captions/captions.json", "captions/master.srt"],
+           "composicion": HF, "check": [], "revision": ["snaps"], "render": ["renders"],
+           "entrega": ["copy", "covers"]}
+
+
+def outputs(P, stage, scheme=SCHEME):
+    P = Path(P)
+    paths = files(P, *OUTPUTS[stage])
+    if stage == "entrega":
+        from scripts.core.state import load
+        destination = load(P).get("delivery")
+        if destination:
+            paths += files(Path(destination), ".") + [Path(destination) / ".videovibe-delivery.json"]
+    if stage == "revision":
+        paths += list((P / "renders").glob("draft-*.mp4"))
+    if stage == "transcripcion":
+        paths = _not_master(paths)
+    return (legacy_digest if scheme < 3 else hasher(P))(paths)
+
+
+def approval_inputs(P, gate, scheme=SCHEME):
+    P = Path(P)
+    h = legacy_digest if scheme < 3 else hasher(P)
+    if gate == "A":
+        return h(_not_master(files(P, "cut/cut-list.json", "raw", "transcript", "media.json")))
+    if scheme < 3:
+        return hashlib.sha256((_inputs_v2(P, "composicion") + outputs(P, "composicion", 2)).encode()).hexdigest()
+    paths, metadata = _paths(P, "composicion", engine=False)
+    return hashlib.sha256((_combine(h, paths, metadata) + outputs(P, "composicion")).encode()).hexdigest()
+
+
+def valid(P, gate, st):
+    from scripts.core.reviewlib import fingerprint
+    a = st.get("approvals", {}).get(gate, {})
+    return (isinstance(a, dict) and a.get("version") == 2 and a.get("inputs") == approval_inputs(P, gate)
+            and a.get("presentation") == fingerprint(P, gate))
+
+
+def verification(P, plats, scheme=SCHEME):
+    P = Path(P)
+    paths = files(P, "storyboard.json", "cut/cut-map.json", "captions", "copy", "covers", "assets.md", "brief.md")
+    paths += [P / "renders" / f"{p}.mp4" for p in plats] + [oslib.ROOT / "presets" / f"{p}.json" for p in plats]
+    return (legacy_digest if scheme < 3 else hasher(P))(paths)
 
 
 def stable_inputs(P, stage, protect_transcript=False):
     """Entradas externas que no puede producir la propia etapa."""
-    if stage == 'subtitulos':
-        # La etapa escribe transcript/master-cut.json; controlar sus entradas externas.
-        paths = files(P,'cut/master-cut.mp4','cut/cut-map.json')
+    if stage == "subtitulos":
+        # La etapa escribe transcript/master-cut.json; se protege solo cuando lo reutiliza.
+        paths = files(P, "cut/master-cut.mp4", "cut/cut-map.json")
         if protect_transcript:
-            paths += files(P, 'transcript/master-cut.json')
-        for channel in Path(P).parents:
-            if (channel/'channel.json').exists():
-                paths += files(channel,'channel.json','brand.json','vocabulary.txt')
-                break
-        return digest(paths + files(oslib.ROOT,'lang','scripts/pipeline/captions.py'))
-    return inputs(P,stage)
+            paths += files(P, "transcript/master-cut.json")
+        ch = channel_dir(P)
+        if ch:
+            paths += files(ch, "channel.json", "brand.json", "vocabulary.txt")
+        return digest(paths + files(oslib.ROOT, "lang", "scripts/pipeline/captions.py"), P)
+    return inputs(P, stage)
+
+
+# ------------------------------------------------------------------ migración de evidencia
+
+def _inputs_v2(P, stage):
+    """Entradas del esquema 2, tal como las calculaba v0.13.1. Solo para restamp."""
+    P = Path(P)
+    groups = {"ingesta": ["raw"], "transcripcion": ["raw", "media.json"],
+              "corte-en-papel": ["transcript", "media.json"],
+              "corte-aplicado": ["cut/cut-list.json", "raw", "media.json", "transcript"],
+              "subtitulos": ["cut/cut-map.json", "transcript"],
+              "composicion": ["storyboard.json", "captions/captions.json", "captions/master.srt",
+                              "cut/master-cut.mp4", "cut/cut-map.json", "media.json", "raw"],
+              "check": HF, "revision": HF, "render": HF,
+              "entrega": ["renders", "copy", "covers", "captions/master.srt", "brief.md", "assets.md"]}
+    paths = files(P, *groups[stage])
+    if stage in ("transcripcion", "corte-en-papel", "corte-aplicado"):
+        paths = _not_master(paths)
+    ch = channel_dir(P)
+    if ch and stage in ("transcripcion", "corte-en-papel", "corte-aplicado", "subtitulos"):
+        paths += files(ch, "channel.json", "brand.json", "vocabulary.txt")
+        paths += files(oslib.ROOT, "lang", "presets", "scripts/core/cutlib.py")
+    if stage == "transcripcion":
+        paths += [Path(os.environ.get("VIDEOVIBE_WHISPER_MODEL") or oslib.ROOT / "models/ggml-large-v3-turbo-q5_0.bin"),
+                  oslib.ROOT / "models/ggml-silero-v5.1.2.bin"]
+        if (P / "media.json").exists():
+            paths += [P / i["audio"] for i in oslib.read_json(P / "media.json").get("items", []) if i.get("audio")]
+    metadata = []
+    if stage == "composicion":
+        if ch:
+            content, metadata = _composition_content(P, ch, relabel=False)
+            paths += content
+        paths += files(oslib.ROOT, "formats", "presets", "scripts/composer")
+    v2_scripts = {k: v for k, v in SCRIPTS.items() if k != "entrega"}
+    paths += [oslib.ROOT / "scripts/pipeline" / (v2_scripts.get(stage, stage) + ".py")]
+    paths += [oslib.ROOT / "scripts/core/integrity.py", oslib.ROOT / "package-lock.json"]
+    return _combine(legacy_digest, paths, metadata)
+
+
+def restamp(P, st, plats):
+    """Migra la evidencia guardada al esquema 3 sin rehacer trabajo. Devuelve (estado, cambios).
+
+    Cada huella guardada se recalcula con el algoritmo con que se escribió; si coincide, se
+    reemplaza por la del esquema 3. Si no coincide, se deja: el contenido cambió de verdad y la
+    etapa o aprobación quedará pendiente como antes. No escribe: quien llama guarda el estado.
+    Las piezas sin recibos de etapa (anteriores a v0.13.1) reciben recibo solo en las etapas que la
+    lógica anterior consideraba al día, salvo la composición, que se reconstruye (es barata y, si
+    el HTML sale igual, no invalida nada).
+    """
+    from scripts.core import editlib
+    st = copy.deepcopy(st)
+    if st.get("digest_scheme") == SCHEME:
+        return st, []
+    P = Path(P)
+    changes = []
+    fp = st.setdefault("fingerprints", {})
+    for key, fn in (("check", editlib.hf_fingerprint), ("revision", editlib.hf_fingerprint)):
+        if fp.get(key) and fp[key] in (fn(P, scheme=1), fn(P, scheme=2)):
+            fp[key] = fn(P)
+            changes.append(f"fingerprints.{key}")
+    if fp.get("entrega") and fp["entrega"] in (editlib.delivery_fingerprint(P, plats, scheme=1),
+                                               editlib.delivery_fingerprint(P, plats, scheme=2)):
+        fp["entrega"] = editlib.delivery_fingerprint(P, plats)
+        changes.append("fingerprints.entrega")
+    receipts = st.setdefault("stages", {})
+    for stage in editlib.STAGES:
+        r = receipts.get(stage)
+        if r and r.get("version") == 3 and r.get("status") not in ("running", "failed"):
+            same_in = r.get("inputs") == inputs(P, stage, 2)
+            same_out = stage in EDITABLE or r.get("outputs") == outputs(P, stage, 2)
+            if same_in and same_out:
+                r.update(inputs=inputs(P, stage), outputs=outputs(P, stage))
+                changes.append(f"stages.{stage}")
+        elif not r and stage != "composicion" and not editlib.legacy_dirty(stage, P, st, plats)[0]:
+            receipts[stage] = {"version": 3, "platforms": list(plats), "inputs": inputs(P, stage),
+                               "outputs": outputs(P, stage), "migrated": True}
+            changes.append(f"stages.{stage} (nuevo)")
+    for gate, a in st.get("approvals", {}).items():
+        if isinstance(a, dict) and a.get("version") == 2 and a.get("inputs") == approval_inputs(P, gate, 2):
+            a["inputs"] = approval_inputs(P, gate)
+            changes.append(f"approvals.{gate}")
+    for gate, r in st.get("reviews", {}).items():
+        if r.get("inputs") and r["inputs"] == approval_inputs(P, gate, 2):
+            r["inputs"] = approval_inputs(P, gate)
+            changes.append(f"reviews.{gate}")
+    v = st.get("verification") or {}
+    if v.get("fingerprint") and v["fingerprint"] == verification(P, v.get("platforms", []), 2):
+        v["fingerprint"] = verification(P, v["platforms"])
+        changes.append("verification")
+    st["digest_scheme"] = SCHEME
+    return st, changes

@@ -1,5 +1,20 @@
 # Changelog
 
+## 0.13.2-alpha — 2026-11-17 · revisión de integridad
+
+- **Subtítulos:** `transcript/master-cut.json` guarda la huella de su corte; tras un corte nuevo, bin/edit
+  transcribe el master nuevo y guarda la versión anterior con sus correcciones (antes se reutilizaba la
+  del corte viejo y los subtítulos podían quedar desfasados).
+- **Huellas relativas (esquema 3):** sin rutas absolutas; mover la carpeta de canales no invalida nada.
+- **Alcance:** etapas editables y aprobación B sin código del motor; `channel.json` completo fuera de la
+  transcripción. Copia de `transcript/` antes de volver a transcribir.
+- **Aprobaciones:** presentar o aprobar A ya no borra B (B guarda su propia evidencia y deja de valer sola si cambia el corte); `bin/status --attest-legacy A|B` deja
+  constancia de una aprobación anterior si su revisión guardada coincide.
+- **Migración:** `integrity.restamp` convierte la evidencia guardada sin rehacer trabajo.
+- **CI:** `animation-install` solo en Ubuntu; acciones actualizadas a Node 24.
+- **Código:** `state.py`, `integrity.py`, `migrate_deliveries.py`, `bin/edit` y `bin/status` reescritos
+  con el estilo del resto del motor; 13 pruebas nuevas (`test_integrity_scope.py`).
+
 ## 0.13.1-alpha — 2026-11-17 · consolidación de integridad
 
 - Validación de correcciones: 288 pruebas correctas, seis regresiones nuevas y guardián de datos personales.

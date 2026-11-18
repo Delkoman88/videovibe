@@ -9,7 +9,7 @@
 - [ ] Validar la corrección de integridad en WSL; pruebas macOS no equivalen a portabilidad.
 - [ ] Implementar y validar delegación de trabajadores en Windows nativo; actualmente falla explícitamente y recomienda WSL.
 
-- [ ] **Portabilidad de dirección v2:** ejecutar la versión nueva en WSL y los jobs remotos macOS/Ubuntu.
+- [ ] **Portabilidad de dirección v2:** ejecutar la versión nueva en WSL y el job remoto Ubuntu (el runner macos-14 no está disponible; macOS se valida localmente).
   La prueba técnica local está cerrada y no requiere aprobación B ni entrega editorial, según la
   aclaración de la persona. El canal musical privado no forma parte de esta prueba nueva
   (la validación histórica sigue cerrada).
@@ -67,6 +67,7 @@
 
 ## Hecho
 
+- [x] Revisión de integridad v0.13.2 (ADR 0036): subtítulos ligados a su corte, huellas relativas, motor fuera de etapas editables y de B, reaprobación de A, `--attest-legacy`, migración automática y CI solo Ubuntu.
 - [x] Consolidación de integridad (ADR 0036): huellas de aprobación/etapas, bloqueo por pieza, entregas independientes y contratos neutrales. Ver STATUS para validación y límites.
 
 - [x] Revisión editorial previa con evidencia y audio nativo opcional de B-roll (ADR 0035); sin gates ni migración de piezas.

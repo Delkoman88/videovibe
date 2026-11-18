@@ -253,7 +253,7 @@ class TestFingerprintCompat(unittest.TestCase):
             (hf / "assets").mkdir()
             (hf / "index.html").write_text("<html></html>")
             (hf / "assets" / "plate.mp4").write_bytes(b"x" * 10)
-            old = editlib.fingerprint([hf / "index.html", hf / "assets" / "plate.mp4"])
+            old = editlib.fingerprint([hf / "index.html", hf / "assets" / "plate.mp4"], td)
             self.assertEqual(editlib.hf_fingerprint(td), old)
             (hf / "assets" / "broll-a.mp4").write_bytes(b"b")
             self.assertNotEqual(editlib.hf_fingerprint(td), old)

@@ -8,22 +8,20 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-24.04, macos-14]
+        # macOS se valida localmente: el runner macos-14 no está disponible para este repositorio.
+        os: [ubuntu-24.04]
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
         with:
           node-version: 22
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: '3.12'
       - name: FFmpeg Linux
         if: runner.os == 'Linux'
         run: sudo apt-get update && sudo apt-get install -y ffmpeg
-      - name: FFmpeg macOS
-        if: runner.os == 'macOS'
-        run: brew install ffmpeg
       - name: Install from lockfile
         run: npm ci --no-audit --no-fund
       - name: Python
@@ -34,7 +32,7 @@ jobs:
         run: .venv/bin/python -m scripts.tools.animation_matrix --formats particle-title,narrative-sequence --profiles restrained,balanced,energetic
       - name: Evidence
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: animation-${{ runner.os }}
           path: work/animation-matrix/

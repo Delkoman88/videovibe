@@ -34,17 +34,18 @@ def newer(a, b):
     return tb is None or ta > tb + 1e-6
 
 
-def fingerprint(paths):
-    """Huella SHA-256 del contenido de archivos, incluidos binarios."""
-    from scripts.core.integrity import digest
-    return digest(paths)
+def fingerprint(paths, P=None, scheme=None):
+    """Huella SHA-256 del contenido de archivos (etiquetas relativas a la pieza; integrity.digest).
+    `scheme` 1/2 reproduce las huellas de versiones anteriores, solo para migrarlas."""
+    from scripts.core import integrity
+    return integrity.hasher(P, scheme or integrity.SCHEME)(paths)
 
 
-def hf_fingerprint(P):
+def hf_fingerprint(P, scheme=None):
     hf = Path(P) / "hf"
     files = [hf / "index.html", hf / "assets" / "plate.mp4", *sorted((hf / "compositions").glob("*.html")),
              *sorted((hf / "variables").glob("*.json"))]
-    base = fingerprint(files)
+    base = fingerprint(files, P, scheme)
     brolls = sorted((hf / "assets").glob("broll-*.mp4"))
     brolls += sorted((hf / "assets" / "broll-audio").glob("*.wav"))
     if not brolls:
@@ -94,11 +95,11 @@ def platform_fingerprint(P, plat):
     return h.hexdigest()[:16]
 
 
-def delivery_fingerprint(P, plats):
+def delivery_fingerprint(P, plats, scheme=None):
     """Huella de lo que se entrega: renders, textos y portadas de cada plataforma."""
     P = Path(P)
     return fingerprint([P / "renders" / f"{p}.mp4" for p in plats] + [P / "copy" / f"{p}.md" for p in plats]
-                       + [P / "covers" / f"{p}.jpg" for p in plats])
+                       + [P / "covers" / f"{p}.jpg" for p in plats], P, scheme)
 
 
 def cut_fingerprint(P):
@@ -109,6 +110,25 @@ def cut_fingerprint(P):
     segs = json.loads(f.read_text())["segments"]
     key = json.dumps([[x["src"], x["src_in"], x["src_out"]] for x in segs])
     return hashlib.sha1(key.encode()).hexdigest()[:16]
+
+
+def transcript_matches_cut(P):
+    """¿transcript/master-cut.json pertenece al corte actual? None si no existe.
+
+    Las transcripciones nuevas guardan la huella del corte. Las anteriores valen si los subtítulos
+    vigentes (captions.json) se hicieron con el corte actual; si no hay forma de saberlo, False.
+    """
+    P = Path(P)
+    t = P / "transcript" / "master-cut.json"
+    if not t.exists():
+        return None
+    current = cut_fingerprint(P)
+    own = json.loads(t.read_text()).get("cut_fingerprint")
+    if own:
+        return own == current
+    c = P / "captions" / "captions.json"
+    cap = json.loads(c.read_text()) if c.exists() else {}
+    return bool(cap.get("cut_fingerprint")) and cap["cut_fingerprint"] == current
 
 
 def approval_ts(st, gate):
@@ -163,30 +183,48 @@ def media_ids(P):
 def stage_dirty(stage, P, st, plats):
     """¿Hace falta (re)ejecutar esta etapa? Devuelve (bool, motivo)."""
     P = Path(P)
-    fp = st.get("fingerprints", {})
-    receipt = st.get('stages', {}).get(stage)
+    receipt = st.get("stages", {}).get(stage)
     if receipt:
-        if receipt.get('version') == 3 and receipt.get('platforms') != list(plats):
-            return True, 'plataformas solicitadas cambiaron'
-        if stage == 'render' and any(not (P/'renders'/f'{p}.mp4').is_file() for p in plats):
-            return True, 'faltan renders de plataformas solicitadas'
-        if receipt.get('status') in ('running','failed'):
-            return True, 'etapa interrumpida o fallida; reconstruir'
-        from scripts.core.integrity import inputs, outputs
-        authored = {
-            'ingesta': (P/'media.json').is_file(),
-            'transcripcion': bool(media_items(P)) and all((P/'transcript'/f"{m['id']}.json").exists() for m in media_items(P)),
-            'corte-en-papel': (P/'cut/cut-list.json').is_file() and (P/'cut/PAPER-CUT.md').is_file(),
-            'subtitulos': (P/'captions/captions.json').is_file() and (P/'captions/master.srt').is_file(),
-        }
-        if authored.get(stage):
-            # Estos documentos admiten edición: sus cambios alimentan dependientes y A/B.
-            # No confundir una corrección editorial con una salida generada corrupta.
-            return receipt['inputs'] != inputs(P,stage), 'fuentes cambiaron; actualizar etapa editorial'
-        return (receipt['inputs'] != inputs(P,stage) or receipt['outputs'] != outputs(P,stage)), 'entradas o salidas cambiaron'
+        return receipt_dirty(stage, P, receipt, plats)
+    if st.get("version", 0) >= 2 and stage in ("corte-aplicado", "subtitulos", "composicion"):
+        return True, "falta evidencia de construcción; reconstruir derivados"
+    return legacy_dirty(stage, P, st, plats)
 
-    if st.get('version',0)>=2 and stage in ('corte-aplicado','subtitulos','composicion') and not receipt:
-        return True, 'falta evidencia de construcción; reconstruir derivados'
+
+def editable_done(stage, P):
+    """¿Existen ya los documentos de una etapa editable? (Se corrigen a mano: no son caché.)"""
+    if stage == "ingesta":
+        return (P / "media.json").is_file()
+    if stage == "transcripcion":
+        items = media_items(P)
+        return bool(items) and all((P / "transcript" / f"{m['id']}.json").exists() for m in items)
+    if stage == "corte-en-papel":
+        return (P / "cut" / "cut-list.json").is_file() and (P / "cut" / "PAPER-CUT.md").is_file()
+    if stage == "subtitulos":
+        return (P / "captions" / "captions.json").is_file() and (P / "captions" / "master.srt").is_file()
+    return False
+
+
+def receipt_dirty(stage, P, receipt, plats):
+    """Decisión con recibo de etapa (bin/edit lo escribe al terminar cada etapa)."""
+    from scripts.core.integrity import inputs, outputs
+    if receipt.get("version") == 3 and receipt.get("platforms") != list(plats):
+        return True, "plataformas solicitadas cambiaron"
+    if stage == "render" and any(not (P / "renders" / f"{p}.mp4").is_file() for p in plats):
+        return True, "faltan renders de plataformas solicitadas"
+    if receipt.get("status") in ("running", "failed"):
+        return True, "etapa interrumpida o fallida; reconstruir"
+    if editable_done(stage, P):
+        # Sus cambios alimentan dependientes y A/B; no confundir una corrección con una salida corrupta.
+        return receipt["inputs"] != inputs(P, stage), "fuentes cambiaron; actualizar etapa editorial"
+    return (receipt["inputs"] != inputs(P, stage) or receipt["outputs"] != outputs(P, stage)), \
+        "entradas o salidas cambiaron"
+
+
+def legacy_dirty(stage, P, st, plats):
+    """Decisión sin recibo (piezas anteriores a v0.13.1): fechas y huellas guardadas."""
+    P = Path(P)
+    fp = st.get("fingerprints", {})
     if stage == "ingesta":
         if not (P / "raw").is_dir() or not any((P / "raw").iterdir()):
             return False, "sin material en raw/"
