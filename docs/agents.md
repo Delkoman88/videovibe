@@ -38,3 +38,9 @@ un atajo, no la fuente de verdad.
 ## Skills editoriales
 
 `storytelling` prepara guiones o estructuras fieles al material; `edit-video` ejecuta edición y copy. Las fuentes canónicas son [storytelling](storytelling.md) y [criterio editorial](editorial.md). Se pueden leer desde AGENTS sin cargar skills; no requieren herramientas exclusivas de un agente.
+
+## Integridad al reanudar
+No completar huellas de aprobación usando los archivos actuales sin revisión humana. Si el motor
+indica aprobación histórica o desactualizada, presentar la revisión A/B correspondiente. Los ensayos
+técnicos pueden simular revisiones solo en copias aisladas identificadas como tales; no trasladar
+esas aprobaciones a una pieza de producción. Usar la ruta de versión devuelta por bin/edit para entregar.

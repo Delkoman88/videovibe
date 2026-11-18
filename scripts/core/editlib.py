@@ -35,16 +35,9 @@ def newer(a, b):
 
 
 def fingerprint(paths):
-    """Huella del contenido de archivos (texto/JSON por contenido; binarios por tamaño)."""
-    h = hashlib.sha1()
-    for p in sorted(Path(x) for x in paths):
-        if not p.exists():
-            h.update(f"{p}:missing".encode())
-        elif p.suffix in (".html", ".json", ".md", ".srt", ".txt"):
-            h.update(p.name.encode() + p.read_bytes())
-        else:
-            h.update(f"{p.name}:{p.stat().st_size}".encode())
-    return h.hexdigest()[:16]
+    """Huella SHA-256 del contenido de archivos, incluidos binarios."""
+    from scripts.core.integrity import digest
+    return digest(paths)
 
 
 def hf_fingerprint(P):
@@ -171,6 +164,29 @@ def stage_dirty(stage, P, st, plats):
     """¿Hace falta (re)ejecutar esta etapa? Devuelve (bool, motivo)."""
     P = Path(P)
     fp = st.get("fingerprints", {})
+    receipt = st.get('stages', {}).get(stage)
+    if receipt:
+        if receipt.get('version') == 3 and receipt.get('platforms') != list(plats):
+            return True, 'plataformas solicitadas cambiaron'
+        if stage == 'render' and any(not (P/'renders'/f'{p}.mp4').is_file() for p in plats):
+            return True, 'faltan renders de plataformas solicitadas'
+        if receipt.get('status') in ('running','failed'):
+            return True, 'etapa interrumpida o fallida; reconstruir'
+        from scripts.core.integrity import inputs, outputs
+        authored = {
+            'ingesta': (P/'media.json').is_file(),
+            'transcripcion': bool(media_items(P)) and all((P/'transcript'/f"{m['id']}.json").exists() for m in media_items(P)),
+            'corte-en-papel': (P/'cut/cut-list.json').is_file() and (P/'cut/PAPER-CUT.md').is_file(),
+            'subtitulos': (P/'captions/captions.json').is_file() and (P/'captions/master.srt').is_file(),
+        }
+        if authored.get(stage):
+            # Estos documentos admiten edición: sus cambios alimentan dependientes y A/B.
+            # No confundir una corrección editorial con una salida generada corrupta.
+            return receipt['inputs'] != inputs(P,stage), 'fuentes cambiaron; actualizar etapa editorial'
+        return (receipt['inputs'] != inputs(P,stage) or receipt['outputs'] != outputs(P,stage)), 'entradas o salidas cambiaron'
+
+    if st.get('version',0)>=2 and stage in ('corte-aplicado','subtitulos','composicion') and not receipt:
+        return True, 'falta evidencia de construcción; reconstruir derivados'
     if stage == "ingesta":
         if not (P / "raw").is_dir() or not any((P / "raw").iterdir()):
             return False, "sin material en raw/"
@@ -277,6 +293,12 @@ def gate(name, P, st):
         return None
     P = Path(P)
     if name == "A":
+        if st.get('approvals', {}).get('A'):
+            from scripts.core.integrity import valid
+            if not valid(P,'A',st):
+                return {'pending':'aprobación A', 'reason':'el contenido cambió o la aprobación histórica no tiene evidencia suficiente; requiere revisión vigente', 'next':'Presenta la revisión y registra aprobación explícita.'}
+            return None
+
         cl = P / "cut" / "cut-list.json"
         ts = approval_ts(st, "A")
         if ts is None:
@@ -293,6 +315,12 @@ def gate(name, P, st):
                             "style.md/rhythm.md/brand.json; palabras en captions/captions.json). Valídalo con "
                             "scripts/pipeline/storyboard.py --project <pieza> (todos los errores juntos). Luego bin/edit <pieza>."}
     if name == "B":
+        if st.get('approvals', {}).get('B'):
+            from scripts.core.integrity import valid
+            if not valid(P,'B',st):
+                return {'pending':'aprobación B', 'reason':'el contenido cambió o la aprobación histórica no tiene evidencia suficiente; requiere revisión vigente', 'next':'Presenta la revisión y registra aprobación explícita.'}
+            return None
+
         ts = approval_ts(st, "B")
         sources = [P / "storyboard.json", P / "captions" / "captions.json"]
         sb = json.loads((P / "storyboard.json").read_text()) if (P / "storyboard.json").exists() else {}

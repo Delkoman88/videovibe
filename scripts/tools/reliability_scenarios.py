@@ -14,7 +14,7 @@ def run(channel,out):
         cmd=['node',str(oslib.ROOT/'scripts/tools/animation_quality.mjs'),str(hf),str(out/'storyboard.json')]
         if options is not None:
             options_file=out/f'{name}-options.json';oslib.write_json(options_file,options);cmd.append(str(options_file))
-        result=subprocess.run(cmd,capture_output=True,text=True,timeout=600)
+        result=__import__('scripts.core.state', fromlist=['run']).run(cmd,capture_output=True,text=True,timeout=600)
         if result.returncode:raise ValueError(result.stderr)
         data=json.loads(result.stdout);oslib.write_json(out/f'{name}.json',data);return data
     good=measure('reveals')

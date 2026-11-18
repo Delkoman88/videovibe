@@ -167,7 +167,7 @@ def prepare_plate(source, target, total, start=0, seconds=None):
 
 
 def _hf(args, cwd, timeout=900):
-    return subprocess.run([str(HF), *args], cwd=cwd, capture_output=True, text=True, timeout=timeout)
+    return __import__('scripts.core.state', fromlist=['run']).run([str(HF), *args], cwd=cwd, capture_output=True, text=True, timeout=timeout)
 
 
 def snapshot(hf, times, out):
@@ -190,7 +190,7 @@ def pixel_diff(a, b):
     import numpy as np
 
     def load(p):
-        raw = subprocess.run([oslib.FFMPEG, "-v", "error", "-i", str(p), "-f", "rawvideo", "-pix_fmt", "rgb24", "-"],
+        raw = __import__('scripts.core.state', fromlist=['run']).run([oslib.FFMPEG, "-v", "error", "-i", str(p), "-f", "rawvideo", "-pix_fmt", "rgb24", "-"],
                              capture_output=True, check=True).stdout
         return np.frombuffer(raw, np.uint8).reshape(H, W, 3).astype(np.int16)
     d = np.abs(load(a) - load(b)).max(axis=2)

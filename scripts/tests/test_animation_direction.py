@@ -108,7 +108,7 @@ class TestDirection(unittest.TestCase):
         import tempfile,shutil,json
         from pathlib import Path
         from scripts.core import oslib
-        from scripts.core.animationanchors import snapshot
+        from scripts.tools.animation_snapshot import snapshot
         with tempfile.TemporaryDirectory() as td:
             ch=Path(td)/'channel';shutil.copytree(oslib.ROOT/'channels/_template',ch)
             p=ch/'projects/p';p.mkdir()
@@ -122,7 +122,7 @@ class TestDirection(unittest.TestCase):
         import tempfile,shutil
         from pathlib import Path
         from scripts.core import oslib
-        from scripts.core.animationanchors import snapshot
+        from scripts.tools.animation_snapshot import snapshot
         with tempfile.TemporaryDirectory() as td:
             ch=Path(td)/'channel';shutil.copytree(oslib.ROOT/'channels/_template',ch)
             p=ch/'projects/p';p.mkdir()
@@ -175,7 +175,8 @@ class TestDirection(unittest.TestCase):
         import tempfile,shutil
         from pathlib import Path
         from unittest.mock import patch
-        from scripts.core import oslib,animationanchors
+        from scripts.core import oslib
+        from scripts.tools import animation_snapshot as animationanchors
         with tempfile.TemporaryDirectory() as td:
             ch=Path(td)/'channel';shutil.copytree(oslib.ROOT/'channels/_template',ch)
             p=ch/'projects/p';p.mkdir()

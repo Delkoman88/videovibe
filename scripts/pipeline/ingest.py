@@ -130,6 +130,9 @@ def main():
     args = ap.parse_args()
 
     P = oslib.project_dir(args.project)
+    if True:
+        from scripts.core.state import hold
+        hold(P)
     raw = P / "raw"
     if not raw.is_dir():
         oslib.die(f"falta {raw}. Pon el material crudo ahí.")

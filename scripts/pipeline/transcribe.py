@@ -44,12 +44,12 @@ _CPU_ONLY = {"on": os.environ.get("VIDEOVIBE_WHISPER_CPU") == "1", "fallback": F
 
 
 def _run_whisper(cmd):
-    r = subprocess.run(cmd + (["-ng"] if _CPU_ONLY["on"] else []), capture_output=True, text=True)
+    r = __import__('scripts.core.state', fromlist=['run']).run(cmd + (["-ng"] if _CPU_ONLY["on"] else []), capture_output=True, text=True)
     if r.returncode != 0 and not _CPU_ONLY["on"]:
         _CPU_ONLY.update(on=True, fallback=True)
         print("whisper falló con GPU; reintento sin GPU (más lento). Para evitar el intento: "
               "VIDEOVIBE_WHISPER_CPU=1", file=sys.stderr)
-        r = subprocess.run(cmd + ["-ng"], capture_output=True, text=True)
+        r = __import__('scripts.core.state', fromlist=['run']).run(cmd + ["-ng"], capture_output=True, text=True)
     if r.returncode != 0:
         last = [l for l in r.stderr.strip().splitlines() if l.strip()][-3:]
         oslib.die("whisper-cli falló también sin GPU. Revisa el modelo (bin/doctor) y el audio. Últimas líneas: "
@@ -216,6 +216,9 @@ def main():
     args = ap.parse_args()
 
     P = oslib.project_dir(args.project)
+    if True:
+        from scripts.core.state import hold
+        hold(P)
     if not (P / "media.json").exists():
         oslib.die("falta media.json: corre scripts/pipeline/ingest.py primero")
     if not Path(args.model).exists():

@@ -1,4 +1,6 @@
 """Presentación verificable de revisiones humanas y apertura portable de archivos."""
+
+from scripts.core.state import mutating
 import datetime
 import hashlib
 import json
@@ -167,7 +169,7 @@ def packet(P, gate):
             ch = oslib.load_channel(P)
             qa = inspect(sb, formats.registry(ch['config'].get('format_packs', [])))
             report_path = P / 'work' / 'animation-quality.json'
-            from scripts.tools.animation_quality import fingerprint as quality_fingerprint
+            from scripts.core.quality_fingerprint import fingerprint as quality_fingerprint
             if not report_path.exists(): oslib.die('control visual pendiente: ejecuta animation_quality antes de B')
             if report_path.exists():
                 report = oslib.read_json(report_path)
@@ -193,6 +195,7 @@ def packet(P, gate):
             "questions": questions, "files": [str(p.resolve()) for p in files_for(P, gate)]}
 
 
+@mutating
 def present(P, gate, *, no_open=False, reopen=False, simulated=False):
     P = Path(P)
     info = packet(P, gate)
@@ -208,6 +211,11 @@ def present(P, gate, *, no_open=False, reopen=False, simulated=False):
               datetime.datetime.now().isoformat(timespec="seconds"), "files": info["files"],
               "open_results": opened, "decision": previous.get("decision", "pending") if same else "pending",
               "simulated": simulated}
+    if not same:
+        from scripts.core.state import invalidate
+        invalidate(st,gate,'nueva presentación')
+    from scripts.core.integrity import approval_inputs
+    record['inputs'] = approval_inputs(P,gate)
     st.setdefault("reviews", {})[gate] = record
     oslib.write_json(st_path, st)
     info.update({"open_results": opened, "simulated": simulated})

@@ -169,6 +169,9 @@ def main():
     args = ap.parse_args()
 
     P = oslib.project_dir(args.project)
+    if True:
+        from scripts.core.state import hold
+        hold(P)
     sb = oslib.read_json(P / "storyboard.json")
     caps = oslib.read_json(P / "captions" / "captions.json")
     cmap = oslib.read_json(P / "cut" / "cut-map.json")

@@ -12,6 +12,7 @@ from unittest import mock
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT))
 from scripts.pipeline import deliver  # noqa: E402
+from scripts.core import integrity, state
 from scripts.core import editlib  # noqa: E402
 from scripts.core import oslib  # noqa: E402
 from scripts.core import reviewlib  # noqa: E402
@@ -48,18 +49,26 @@ class TestDeliver(unittest.TestCase):
         self.env = mock.patch.dict(os.environ, {"VIDEOVIBE_CHANNELS": str(self.chans)})
         self.env.start()
 
+    def deliver(self, plats):
+        # Fixture: valid byte receipts for synthetic files, not a real technical verification.
+        (self.P/'storyboard.json').write_text('{}')
+        state.update(self.P, approvals={g:{'version':2,'inputs':integrity.approval_inputs(self.P,g),
+                     'presentation':reviewlib.fingerprint(self.P,g)} for g in ('A','B')},
+                     verification={'platforms':plats,'fingerprint':integrity.verification(self.P,plats)})
+        return deliver.deliver(self.P,plats)
+
     def tearDown(self):
         self.patch.stop()
         self.env.stop()
         self.td.cleanup()
 
     def test_folder_names_and_hardlinks(self):
-        res = deliver.deliver(self.P, ["tiktok", "reels"])
+        res = self.deliver(["tiktok", "reels"])
         d = Path(res["dir"])
         # «Cocina: Fácil» → los dos puntos no valen en Windows; la fecha se separa del nombre de la pieza
-        self.assertEqual(d, (self.out / "Cocina- Fácil" / "2026-03-04 huevo-microondas").resolve())
-        self.assertEqual(res["method"], "enlace")
-        self.assertEqual(os.stat(d / "tiktok.mp4").st_ino, os.stat(self.P / "renders" / "tiktok.mp4").st_ino)
+        self.assertEqual(d.parent.parent, (self.out / "Cocina- Fácil" / "2026-03-04 huevo-microondas").resolve())
+        self.assertEqual(res["method"], "copia")
+        self.assertNotEqual(os.stat(d / "tiktok.mp4").st_ino, os.stat(self.P / "renders" / "tiktok.mp4").st_ino)
         for f in ("tiktok - cover.jpg", "reels - copy.md", "subtitles.srt", "README.md"):
             self.assertTrue((d / f).exists(), f)
         leeme = (d / "README.md").read_text()
@@ -69,36 +78,47 @@ class TestDeliver(unittest.TestCase):
 
     def test_copy_when_links_are_not_possible(self):
         with mock.patch.object(os, "link", side_effect=OSError("no se permiten enlaces")):
-            res = deliver.deliver(self.P, ["tiktok"])
+            res = self.deliver(["tiktok"])
         d = Path(res["dir"])
         self.assertEqual(res["method"], "copia")
         self.assertNotEqual(os.stat(d / "tiktok.mp4").st_ino, os.stat(self.P / "renders" / "tiktok.mp4").st_ino)
         self.assertEqual((d / "tiktok.mp4").read_bytes(), b"video tiktok")
 
     def test_redeliver_updates_and_drops_old_platforms(self):
-        d = Path(deliver.deliver(self.P, ["tiktok", "reels"])["dir"])
+        d = Path(self.deliver(["tiktok", "reels"])["dir"])
         (self.P / "renders" / "tiktok.mp4").unlink()                        # un render nuevo = archivo nuevo
         (self.P / "renders" / "tiktok.mp4").write_bytes(b"video tiktok v2")
-        deliver.deliver(self.P, ["tiktok"])
+        previous=d
+        d=Path(self.deliver(["tiktok"])["dir"])
+        self.assertEqual((previous/"tiktok.mp4").read_bytes(),b"video tiktok")
         self.assertEqual((d / "tiktok.mp4").read_bytes(), b"video tiktok v2")
         self.assertFalse((d / "reels.mp4").exists(), "reels ya no es parte de la pieza")
+
+    def test_failed_new_delivery_preserves_previous_version(self):
+        first=Path(self.deliver(['tiktok','reels'])['dir'])
+        pointer=(first.parent.parent/'current.json').read_bytes()
+        (self.P/'renders/tiktok.mp4').write_bytes(b'new verified fixture')
+        with mock.patch.object(deliver,'place',side_effect=OSError('disk failure')):
+            with self.assertRaises(OSError):self.deliver(['tiktok','reels'])
+        self.assertEqual((first.parent.parent/'current.json').read_bytes(),pointer)
+        self.assertEqual((first/'tiktok.mp4').read_bytes(),b'video tiktok')
 
     def test_missing_render_is_an_error(self):
         (self.P / "renders" / "reels.mp4").unlink()
         r = subprocess.run([str(ROOT / ".venv" / "bin" / "python"), str(ROOT / "scripts" / "pipeline" / "deliver.py"),
                             "--project", str(self.P), "--platform", "reels"], capture_output=True, text=True,
                            env={**os.environ, "VIDEOVIBE_DELIVERIES": str(self.out)})
-        self.assertEqual(r.returncode, 2)
-        self.assertIn("faltan renders", r.stdout)
+        self.assertEqual(r.returncode, 1)
+        self.assertIn("verificación", r.stdout)
 
     def test_edit_redelivers_when_folder_is_missing(self):
         st = {"stage": "entregable", "fingerprints": {"entrega": editlib.delivery_fingerprint(self.P, ["tiktok"])}}
         self.assertTrue(editlib.stage_dirty("entrega", self.P, st, ["tiktok"])[0])
-        st["delivery"] = deliver.deliver(self.P, ["tiktok"])["dir"]
+        st["delivery"] = self.deliver(["tiktok"])["dir"]
         self.assertFalse(editlib.stage_dirty("entrega", self.P, st, ["tiktok"])[0])
 
     def test_open_folder_reports_absolute_path(self):
-        d = deliver.deliver(self.P, ["tiktok"])["dir"]
+        d = self.deliver(["tiktok"])["dir"]
         res = reviewlib.open_files([d], no_open=True)[0]
         self.assertEqual(res["path"], str(Path(d).resolve()))
         self.assertNotEqual(res.get("reason"), "archivo inexistente")

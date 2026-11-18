@@ -30,7 +30,7 @@ def validate(sb, state):
         if _num(clip.get("out")):
             previous_out = max(previous_out, clip["out"])
         if "audio" in clip and _num(clip.get("in")) and _num(clip.get("out")):
-            from scripts.composer.broll_audio import settings
+            from scripts.core.broll_contract import settings
             try:
                 settings(clip)
             except ValueError as e:

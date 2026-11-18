@@ -21,11 +21,15 @@ ap.add_argument("--decision", choices=["adjust", "reject"])
 ap.add_argument("--note", default="")
 args = ap.parse_args()
 P = oslib.project_dir(args.project)
+from scripts.core.state import hold
+hold(P)
 if args.decision:
     st = oslib.read_json(P / "status.json")
     review = st.get("reviews", {}).get(args.gate)
     if not review or review.get("fingerprint") != reviewlib.fingerprint(P, args.gate):
         oslib.die("primero presenta la revisión vigente con bin/review", 1)
+    from scripts.core.state import invalidate
+    invalidate(st,args.gate,args.decision)
     review.update(decision=args.decision, note=args.note)
     oslib.write_json(P / "status.json", st)
     result = {"ok": True, "gate": args.gate, "decision": args.decision, "note": args.note}

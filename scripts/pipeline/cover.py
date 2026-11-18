@@ -28,6 +28,9 @@ def main():
     ap.add_argument("--at", type=float, help="segundo del video (por defecto: la mitad del gancho)")
     args = ap.parse_args()
     P = oslib.project_dir(args.project)
+    if True:
+        from scripts.core.state import hold
+        hold(P)
     sb = oslib.read_json(P / "storyboard.json") if (P / "storyboard.json").exists() else {}
     t = args.at if args.at is not None else default_time(sb)
     drafts = sorted((P / "renders").glob("draft-*.mp4")) if (P / "renders").exists() else []

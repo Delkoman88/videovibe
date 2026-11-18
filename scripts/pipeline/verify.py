@@ -21,7 +21,7 @@ from scripts.core import oslib  # noqa: E402
 
 
 def loudness(path):
-    r = subprocess.run([oslib.FFMPEG, "-hide_banner", "-nostats", "-i", str(path), "-af", "ebur128=peak=true",
+    r = __import__('scripts.core.state', fromlist=['run']).run([oslib.FFMPEG, "-hide_banner", "-nostats", "-i", str(path), "-af", "ebur128=peak=true",
                         "-f", "null", "-"], capture_output=True, text=True)
     tail = r.stderr[r.stderr.rfind("Summary:"):]
     i = re.search(r"I:\s+(-?[\d.]+) LUFS", tail)
@@ -74,12 +74,21 @@ def main():
     ap.add_argument("--platform", action="append", required=True)
     args = ap.parse_args()
     P = oslib.project_dir(args.project)
+    if True:
+        from scripts.core.state import hold
+        hold(P)
     sb = oslib.read_json(P / "storyboard.json")
     cmap = oslib.read_json(P / "cut" / "cut-map.json")
+    from scripts.core import integrity
+    initial = integrity.verification(P,args.platform)
     results = [check_platform(P, plat, sb, cmap) for plat in args.platform]
     failed = [f'{r["platform"]}: {c["check"]} (tiene {c["got"]}, debe {c["want"]})'
               for r in results for c in r["checks"] if not c["ok"]]
+    if integrity.verification(P,args.platform)!=initial:
+        failed.append('contenido cambió durante verificación')
     if not failed:
+        from scripts.core import integrity, state
+        state.update(P, verification={'platforms':args.platform,'fingerprint':integrity.verification(P,args.platform)})
         oslib.update_status(P, "entregable", renders={r["platform"]: r["file"] for r in results})
     oslib.emit({"ok": not failed, "failed": failed, "results": results}, 0 if not failed else 1)
 

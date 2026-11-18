@@ -3,13 +3,13 @@
 
 Uso: scripts/pipeline/deliver.py --project <canal>/<pieza> --platform tiktok [--platform reels …]
 
-Crea <entregas>/<Nombre del canal>/<AAAA-MM-DD> <pieza>/ con, por plataforma:
+Crea <entregas>/<Nombre del canal>/<AAAA-MM-DD> <pieza>/versions/<huella>/ con, por plataforma:
   <plat>.mp4 · <plat> - cover.jpg · <plat> - copy.md, más subtitles.srt y README.md (qué es cada archivo,
   el texto de cada plataforma listo para copiar y la licencia del sonido).
 La carpeta de entregas es deliveries/ en la raíz del repo ($VIDEOVIBE_DELIVERIES o local.json → deliveries_dir).
-Los archivos son ENLACES DUROS a los de la pieza (no ocupan espacio otra vez); si el sistema de archivos no los
-permite (otro disco, algunos Windows), se COPIAN. Siempre devuelve la ruta absoluta. Vuelve a correrlo tras un
-nuevo render: rehace la carpeta. Lo llama bin/edit al final, después de scripts/pipeline/verify.py en verde.
+Los archivos son copias independientes verificadas por hash. Una versión anterior no se sobrescribe.
+La preparación se promueve tras comprobar verificación y aprobaciones; current.json señala la versión
+vigente. Lo llama bin/edit después de verify.py. Una ejecución directa también exige esa evidencia.
 Salida JSON. Exit 0 ok, 2 error.
 """
 import argparse
@@ -39,15 +39,14 @@ def delivery_dir(P, ch):
 
 
 def place(src, dst):
-    """Enlace duro (sin ocupar espacio extra) o copia si no se puede. Devuelve el método usado."""
+    """Copia independiente, comprobada por contenido."""
     if dst.exists() or dst.is_symlink():
         dst.unlink()
-    try:
-        os.link(src, dst)
-        return "enlace"
-    except OSError:
-        shutil.copy2(src, dst)
-        return "copia"
+    from scripts.core.integrity import digest_bytes
+    expected=digest_bytes(src)
+    shutil.copy2(src,dst)
+    if digest_bytes(dst)!=expected:raise ValueError('fuente cambió durante la copia')
+    return "copia"
 
 
 def readme(P, ch, plats, files):
@@ -69,9 +68,8 @@ def readme(P, ch, plats, files):
     return "\n".join(lines) + "\n"
 
 
-def deliver(P, plats):
+def _prepare(P, plats, out_dir):
     ch = oslib.load_channel(P)
-    out_dir = delivery_dir(P, ch)
     out_dir.mkdir(parents=True, exist_ok=True)
     old = oslib.read_json(out_dir / MANIFEST).get("files", []) if (out_dir / MANIFEST).exists() else []
     plan = []
@@ -100,13 +98,48 @@ def deliver(P, plats):
                       "copia" if set(methods.values()) == {"copia"} else "mixto"}
 
 
+def deliver(P, plats):
+    import tempfile
+    from scripts.core import integrity, state
+    with state.lock(P):
+        st=state.load(P)
+        receipt=st.get('verification',{})
+        expected=integrity.verification(P,plats)
+        if receipt.get('platforms')!=plats or receipt.get('fingerprint')!=expected:
+            raise ValueError('verificación ausente o desactualizada')
+        if not all(integrity.valid(P,g,st) for g in ('A','B')):
+            raise ValueError('aprobaciones ausentes o desactualizadas')
+        base=delivery_dir(P,oslib.load_channel(P));versions=base/'versions';versions.mkdir(parents=True,exist_ok=True)
+        destination=versions/expected[:24]
+        if not destination.exists():
+            temp=Path(tempfile.mkdtemp(prefix='.pending-',dir=versions))
+            try:
+                result=_prepare(P,plats,temp)
+                if integrity.verification(P,plats)!=expected or not all(integrity.valid(P,g,state.load(P)) for g in ('A','B')):
+                    raise ValueError('contenido cambiado durante entrega')
+                hashes={f.name:integrity.digest_bytes(f) for f in temp.iterdir() if f.is_file() and f.name!=MANIFEST}
+                oslib.write_json(temp/MANIFEST,{'version':2,'files':result['files'],'hashes':hashes,'verification':receipt,'approvals':st['approvals']})
+                os.replace(temp,destination)
+            finally:
+                if temp.exists():shutil.rmtree(temp)
+        manifest=oslib.read_json(destination/MANIFEST)
+        if any(integrity.digest_bytes(destination/name)!=value for name,value in manifest['hashes'].items()):
+            raise ValueError('entrega existente alterada; no se reutiliza')
+        oslib.write_json(base/'current.json',{'version':2,'dir':str(destination),'fingerprint':expected})
+        return {'dir':str(destination.resolve()),'files':manifest['files'],'method':'copia'}
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--project", required=True)
     ap.add_argument("--platform", action="append", required=True)
     args = ap.parse_args()
     P = oslib.project_dir(args.project)
-    res = deliver(P, args.platform)
+    if True:
+        from scripts.core.state import hold
+        hold(P)
+    try: res = deliver(P, args.platform)
+    except ValueError as e: oslib.die(str(e),1)
     oslib.update_status(P, "entregable", delivery=res["dir"])
     oslib.emit({"ok": True, **res, "next": f"Muéstrale a la persona la carpeta de entregas: {res['dir']}"})
 

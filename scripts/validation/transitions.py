@@ -1,6 +1,6 @@
 """`transitions`: capas que cubren el corte (ADR 0028). Errores juntos y con ruta."""
 from formats.text import plain
-from scripts.composer.transitions import DEFAULT_DURATION, KINDS, SFX
+from scripts.core.transition_contract import DEFAULT_DURATION, KINDS, SFX
 from .common import _num
 
 ROLES = ("accent", "accent2", "accent3")

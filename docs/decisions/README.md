@@ -42,3 +42,5 @@ reemplace (y marca la vieja como «Reemplazada por NNNN»).
 | 0034 | [Extractos audiovisuales breves](0034-media-excerpts.md) | vigente |
 
 - [0035 — Audio nativo de B-roll y revisión editorial previa](0035-native-broll-audio.md)
+
+- [0036 — Estado, evidencia y entregas independientes](0036-integrity-state-and-deliveries.md)

@@ -29,7 +29,7 @@ def main():
                   [str(root/'.venv/bin/python'),'-m','unittest','discover','-s','scripts/tests'],
                   [str(root/'.venv/bin/python'),'-m','scripts.tools.animation_matrix','--formats','particle-title,narrative-sequence','--profiles','balanced']]
         for cmd in commands:
-            r=subprocess.run(cmd,cwd=root,capture_output=True,text=True,timeout=1800,env={k:v for k,v in os.environ.items() if k!='VIDEOVIBE_CHANNELS'})
+            r=__import__('scripts.core.state', fromlist=['run']).run(cmd,cwd=root,capture_output=True,text=True,timeout=1800,env={k:v for k,v in os.environ.items() if k!='VIDEOVIBE_CHANNELS'})
             report['steps'].append({'command':cmd,'exit_code':r.returncode,'output':(r.stdout+r.stderr)[-4000:]})
             if r.returncode:break
         report['ok']=len(report['steps'])==len(commands) and all(s['exit_code']==0 for s in report['steps'])

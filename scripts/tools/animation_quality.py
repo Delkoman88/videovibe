@@ -1,4 +1,6 @@
 """Control local de escenas renderizadas y advertencias narrativas. Salida JSON."""
+
+from scripts.core.quality_fingerprint import fingerprint
 import hashlib
 import argparse
 import json
@@ -9,22 +11,6 @@ from scripts.core.animationqa import inspect
 import formats
 
 
-def fingerprint(P):
-    h=hashlib.sha256()
-    files = [oslib.ROOT/'scripts/composer/timing.py', oslib.ROOT/'scripts/composer/reading.py', oslib.ROOT/'formats/text.py', P/'hf/reading-windows.json', P/'storyboard.json', P/'hf/index.html', P/'hf/hyperframes.json',
-             *sorted((P/'hf/assets').rglob('*')), *sorted((P/'hf/compositions').rglob('*')),
-             *sorted((P/'hf/variables').rglob('*')),
-             *sorted((oslib.ROOT/'presets').glob('*.json')),
-             Path(__file__), Path(__file__).with_suffix('.mjs'),
-             oslib.ROOT/'package-lock.json', oslib.ROOT/'scripts/core/animationqa.py']
-    for p in files:
-        if not p.is_file() or (p.is_relative_to(P/'hf') and 'quality' in p.relative_to(P/'hf').parts):
-            continue
-        if p.suffix in ('.mp4', '.wav', '.png', '.jpg') and 'assets' not in p.parts: continue
-        h.update(str(p.relative_to(P) if p.is_relative_to(P) else p.relative_to(oslib.ROOT)).encode())
-        with p.open('rb') as stream:
-            for chunk in iter(lambda: stream.read(1024*1024), b''): h.update(chunk)
-    return h.hexdigest()
 
 
 def check(P):
@@ -39,7 +25,7 @@ def check(P):
                'safe': {k:max(s.get(k,0) for s in safes) for k in ('left','right','top','bottom')} if safes else None}
     options_file=P/'work/animation-quality-options.json';oslib.write_json(options_file,options)
     try:
-        r=subprocess.run(['node',str(oslib.ROOT/'scripts/tools/animation_quality.mjs'),str(P/'hf'),str(P/'storyboard.json'),str(options_file)],capture_output=True,text=True,timeout=1800)
+        r=__import__('scripts.core.state', fromlist=['run']).run(['node',str(oslib.ROOT/'scripts/tools/animation_quality.mjs'),str(P/'hf'),str(P/'storyboard.json'),str(options_file)],capture_output=True,text=True,timeout=1800)
     except (subprocess.TimeoutExpired, OSError) as e:
         raise ValueError(f'medición visual no disponible: {e}') from e
     if r.returncode:raise ValueError('medición visual no completada: '+r.stderr[-1000:])

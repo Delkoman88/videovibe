@@ -4,6 +4,8 @@
 --apply-fallbacks applies defective/uncertain verdicts; --dry-run only validates.
 An approved storyboard requires --reprocess-approved (explicitly requested work).
 """
+
+from scripts.core.state import mutating
 import argparse
 from copy import deepcopy
 import hashlib
@@ -73,7 +75,7 @@ def prepare(P):
     if cuts:
         args=[sys.executable,'-m','scripts.pipeline.compose','--project',str(P)]
         for platform in list(sb.get('platforms',{})) or ['tiktok']:args += ['--platform',platform]
-        run=subprocess.run(args,capture_output=True,text=True)
+        run=__import__('scripts.core.state', fromlist=['run']).run(args,capture_output=True,text=True)
         composition_ok=run.returncode==0
         if not composition_ok:failure='Composición no disponible: '+(run.stderr or run.stdout)[-2000:]
     from scripts.tools.gallery import snapshot
@@ -105,6 +107,7 @@ def prepare(P):
     return report
 
 
+@mutating
 def apply(P, report, dry_run=False, reprocess=False):
     original=(P/'storyboard.json').read_bytes();sb=json.loads(original)
     receipt=P/'work/cutout-review/substitutions.json'

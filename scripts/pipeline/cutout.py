@@ -58,7 +58,7 @@ def subject_top(path, kind):
 
     import numpy as np
     dec = ["-c:v", "libvpx-vp9"] if kind == "webm" else []  # el decodificador nativo ignora la transparencia
-    r = subprocess.run([oslib.FFMPEG, "-v", "error", *dec, "-i", str(path), "-frames:v", "1",
+    r = __import__('scripts.core.state', fromlist=['run']).run([oslib.FFMPEG, "-v", "error", *dec, "-i", str(path), "-frames:v", "1",
                         "-f", "rawvideo", "-pix_fmt", "rgba", "-"], capture_output=True)
     if r.returncode or not r.stdout:
         return None
@@ -115,6 +115,9 @@ def main():
     ap.add_argument("--project", required=True)
     args = ap.parse_args()
     P = oslib.project_dir(args.project)
+    if True:
+        from scripts.core.state import hold
+        hold(P)
     sb = oslib.read_json(P / "storyboard.json")
     res = ensure(P, sb)
     oslib.emit({"ok": True, "cutouts": {k: {**v, "file": str(v["file"])} for k, v in res.items()}})

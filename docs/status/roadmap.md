@@ -11,7 +11,7 @@
 | 7. Derivados | Versión corta, clips, portadas y copy automáticos; X | ⏳ |
 | 8. Datos reales | Formatos que animan resultados reales | ⏳ |
 | 9. YouTube | Shorts y video horizontal largo | ⏳ |
-| 10. Público | Repo abierto (Apache-2.0), instalación y demo en inglés y español | ✅ Repo abierto; versión actual v0.13.0-alpha |
+| 10. Público | Repo abierto (Apache-2.0), instalación y demo en inglés y español | ✅ Repo abierto; versión actual v0.13.1-alpha |
 
 Cada fase de entrega se cierra cuando una pieza real la usa y pasa `verify.py`.
 

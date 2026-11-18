@@ -142,6 +142,9 @@ def main():
     args = ap.parse_args()
 
     P = oslib.project_dir(args.project)
+    if True:
+        from scripts.core.state import hold
+        hold(P)
     if args.refresh_from_cut:
         if args.pause is not None or args.platform or args.kinds != "camara":
             ap.error("--refresh-from-cut usa las opciones del JSON; no admite opciones de generación")

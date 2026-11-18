@@ -20,6 +20,8 @@ ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT))
 from scripts.core import editlib, oslib  # noqa: E402
 
+from scripts.core.beat_selection import pick
+
 HF = ROOT / "node_modules" / ".bin" / "hyperframes"
 EVERY = {"beat": 1, "half": 2, "bar": 4, "2bars": 8}
 
@@ -129,14 +131,6 @@ def ensure(P, sb, ch=None, source=None):
     return data
 
 
-def pick(beats_data, a, b, every):
-    """Golpes del tramo [a, b) según `every` (beat, half, bar, 2bars)."""
-    if every in ("bar", "2bars"):
-        src, step = beats_data["downbeats"], 1 if every == "bar" else 2
-    else:
-        src, step = beats_data["beats"], EVERY[every]
-    inside = [t for t in src if a <= t < b]
-    return inside[::step]
 
 
 def main():

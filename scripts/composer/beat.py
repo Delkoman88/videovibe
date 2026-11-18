@@ -4,7 +4,7 @@ late o se sacude en los golpes, y una capa de destello (`#beatflash`) debajo de 
 Los movimientos de cámara (`camera.moves`) siguen en `#cam`; los golpes van en la envoltura, así nunca
 animan la misma propiedad del mismo elemento. Sin `beat_fx`, no se genera nada.
 """
-from scripts.pipeline.beats import pick
+from scripts.core.beat_selection import pick
 
 ROLES = ("accent", "accent2", "accent3")
 

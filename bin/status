@@ -21,8 +21,8 @@ from scripts.core import reviewlib  # noqa: E402
 
 
 def load(P):
-    f = P / "status.json"
-    return oslib.read_json(f) if f.exists() else {"stage": None, "history": [], "approvals": {}, "renders": {}}
+    from scripts.core.state import load
+    return load(P)
 
 
 def main():
@@ -45,6 +45,9 @@ def main():
         return
 
     P = oslib.project_dir(args.project)
+    if args.approve:
+        from scripts.core.state import hold
+        hold(P)
     st = load(P)
     if args.approve == 'B' and oslib.read_json(P / 'storyboard.json').get('motion'):
         from scripts.tools.animation_quality import fingerprint as quality_fingerprint
@@ -54,14 +57,25 @@ def main():
             oslib.die('control visual pendiente, desactualizado o con errores', 1)
     if args.approve:
         review = st.get("reviews", {}).get(args.approve)
-        if not review or review.get("fingerprint") != reviewlib.fingerprint(P, args.approve):
+        from scripts.core.integrity import approval_inputs
+        if not review or review.get('inputs') != approval_inputs(P,args.approve) or review.get("fingerprint") != reviewlib.fingerprint(P, args.approve):
             oslib.die(f"revisión {args.approve} ausente o desactualizada; corre bin/review <pieza> --gate {args.approve}", 1)
+        if args.approve == 'B':
+            from scripts.core.integrity import inputs, outputs
+            built=st.get('stages',{}).get('composicion',{})
+            shown=st.get('stages',{}).get('revision',{})
+            if built.get('status') in ('running','failed') or shown.get('status') in ('running','failed') or built.get('outputs') != outputs(P,'composicion') or built.get('inputs')!=inputs(P,'composicion') or shown.get('inputs')!=inputs(P,'revision') or shown.get('outputs')!=outputs(P,'revision'):
+                oslib.die('composición o preview sin evidencia vigente; corre bin/edit',1)
         if any(not Path(path).is_file() for path in review.get("files", [])):
             oslib.die("faltan archivos de la revisión; genéralos y presenta la revisión de nuevo", 1)
         if review.get("decision") in ("adjust", "reject"):
             oslib.die("la revisión pide ajustes o fue rechazada; presenta una versión nueva antes de aprobar", 1)
+        from scripts.core.state import invalidate
+        invalidate(st,args.approve,'nueva aprobación explícita')
         st.setdefault("approvals", {})[args.approve] = {
-            "at": datetime.datetime.now().isoformat(timespec="seconds"), "note": args.note}
+            "at": datetime.datetime.now().isoformat(timespec="seconds"), "note": args.note,
+            "version": 2, "inputs": __import__('scripts.core.integrity',fromlist=['approval_inputs']).approval_inputs(P,args.approve),
+            "presentation": reviewlib.fingerprint(P,args.approve)}
         review["decision"] = "approved"
         if st.get("pending") == f"aprobación {args.approve}":
             st.pop("pending", None)

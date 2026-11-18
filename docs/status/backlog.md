@@ -5,6 +5,10 @@
 
 ## P1
 
+- [ ] Reducir lecturas repetidas de huellas en originales grandes; conservar comprobaciones frescas antes/después de render y entrega.
+- [ ] Validar la corrección de integridad en WSL; pruebas macOS no equivalen a portabilidad.
+- [ ] Implementar y validar delegación de trabajadores en Windows nativo; actualmente falla explícitamente y recomienda WSL.
+
 - [ ] **Portabilidad de dirección v2:** ejecutar la versión nueva en WSL y los jobs remotos macOS/Ubuntu.
   La prueba técnica local está cerrada y no requiere aprobación B ni entrega editorial, según la
   aclaración de la persona. El canal musical privado no forma parte de esta prueba nueva
@@ -62,6 +66,8 @@
 - [ ] Respaldo remoto del repo (GitHub privado o público).
 
 ## Hecho
+
+- [x] Consolidación de integridad (ADR 0036): huellas de aprobación/etapas, bloqueo por pieza, entregas independientes y contratos neutrales. Ver STATUS para validación y límites.
 
 - [x] Revisión editorial previa con evidencia y audio nativo opcional de B-roll (ADR 0035); sin gates ni migración de piezas.
 
@@ -140,3 +146,5 @@
 - 2026-11-11 — Animaciones intercaladas a pantalla completa (sin burbuja); paquete biotech.
 - 2026-11-11 — Fase 2: subtítulos, composición HyperFrames, verificación de entrega.
 - 2026-11-10 — Fase 1: corte automático con revisión A.
+
+- [x] Correcciones de auditoría final: exclusión heredada y reservas de trabajadores, estabilidad de entradas, promoción segura, plataformas y dependencias, documentación de copias versionadas. Validación y límites en STATUS.

@@ -29,3 +29,7 @@ encontrar (más aún con los canales en otra carpeta). Y no había un lugar obvi
   borrar ambos.
 
 Actualización de rutas y organización: [ADR 0019](0019-packages-and-english-paths.md).
+
+## Sustitución del contrato de almacenamiento
+La decisión de usar enlaces duros queda sustituida por ADR 0036: las entregas nuevas son copias
+independientes versionadas. Las carpetas históricas se desacoplan solo mediante migración explícita.

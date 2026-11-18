@@ -41,7 +41,7 @@ def filter_script_args(path):
     """Argumentos para pasar un grafo de filtros desde archivo: ffmpeg ≥ 7 usa `-/filter_complex <archivo>`
     (ffmpeg 9 quitó -filter_complex_script); ffmpeg 6 (p. ej. Ubuntu 24.04) solo entiende -filter_complex_script."""
     if FFMPEG not in _FILTER_ARGS:
-        r = subprocess.run([FFMPEG, "-hide_banner", "-version"], capture_output=True, text=True)
+        r = __import__('scripts.core.state', fromlist=['run']).run([FFMPEG, "-hide_banner", "-version"], capture_output=True, text=True)
         major = ffmpeg_major((r.stdout or "").splitlines()[0] if r.stdout else "")
         _FILTER_ARGS[FFMPEG] = "-filter_complex_script" if major is not None and major < 7 else "-/filter_complex"
     return [_FILTER_ARGS[FFMPEG], str(path)]
@@ -52,7 +52,7 @@ TONEMAP_SDR = ("zscale=t=linear:npl=100,format=gbrpf32le,zscale=p=bt709,tonemap=
 
 
 def has_filter(name):
-    out = subprocess.run([FFMPEG, "-hide_banner", "-filters"], capture_output=True, text=True).stdout
+    out = __import__('scripts.core.state', fromlist=['run']).run([FFMPEG, "-hide_banner", "-filters"], capture_output=True, text=True).stdout
     return any(line.split()[1:2] == [name] for line in out.splitlines() if len(line.split()) > 1)
 
 
@@ -84,17 +84,16 @@ def read_json(path):
 
 
 def write_json(path, obj):
-    path = Path(path)
-    path.parent.mkdir(parents=True, exist_ok=True)
-    tmp = path.with_suffix(path.suffix + ".tmp")
-    with open(tmp, "w", encoding="utf-8") as f:
-        json.dump(obj, f, ensure_ascii=False, indent=2)
-        f.write("\n")
-    tmp.replace(path)
+    from scripts.core.state import atomic, lock
+    if Path(path).name == 'status.json':
+        from scripts.core.state import save
+        save(Path(path).parent,obj)
+        return
+    atomic(path, (json.dumps(obj, ensure_ascii=False, indent=2)+'\n').encode())
 
 
 def run(cmd, **kw):
-    r = subprocess.run(cmd, capture_output=True, text=True, **kw)
+    r = __import__('scripts.core.state', fromlist=['run']).run(cmd, capture_output=True, text=True, **kw)
     if r.returncode != 0:
         die(f"falló: {' '.join(map(str, cmd[:3]))}…\n{r.stderr[-1500:]}", 2)
     return r.stdout
@@ -212,23 +211,23 @@ def font_file(ch, key):
 def update_status(P, stage, **info):
     """Registra en <pieza>/status.json la etapa alcanzada (lo leen bin/status y cualquier agente)."""
     import datetime
-    f = Path(P) / "status.json"
-    st = read_json(f) if f.exists() else {"stage": None, "history": [], "approvals": {}, "renders": {}}
-    now = datetime.datetime.now().isoformat(timespec="seconds")
-    previous_stage = st.get("stage")
-    if "pending" in info:
-        st["pending"] = info["pending"]
-    elif previous_stage != stage:
-        st.pop("pending", None)
-    st["stage"] = stage
-    st["updated"] = now
-    st["history"].append({"stage": stage, "at": now, **({"info": info} if info else {})})
-    st["history"] = st["history"][-40:]
-    if "renders" in info:
-        st["renders"].update(info["renders"])
-    if "delivery" in info:
-        st["delivery"] = info["delivery"]  # carpeta de entregas (scripts/pipeline/deliver.py)
-    write_json(f, st)
+    from scripts.core.state import transaction
+    with transaction(P) as st:
+        now = datetime.datetime.now().isoformat(timespec="seconds")
+        previous_stage = st.get("stage")
+        if "pending" in info:
+            st["pending"] = info["pending"]
+        elif previous_stage != stage:
+            st.pop("pending", None)
+        st["stage"] = stage
+        st["updated"] = now
+        st["history"].append({"stage": stage, "at": now, **({"info": info} if info else {})})
+        st["history"] = st["history"][-40:]
+        if "renders" in info:
+            st["renders"].update(info["renders"])
+        if "delivery" in info:
+            st["delivery"] = info["delivery"]  # carpeta de entregas (scripts/pipeline/deliver.py)
+
 
 
 def load_preset(name):
@@ -246,7 +245,7 @@ def ffprobe(path):
 def load_audio(path, sr=SR):
     """Audio mono float32 a `sr` Hz desde cualquier archivo que lea ffmpeg."""
     import numpy as np
-    raw = subprocess.run(
+    raw = __import__('scripts.core.state', fromlist=['run']).run(
         [FFMPEG, "-v", "error", "-i", str(path), "-vn", "-ac", "1", "-ar", str(sr), "-f", "f32le", "-"],
         capture_output=True, check=True).stdout
     return np.frombuffer(raw, dtype=np.float32)

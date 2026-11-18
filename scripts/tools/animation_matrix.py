@@ -48,12 +48,12 @@ def run(channel='science-60', profiles=('restrained','balanced','energetic'), na
             times=[round(s['in']+offset,3) for s in sb['scenes'] for offset in (.1,2,seconds*.7,seconds-.1)]
             options=out/'options.json';oslib.write_json(options,{'times':times,'duration':seconds*len(names)})
             cmd=['node',str(oslib.ROOT/'scripts/tools/animation_quality.mjs'),str(hf),str(out/'storyboard.json'),str(options)]
-            qa=subprocess.run(cmd,capture_output=True,text=True,timeout=3600)
+            qa=__import__('scripts.core.state', fromlist=['run']).run(cmd,capture_output=True,text=True,timeout=3600)
             if qa.returncode:raise ValueError(qa.stderr[-2500:])
             forward=json.loads(qa.stdout);oslib.write_json(out/'quality.json',forward)
             forward_dir=out/'forward';shutil.rmtree(forward_dir,ignore_errors=True);shutil.copytree(hf/'quality',forward_dir)
             oslib.write_json(options,{'times':list(reversed(times)),'duration':seconds*len(names)})
-            reverse=subprocess.run(cmd,capture_output=True,text=True,timeout=3600)
+            reverse=__import__('scripts.core.state', fromlist=['run']).run(cmd,capture_output=True,text=True,timeout=3600)
             if reverse.returncode:raise ValueError(reverse.stderr[-2500:])
             json.loads(reverse.stdout)
             for scene in sb['scenes']:

@@ -52,6 +52,9 @@ def main():
     args = ap.parse_args()
 
     P = oslib.project_dir(args.project)
+    if True:
+        from scripts.core.state import hold
+        hold(P)
     cut = oslib.read_json(P / "cut" / "cut-list.json")
     ch = oslib.load_channel(P)
     canvas = oslib.load_preset(args.platform)["canvas"]

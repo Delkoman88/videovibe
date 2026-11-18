@@ -32,3 +32,15 @@ actualiza esa ruta. Las variables de entorno se mantienen bajo control de quien 
 
 Configuración de la carpeta de originales: `local.json → input_dir` o `$VIDEOVIBE_INPUT`. Los nombres
 anteriores (`material_dir`, `$VIDEOVIBE_MATERIAL`) siguen valiendo.
+
+## Integridad de etapas y entregas (ADR 0036)
+A/B se vinculan a contenido y presentación; cambios relevantes requieren revisión. Aprobaciones
+antiguas sin evidencia se conservan como historia, pero requieren revisión al reanudar. Consultar
+estado no migra archivos. Las etapas guardan huellas de entradas/salidas; copia y portada no invalidan B.
+Entregas nuevas: `deliveries/<Canal>/<pieza>/versions/<huella>/`, copias independientes con manifiesto;
+`current.json` indica la versión actual y bin/edit abre su ruta. No se sobrescriben versiones previas.
+
+Para desacoplar enlaces duros antiguos sin cambiar sus bytes ni rutas:
+`python -m scripts.tools.migrate_deliveries --directory <carpeta>` simula; añadir `--apply` ejecuta.
+Repetir el comando reanuda el diario `.detach-journal.json`. Rechaza enlaces simbólicos inesperados
+y conflictos. Desacoplar no certifica la aprobación histórica. No hay migración automática.

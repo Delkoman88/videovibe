@@ -1,11 +1,46 @@
 # Estado del sistema
 
 > Foto actual del motor. La actualiza el agente al cerrar cada sesión de desarrollo.
-> Última actualización: 2026-11-17 · versión `v0.13.0-alpha`.
+> Última actualización: 2026-11-17 · versión `v0.13.1-alpha`.
 
-La clasificación sigue siendo **alpha**: hay entregas reales verificadas y 271 pruebas correctas,
+La clasificación sigue siendo **alpha**: hay entregas reales verificadas y 288 pruebas correctas,
 pero faltan la validación de la dirección v2 actual en WSL/CI remoto, otros agentes y más evaluación
 editorial real. La cobertura técnica no equivale a calidad editorial garantizada.
+
+## Consolidación de integridad — v0.13.1-alpha
+
+### Correcciones de la auditoría final
+
+Se corrigieron los seis hallazgos: bloqueo heredado y reservas de grupos POSIX; comprobación de
+entradas estables antes del éxito; B vinculada a la composición compilada; temporales únicos y
+validación antes de reemplazar finales; recibos v3 por plataformas y dependencias de subtítulos;
+documentación canónica de entregas sin instrucciones contradictorias.
+Validación actual: **288 tests correctos** (239.130 s), privacidad incluida, más 10 pruebas focalizadas
+correctas de revisión tras exigir evidencia de salidas de composición. Seis regresiones nuevas
+cubren los cinco fallos técnicos y liberación normal de trabajadores. Concurrencia con procesos
+reales; mutaciones durante composición/render inyectadas de forma determinista en fixtures.
+No se generó una nueva entrega audiovisual de una pieza personal en esta corrección.
+Windows nativo rechaza ejecución delegada hasta implementar y validar el mecanismo equivalente;
+WSL queda pendiente de validación. No se migraron entregas históricas.
+Evidencia local: `work/integrity-audit/corrections/`.
+
+### Evidencia de la consolidación anterior
+
+Aprobaciones v2 vinculadas a entradas y presentación; registros históricos sin evidencia requieren
+revisión al reanudar, sin escritura en consultas. Estado con valores estructurales por defecto,
+transacciones y bloqueo por pieza del sistema operativo. Etapas con huellas de entradas/salidas;
+render final temporal y comprobación de B antes de reemplazar el resultado.
+Entregas nuevas independientes y versionadas, con hashes, recibo de verificación y current.json;
+migración explícita para desacoplar enlaces duros antiguos. Contratos puros extraídos de compositor,
+pipeline y herramientas, con prueba estática de límites entre paquetes. ADR 0036.
+Validación: **282 tests en verde** (297.045 s), incluido el guardián de datos personales.
+Copia aislada con composición, preview y finales nuevos: TikTok/Reels verificados y entregados;
+sobrescribir el render de origen no modifica la copia entregada (SHA-256 idéntico). Al restaurarlo,
+`bin/edit --plan` confirma entregable sin etapas pendientes. Corte/transcripción reutilizados como
+fixture, aprobaciones simuladas: no constituye nueva aceptación editorial. Evidencia local:
+`work/integrity-audit/`. No se migraron entregas de producción durante aquel ensayo.
+Windows nativo y WSL no ejecutados en esta sesión. Las huellas se recalculan por contenido;
+queda optimizar lecturas repetidas de originales grandes sin debilitar la detección de cambios.
 
 ## Revisión editorial previa y audio nativo — v0.13.0-alpha
 

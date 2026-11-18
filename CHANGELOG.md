@@ -1,5 +1,21 @@
 # Changelog
 
+## 0.13.1-alpha — 2026-11-17 · consolidación de integridad
+
+- Validación de correcciones: 288 pruebas correctas, seis regresiones nuevas y guardián de datos personales.
+- Corrección de auditoría: trabajadores POSIX heredan el bloqueo y reservan sus grupos; ejecución delegada Windows nativa bloqueada explícitamente hasta validación.
+- Cambios concurrentes invalidan etapas antes del éxito; B incluye la composición compilada y los renders temporales se promueven solo tras comprobar estabilidad.
+- Recibos v3 con plataformas y evidencia individual de renders; dependencias de marca, idioma, vocabulario, audio y modelos.
+- Reagrupación de subtítulos desde la transcripción vigente; instrucciones canónicas de entrega unificadas.
+
+- Aprobaciones ligadas a entradas y presentación; registros antiguos requieren revisión al reanudar.
+- Estado normalizado, temporales únicos y bloqueo por pieza del sistema operativo.
+- Huellas por contenido y evidencia de etapas; contratos comunes separados de composición y herramientas.
+- Entregas versionadas independientes, recibos de verificación y migración explícita de enlaces antiguos.
+- Validación local: 282 tests; copia aislada verificada para TikTok/Reels y prueba de independencia de entrega.
+- Windows/WSL y optimización de lecturas repetidas de huellas quedan pendientes.
+
+
 ## 0.13.0-alpha — 2026-11-17
 
 ### revisión editorial previa y audio nativo de B-roll

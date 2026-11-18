@@ -96,6 +96,8 @@ class TestReview(unittest.TestCase):
         (self.P / "media.json").write_text(json.dumps({"items": [{"id": "s", "file": "raw/s.mp4"}]}))
         for name in ("renders/draft-tiktok.mp4", "snaps/contact-sheet.jpg", "snaps/phone-s.png", "raw/s.mp4"):
             (self.P / name).write_bytes(b"video")
+        from scripts.core import state, integrity
+        state.update(self.P,stages={k:{'inputs':integrity.inputs(self.P,k),'outputs':integrity.outputs(self.P,k)} for k in ('composicion','revision')})
         info = reviewlib.present(self.P, "B", no_open=True)
         self.assertEqual(len(info["files"]), 3)
         self.assertEqual(len(info["questions"]), 4)

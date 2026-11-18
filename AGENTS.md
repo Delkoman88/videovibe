@@ -68,7 +68,7 @@ Precedencia: **pieza (brief) > canal > motor**, salvo estas reglas universales.
 | `channels/<canal>/` (o la carpeta de `local.json`) | Perfil del canal (`channel.json`, `CHANNEL.md`, `style.md`, `rhythm.md`, `topics.md`, `brand.json`, `vocabulary.txt`, `learnings.md`) y sus piezas en `projects/` |
 | `channels/<canal>/projects/<fecha>-<slug>/` | Una pieza: `raw/`, `brief.md`, cortes, `storyboard.json`, `hf/`, `renders/`, `status.json` |
 | `input/` | Originales de la persona: deja ahí sus videos; `bin/new-piece … --from <nombre>` los busca ahí (fuera de git) |
-| `deliveries/` | Finales verificados por canal y pieza (`deliveries/<Canal>/<fecha> <pieza>/`): enlaces a los renders + portada, texto y `README.md`. Los llena `bin/edit` al entregar; dile siempre a la persona la ruta (fuera de git) |
+| `deliveries/` | Finales verificados por canal y pieza (`deliveries/<Canal>/<fecha> <pieza>/`): copias independientes en `versions/<huella>/` + portada, texto y `README.md`; `current.json` indica la versión vigente. Los llena `bin/edit` al entregar; dile siempre a la persona la ruta (fuera de git) |
 | `channels/_template/`, `channels/science-60/` | Esqueleto para canales nuevos (`bin/new-channel`) y canal de ejemplo (`bin/demo`) |
 | `scripts/` | Paquetes `pipeline/`, `audio/`, `core/`, `composer/`, `validation/`, `tools/`, `tests/`. Pipeline (ver `docs/pipeline.md`). `--project` acepta `<canal>/<pieza>`. `compose.py` orquesta `scripts/composer/` (visual, audio, créditos, placa) |
 | `formats/` | Animaciones: `core.py` (genéricas) + `packs/` (temáticas), `vendors.py` (librerías opcionales), `icons/` (Lucide). Catálogo: `docs/formats.md`; galería: `bin/format-gallery` |

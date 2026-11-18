@@ -238,6 +238,9 @@ def main():
     args = ap.parse_args()
 
     P = oslib.project_dir(args.project)
+    if True:
+        from scripts.core.state import hold
+        hold(P)
     master = P / "cut" / "master-cut.mp4"
     if not master.exists():
         oslib.die("falta cut/master-cut.mp4: corre scripts/pipeline/apply_cut.py")

@@ -51,7 +51,7 @@ def log(msg):
 
 
 def run(cmd, env, check=True, quiet=False):
-    r = subprocess.run([str(c) for c in cmd], env=env, cwd=ROOT, capture_output=True, text=True)
+    r = __import__('scripts.core.state', fromlist=['run']).run([str(c) for c in cmd], env=env, cwd=ROOT, capture_output=True, text=True)
     if check and r.returncode not in (0,):
         print(r.stdout[-3000:], r.stderr[-3000:], file=sys.stderr)
         sys.exit(1)
@@ -62,15 +62,15 @@ def synth_voice(text, lang, out_wav):
     """Voz sintética: macOS `say` (con pausas [[slnc]]) o espeak-ng (las pausas se vuelven comas)."""
     forced = os.environ.get("VIDEOVIBE_DEMO_TTS")  # say | espeak (por defecto: el que haya)
     if shutil.which("say") and forced != "espeak":
-        voices = subprocess.run(["say", "-v", "?"], capture_output=True, text=True).stdout
+        voices = __import__('scripts.core.state', fromlist=['run']).run(["say", "-v", "?"], capture_output=True, text=True).stdout
         v = next((x for x in VOICES[lang] if x in voices), None)
         aiff = out_wav.with_suffix(".aiff")
-        subprocess.run(["say", *(["-v", v] if v else []), "-o", str(aiff), text], check=True)
+        __import__('scripts.core.state', fromlist=['run']).run(["say", *(["-v", v] if v else []), "-o", str(aiff), text], check=True)
         return aiff
     if shutil.which("espeak-ng"):
         import re
         plain = re.sub(r"\[\[slnc \d+\]\]", ",", text)
-        subprocess.run(["espeak-ng", "-v", lang, "-s", "150", "-w", str(out_wav), plain], check=True)
+        __import__('scripts.core.state', fromlist=['run']).run(["espeak-ng", "-v", lang, "-s", "150", "-w", str(out_wav), plain], check=True)
         return out_wav
     sys.exit("Para la demo hace falta una voz sintética: macOS `say` o Linux `espeak-ng` (apt install espeak-ng).")
 

@@ -2,7 +2,7 @@
 
 **Edición de video vertical guiada por agentes de IA.** · [English](README.md)
 
-> **v0.13.0-alpha.** Entregas reales en varios canales, incluida Ubuntu/WSL, y 271 pruebas correctas en la última validación local. La dirección de animaciones actual aún requiere validación en WSL y CI remoto. Consulta el [estado y las limitaciones](docs/status/STATUS.md).
+> **v0.13.1-alpha.** Entregas reales en varios canales, incluida Ubuntu/WSL, y 288 pruebas correctas en la última validación local. La consolidación de integridad está validada localmente en macOS; faltan WSL y CI remoto. La ejecución delegada en Windows nativo está bloqueada actualmente. Consulta el [estado y las limitaciones](docs/status/STATUS.md).
 
 Aportas tomas a cámara, B-roll o grabaciones de pantalla. Le pides a tu agente (Claude Code, Codex, Gemini CLI…) que edite una pieza para tu canal.
 VideoVibe hace el resto con scripts deterministas y se detiene dos veces para que **tú** apruebes:
@@ -113,3 +113,10 @@ Issues y pull requests bienvenidos: [CONTRIBUTING.md](CONTRIBUTING.md).
 [Apache-2.0](LICENSE). Componentes de terceros y sus licencias: [NOTICE](NOTICE).
 Arquitectura inspirada en el kit «WeAreNoCode YouTube Editor» (reglas + scripts deterministas +
 storyboard JSON + revisiones humanas); no reutiliza su contenido.
+
+## Integridad de aprobaciones y entregas
+
+Las aprobaciones nuevas vinculan el contenido revisado, además de su fecha. Reanudar una pieza antigua
+sin evidencia suficiente requiere otra revisión; consultar el estado no la migra. Las entregas nuevas
+son copias independientes en `deliveries/<Canal>/<pieza>/versions/<huella>/`; el agente abre esa versión.
+Los enlaces duros antiguos se desacoplan explícitamente mediante la [guía de migración](docs/migration.md).

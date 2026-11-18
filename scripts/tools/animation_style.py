@@ -62,7 +62,7 @@ def main():
         if not P:oslib.die('--snapshot requiere --project')
         profile=ch['brand'].get('motion',{}).get('profile')
         if not profile:oslib.die('selecciona un perfil para el canal primero')
-        from scripts.core.animationanchors import snapshot
+        from scripts.tools.animation_snapshot import snapshot
         try: result = snapshot(P, resolve(profile), dry_run=args.dry_run)
         except ValueError as e: oslib.die(str(e))
         oslib.emit(result)
@@ -91,7 +91,7 @@ def main():
         except ValueError:oslib.die((r.stdout+r.stderr)[-1000:])
         if r.returncode or not report.get('ok'):oslib.die(f'preview {profile}: check falló: {r.stdout[-1000:]}')
         checks[profile]=report
-        qa=subprocess.run(['node',str(ROOT/'scripts/tools/animation_quality.mjs'),str(hf),str(hf.parent/'storyboard.json')],capture_output=True,text=True,timeout=600)
+        qa=__import__('scripts.core.state', fromlist=['run']).run(['node',str(ROOT/'scripts/tools/animation_quality.mjs'),str(hf),str(hf.parent/'storyboard.json')],capture_output=True,text=True,timeout=600)
         if qa.returncode:oslib.die('control del preview falló: '+qa.stderr[-1000:])
         quality=json.loads(qa.stdout)
         if not quality['ok']:oslib.die('corrige el preview antes de presentarlo: '+json.dumps(quality['issues'],ensure_ascii=False))
@@ -100,7 +100,7 @@ def main():
         r=gallery._hf(['render','-q','draft','--sdr','-o',str(video)],hf)
         if r.returncode or not video.exists():oslib.die(f'preview {profile}: {r.stderr[-1000:]}')
         phone = hf.parent/'phone-preview.mp4'
-        result = subprocess.run([oslib.FFMPEG,'-v','error','-y','-i',str(video),'-vf','scale=360:640',
+        result = __import__('scripts.core.state', fromlist=['run']).run([oslib.FFMPEG,'-v','error','-y','-i',str(video),'-vf','scale=360:640',
                                  '-c:v','libx264','-crf','20','-c:a','aac',str(phone)],capture_output=True,text=True)
         if result.returncode: oslib.die('preview de teléfono falló: '+result.stderr[-600:])
         previews[profile]=str(phone.resolve())

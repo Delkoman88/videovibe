@@ -12,6 +12,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT))
+from scripts.core import integrity, reviewlib
 from scripts.core import editlib  # noqa: E402
 from scripts.tests.support import say_voice_available  # noqa: E402
 
@@ -59,8 +60,10 @@ class TestEditLogic(unittest.TestCase):
         self.piece_until_paper_cut()
         self.assertEqual(editlib.next_action(self.P, {}, ["tiktok"])["pause"]["pending"], "aprobación A")
         st = {"approvals": {"A": {"at": iso(self.now - 60)}}}
+        for gate, approval in st.get('approvals', {}).items():
+            approval.update(version=2, inputs=integrity.approval_inputs(self.P,gate), presentation=reviewlib.fingerprint(self.P,gate))
         self.assertEqual(editlib.next_action(self.P, st, ["tiktok"])["run"], "corte-aplicado")
-        touch(self.P / "cut" / "cut-list.json", self.now)  # editado tras aprobar
+        (self.P / "cut" / "cut-list.json").write_text('{"changed":true}')  # contenido modificado
         act = editlib.next_action(self.P, st, ["tiktok"])
         self.assertIn("cambió", act["pause"]["reason"])
 
@@ -68,6 +71,8 @@ class TestEditLogic(unittest.TestCase):
         self.piece_until_paper_cut()
         touch(self.P / "media.json", self.now)  # una ingesta reescribe media.json
         st = {"approvals": {"A": {"at": iso(self.now - 60)}}}
+        for gate, approval in st.get('approvals', {}).items():
+            approval.update(version=2, inputs=integrity.approval_inputs(self.P,gate), presentation=reviewlib.fingerprint(self.P,gate))
         self.assertEqual(editlib.next_action(self.P, st, ["tiktok"])["run"], "corte-aplicado")
 
     def test_storyboard_gate_and_platforms(self):
@@ -76,18 +81,24 @@ class TestEditLogic(unittest.TestCase):
         self.assertEqual(editlib.gate("storyboard", self.P, {})["pending"], "storyboard")
 
     def test_B_invalidated_by_storyboard_change(self):
-        touch(self.P / "storyboard.json", self.now)
-        st = {"approvals": {"B": {"at": iso(self.now - 30)}}}
-        self.assertEqual(editlib.gate("B", self.P, st)["pending"], "aprobación B")
-        st = {"approvals": {"B": {"at": iso(self.now + 5)}}}
-        self.assertIsNone(editlib.gate("B", self.P, st))
+        touch(self.P / 'storyboard.json', text='{}')
+        st={'approvals':{'B':{'at':iso(self.now-30)}}}
+        self.assertEqual(editlib.gate('B',self.P,st)['pending'],'aprobación B')
+        st['approvals']['B'].update(version=2,inputs=integrity.approval_inputs(self.P,'B'),presentation=reviewlib.fingerprint(self.P,'B'))
+        self.assertIsNone(editlib.gate('B',self.P,st))
+        stamp=(self.P/'storyboard.json').stat().st_mtime
+        (self.P/'storyboard.json').write_text('{"changed":true}')
+        os.utime(self.P/'storyboard.json',(stamp,stamp))
+        self.assertEqual(editlib.gate('B',self.P,st)['pending'],'aprobación B')
 
     def test_B_invalidated_by_broll_source_change(self):
         P, t = self.P, self.now
-        touch(P / "storyboard.json", t - 50, json.dumps({"broll": [{"source": "screen"}]}))
+        touch(P / "storyboard.json", t - 50, json.dumps({"broll": [{"id":"screen", "source": "screen"}]}))
         touch(P / "media.json", t - 40, json.dumps({"items": [{"id": "screen", "file": "raw/screen.mp4"}]}))
         source = touch(P / "raw" / "screen.mp4", t - 30, "old")
         st = {"approvals": {"B": {"at": iso(t - 20)}}}
+        for gate, approval in st.get('approvals', {}).items():
+            approval.update(version=2, inputs=integrity.approval_inputs(self.P,gate), presentation=reviewlib.fingerprint(self.P,gate))
         self.assertIsNone(editlib.gate("B", P, st))
         source.write_text("new")
         os.utime(source, (t, t))
@@ -157,7 +168,9 @@ class TestEditEndToEnd(unittest.TestCase):
             self.assertEqual([x["stage"] for x in r3["ran"]], ["corte-aplicado", "subtitulos"])
             self.assertEqual(r3["paused"], "storyboard")
             time.sleep(1.1)
-            os.utime(P / "cut" / "cut-list.json")  # cambio del corte tras aprobar
+            f=P/'cut/cut-list.json'
+            data=json.loads(f.read_text());data['pause_s']=data.get('pause_s',.25)+.1
+            f.write_text(json.dumps(data))  # cambio real del corte tras aprobar
             r4 = edit()
             self.assertEqual(r4["paused"], "aprobación A")
             self.assertIn("cambió", r4["reason"])

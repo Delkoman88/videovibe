@@ -94,7 +94,7 @@ El flujo de producción conserva A, B y `verify.py`.
 | 9 | Render final | `npx hyperframes render -q delivery --sdr --variables-file variables/<plat>.json -o ../renders/<plat>.mp4` | `renders/<plataforma>.mp4` (con `bin/edit`, solo las plataformas cuyo contenido cambió) |
 | 10 | Copy, portadas, clips | agente redacta el copy; portada con `scripts/pipeline/cover.py` (cuadro del gancho o `--at`) | `copy/`, `covers/`, `captions/<plat>.srt`, `clips.json`, `faltantes.md`, `assets.md` |
 | 11 | Verificación de entrega | `scripts/pipeline/verify.py` ✅ — lienzo, fps, códec, BT.709, −14 LUFS, pico, duración, archivos | exit 1 = no entregar |
-| 12 | Carpeta de entregas | `scripts/pipeline/deliver.py` ✅ — enlaces (o copias si no se puede) en `deliveries/<Canal>/<fecha> <pieza>/` + `README.md`; `bin/edit` la abre | ruta absoluta en `status.json → delivery` |
+| 12 | Carpeta de entregas | `scripts/pipeline/deliver.py` ✅ — copias independientes en `deliveries/<Canal>/<fecha> <pieza>/versions/<huella>/` + `README.md`; `bin/edit` la abre | ruta absoluta en `status.json → delivery` |
 
 ## Pasos manuales (referencia: lo que `bin/edit` ejecuta)
 
@@ -213,3 +213,29 @@ anteriores si no declara otro; el historial se conserva. Consultar `bin/status` 
 Antes de componer propuestas nuevas, aplicar la revisión con evidencia de docs/editorial.md.
 El compositor prepara B-roll visual y, si audio.enabled, extrae su sonido sincronizado; valida
 intervalo y conserva silencios. Véanse docs/audio.md y docs/storyboard.md. A/B no cambian.
+
+## Integridad de etapas y entregas (ADR 0036)
+A/B se vinculan a contenido y presentación; cambios relevantes requieren revisión. Aprobaciones
+antiguas sin evidencia se conservan como historia, pero requieren revisión al reanudar. Consultar
+estado no migra archivos. Las etapas guardan huellas de entradas/salidas; copia y portada no invalidan B.
+Entregas nuevas: `deliveries/<Canal>/<pieza>/versions/<huella>/`, copias independientes con manifiesto;
+`current.json` indica la versión actual y bin/edit abre su ruta. No se sobrescriben versiones previas.
+
+Para desacoplar enlaces duros antiguos sin cambiar sus bytes ni rutas:
+`python -m scripts.tools.migrate_deliveries --directory <carpeta>` simula; añadir `--apply` ejecuta.
+Repetir el comando reanuda el diario `.detach-journal.json`. Rechaza enlaces simbólicos inesperados
+y conflictos. Desacoplar no certifica la aprobación histórica. No hay migración automática.
+
+
+### Recuperación e integridad de etapas
+
+Los recibos v3 incluyen plataformas y huellas de entradas/salidas. El render conserva además evidencia
+por plataforma y comprueba B y sus entradas antes de promover un temporal único. Cambios concurrentes
+invalidan la operación; el final anterior no se reemplaza. B vincula también la composición generada.
+Cambiar las reglas de subtítulos reagrupa la transcripción vigente sin descartar correcciones.
+
+Los trabajadores POSIX heredan el bloqueo y registran su grupo de procesos. Tras morir el orquestador,
+la pieza continúa ocupada mientras queden trabajadores. Las reservas de grupos terminados se limpian
+al adquirir el bloqueo; una reserva ambigua no se elimina por antigüedad. No borrar manualmente locks
+para forzar una ejecución concurrente. Windows nativo rechaza ejecución delegada hasta validar un
+mecanismo equivalente; usar WSL, cuya validación de esta consolidación sigue pendiente.

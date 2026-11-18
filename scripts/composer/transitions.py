@@ -10,10 +10,7 @@ import math
 from formats.core import esc
 from formats.text import plain
 
-KINDS = ("flash", "light-leak", "scribble", "word-wall", "glitch", "zoom-lines")
-DEFAULT_DURATION = 0.7
-SFX = {"flash": "impact", "light-leak": "whoosh", "scribble": "whoosh", "word-wall": "click", "glitch": "zap",
-       "zoom-lines": "whoosh"}
+from scripts.core.transition_contract import KINDS, DEFAULT_DURATION, SFX
 W, H = 1080, 1920
 
 CSS = """

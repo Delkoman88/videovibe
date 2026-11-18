@@ -32,7 +32,7 @@ def main():
                    beat_data={'beats':[1,2,3],'downbeats':[1],'bpm':60})
         options=out/'options.json';oslib.write_json(options,{'times':[.2,2,3.8,4.1,5.6,6.8,7.8],'duration':8})
         def measure():
-            r=subprocess.run(['node',str(oslib.ROOT/'scripts/tools/animation_quality.mjs'),str(hf),str(out/'storyboard.json'),str(options)],capture_output=True,text=True,timeout=300)
+            r=__import__('scripts.core.state', fromlist=['run']).run(['node',str(oslib.ROOT/'scripts/tools/animation_quality.mjs'),str(hf),str(out/'storyboard.json'),str(options)],capture_output=True,text=True,timeout=300)
             if r.returncode: raise ValueError(r.stderr[-1500:])
             return json.loads(r.stdout)
         good=measure();oslib.write_json(out/'quality.json',good)
