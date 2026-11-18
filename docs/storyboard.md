@@ -56,7 +56,7 @@ siguiendo el canal (`CHANNEL.md`, `style.md`, `rhythm.md`, `brand.json`) y el br
 | `transitions` | Transiciones que tapan un corte: `flash`, `light-leak`, `scribble`, `word-wall`, `glitch`, `zoom-lines` | Ver `docs/effects.md`. `at` en el corte o el borde de una escena; ≥ 1.5 s entre una y otra; 2–4 por pieza |
 | `caption_zones` | Tramos donde los subtítulos cambian de posición | Para no tapar rostro, manos o equipo. Posiciones: `upper-left` y `upper-center`. Los tramos deben ir en orden y no solaparse; fuera de ellos se conserva el preset de plataforma. |
 | `overlays` | Tarjetas en la franja superior (`title`, `card`, `tag`, `cta`) | Una a la vez; nunca sobre la cara; 4–6 s; texto de ≥ 30 px; la `cta` usa el texto de `platforms.<plat>.cta_text`. `text_fx` (`rise`, `wave`, `blur`, `mask`) arma el texto letra por letra (no en la `cta`); `*palabra*` no aplica aquí |
-| `broll` | Insertos de video mudo sobre la cámara; `source` es un id de `media.json` con `kind=broll` o `kind=pantalla` | `in`/`out` son segundos del master; `source_in` indica dónde empieza el archivo fuente. No se solapan; pueden cubrir `tail_s` para sostener el último encuadre bajo la CTA. `fit=cover` recorta horizontal a vertical con `focus_x`/`focus_y` (0–100); `contain` muestra el cuadro completo con fondo. `origin` y `license` son obligatorios; `ads:true` si hay plataforma de anuncio. El audio original del inserto se descarta y la voz aprobada continúa. |
+| `broll` | Insertos de video sobre la cámara, mudos por defecto; `source` es un id de `media.json` con `kind=broll` o `kind=pantalla` | `in`/`out` son segundos del master; `source_in` indica dónde empieza el archivo fuente. No se solapan; pueden cubrir `tail_s` para sostener el último encuadre bajo la CTA. `fit=cover` recorta horizontal a vertical con `focus_x`/`focus_y` (0–100); `contain` muestra el cuadro completo con fondo. `origin` y `license` son obligatorios; `ads:true` si hay plataforma de anuncio. Audio opcional mediante `audio.enabled`; la voz aprobada continúa. Ver Sonido original del B-roll. |
 | `platforms` | Lo que cambia por plataforma | Hoy: `cta_text`. Se pasa al render como variable |
 | `audio` | Música con ducking y efectos | Ver «Sonido» |
 | `grading` | Corrección de color (`hyperframes media-treatment`) | Solo corrección natural (`rhythm.md` del canal). Partir de `media-treatment --analyze` |
@@ -187,3 +187,31 @@ Después de re-transcribir, revisar `emphasis` (compose.py falla si un id no exi
 
 Densidad orientativa (de `rhythm.md` del canal): un elemento nuevo (tarjeta o movimiento de
 cámara) cada 3–5 s como máximo, y tramos de respiro solo con la persona y subtítulos.
+
+## Coherencia narrativa
+
+Consulta [criterio editorial](editorial.md) y `story-plan.md` si existe antes de elegir recursos. El plan auxiliar no cambia el esquema ni sustituye las revisiones A/B.
+
+La revisión de recortes y sus alternativas se describe en [efectos](effects.md#inspección-y-alternativas-automáticas).
+No agrega claves obligatorias al storyboard. Los metadatos de lectura y los dictámenes viven en
+`hf/reading-windows.json` y `work/cutout-review/`, respectivamente, con huellas de sus entradas.
+
+## Sonido original del B-roll
+
+Cada inserto admite `audio: {"enabled": true, "gain_db": -8, "fade_in": 0.08,
+"fade_out": 1.2, "duck_db": -12}`. Omitir audio o enabled conserva el comportamiento mudo.
+Al activarlo, defaults: −8 dB de ganancia, fundidos 0.08/0.25 s y −12 dB adicionales durante
+voz del corte (duck_db: 0 desactiva atenuación). Es ganancia relativa a la fuente, no LUFS objetivo.
+Se extrae el primer flujo de audio con el mismo source_in y duración de la imagen, a WAV estéreo
+48 kHz, sin recortar silencios ni normalizar como SFX. No requiere kit ni tiene límite de 4 s.
+El video permanece mudo internamente para no duplicar sonido; el compositor incorpora su pista.
+No reemplaza diálogo, cambia palabras o habilita voz de pantalla como fuente del corte.
+
+Ganancia: −60 a +12 dB; atenuación: −60 a 0 dB; números finitos. Fundidos explícitos no negativos
+cuya suma no exceda el inserto; defaults se reducen al espacio disponible. Una fuente sin audio o
+con intervalo insuficiente detiene la composición. La música conserva sus controles actuales:
+ajustarla explícitamente si se quiere destacar el sonido de cierre. Los fundidos se aplican una sola
+vez; si el archivo ya los trae, configurar ambos a cero. Derechos registrados en assets.md.
+
+Cambiar fuente, intervalo o ajustes exige recomposición y revisión B vigente. Caché por contenido;
+el audio generado participa en huellas de revisión y render. No se migran automáticamente SFX existentes.

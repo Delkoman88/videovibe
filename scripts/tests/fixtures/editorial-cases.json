@@ -1,0 +1,109 @@
+[
+  {
+    "id": "science-es",
+    "request": "Organiza esta toma de divulgación para explicar el resultado preliminar.",
+    "audience": "personas sin formación técnica",
+    "cta": "comprender",
+    "lines": [
+      [
+        "L1",
+        "No hemos demostrado eficacia.",
+        0,
+        2
+      ],
+      [
+        "L2",
+        "Observamos una señal preliminar en dos muestras.",
+        3,
+        6
+      ]
+    ],
+    "expected": "Conservar la negación y el carácter preliminar; ninguna promesa clínica.",
+    "proposal": "Gancho L1 (toma 0–2); desarrollo L2 (3–6); cierre sin añadir resultados. Mantener ambas líneas. Imagen: dos muestras etiquetadas como ilustración, no prueba de eficacia."
+  },
+  {
+    "id": "music-en",
+    "request": "Plan a performance clip without sales copy.",
+    "audience": "listeners",
+    "cta": "listen",
+    "lines": [
+      [
+        "L1",
+        "This is an improvised session.",
+        0,
+        2
+      ]
+    ],
+    "expected": "No sales CTA or invented release date; respect performance.",
+    "proposal": "Open with the supplied performance; keep the introduction L1 (take 0–2). Preserve musical phrases. Copy: “An improvised session. Listen.” Missing: performance audio for exact edit points; no timestamps invented."
+  },
+  {
+    "id": "tutorial-es",
+    "request": "Explica cómo exportar usando esta pantalla.",
+    "audience": "principiantes",
+    "cta": "practicar",
+    "lines": [
+      [
+        "L1",
+        "Abre el menú Archivo.",
+        0,
+        2
+      ],
+      [
+        "L2",
+        "Elige Exportar.",
+        3,
+        5
+      ]
+    ],
+    "expected": "Mostrar interfaz real y pasos en orden; no inventar éxito de exportación.",
+    "proposal": "Mantener L1 (toma 0–2) y L2 (3–5). B-roll: menú real y opción Exportar en esos bloques del corte por resolver. Falta la captura; no sustituirla por una interfaz inventada. Copy: “Dónde encontrar Exportar”."
+  },
+  {
+    "id": "retake-en",
+    "request": "Remove the false start while keeping the meaning.",
+    "audience": "learners",
+    "cta": "understand",
+    "lines": [
+      [
+        "L1",
+        "It works—",
+        0,
+        1
+      ],
+      [
+        "L2",
+        "It does not work without calibration.",
+        2,
+        5
+      ]
+    ],
+    "expected": "Drop false start, keep complete negative statement; no word splicing.",
+    "proposal": "Drop L1 (take 0–1), reason: incomplete attempt. Keep L2 (2–5), complete condition. Inspect the audio at both boundaries before A. Title: “Calibration is required”."
+  },
+  {
+    "id": "preproduction-es",
+    "request": "Prepara un guion sobre comparar dos mezclas; todavía no grabé.",
+    "audience": "aprendices de música",
+    "cta": "escuchar diferencias",
+    "lines": [],
+    "expected": "Guion propuesto, sin pruebas inventadas ni ejecución del pipeline.",
+    "proposal": "story-plan: pregunta “¿Qué cambia entre estas dos mezclas?”; presentar A y B y dejar espacio de escucha; cierre invitando a describir diferencias. script: “Escucha estas dos versiones. ¿Qué notas?” Material previsto: mezclas propias con licencia. No afirmar mejoras antes de oírlas; no ejecutar bin/edit."
+  },
+  {
+    "id": "point-edit-en",
+    "request": "For an approved piece, change only the title from “A test” to “A preliminary test”.",
+    "audience": "research audience",
+    "cta": "unchanged",
+    "lines": [
+      [
+        "L1",
+        "This result is preliminary.",
+        0,
+        2
+      ]
+    ],
+    "expected": "Change only requested title; no new plan or cut, preserve approvals unless executable visual changes.",
+    "proposal": "Title: “A preliminary test”. Leave the narrative and cut unchanged. If this is an on-screen title, update only that overlay and use existing B invalidation/review; if publication copy, update only copy. Clarify destination before editing if it is unknown."
+  }
+]

@@ -63,6 +63,8 @@ def main():
         st.setdefault("approvals", {})[args.approve] = {
             "at": datetime.datetime.now().isoformat(timespec="seconds"), "note": args.note}
         review["decision"] = "approved"
+        if st.get("pending") == f"aprobación {args.approve}":
+            st.pop("pending", None)
         oslib.write_json(P / "status.json", st)
     shown = str(P.relative_to(oslib.ROOT)) if P.is_relative_to(oslib.ROOT) else str(P)
     print(json.dumps({"ok": True, "pieza": shown, **st}, ensure_ascii=False, indent=2))

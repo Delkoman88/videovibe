@@ -21,6 +21,43 @@ class TestReview(unittest.TestCase):
         (self.P / "cut" / "cut-list.json").write_text(json.dumps({"lines": [
             {"status": "keep", "text": "Hola"}, {"status": "drop", "text": "Eh"}]}))
 
+    def test_custom_questions_are_versioned_and_keep_decision(self):
+        baseline = reviewlib.fingerprint(self.P, 'A')
+        f = self.P / 'review-questions.json'
+        f.write_text(json.dumps({'A': ['¿Gancho?', '¿Fidelidad?']}))
+        packet = reviewlib.present(self.P, 'A', no_open=True)
+        self.assertEqual(len(packet['questions']), 3)
+        self.assertIn('Apruebas', packet['questions'][-1])
+        self.assertNotEqual(baseline, packet['fingerprint'])
+        f.write_text(json.dumps({'A': ['¿Otro gancho?', '¿Fidelidad?']}))
+        approve = [str(ROOT / 'bin/status'), str(self.P), '--approve', 'A']
+        self.assertNotEqual(subprocess.run(approve, capture_output=True).returncode, 0)
+        f.unlink()
+        self.assertEqual(baseline, reviewlib.fingerprint(self.P, 'A'))
+
+    def test_bad_custom_questions_rejected(self):
+        for data in ({'B':['solo una']}, {'C':['a','b']}, {'A':['a','']}):
+            (self.P/'review-questions.json').write_text(json.dumps(data))
+            with self.assertRaises(ValueError): reviewlib.packet(self.P,'A')
+
+    def test_pending_and_readonly_status(self):
+        from scripts.core import oslib
+        oslib.update_status(self.P,'corte-en-papel',pending='aprobación A')
+        reviewlib.present(self.P,'A',no_open=True)
+        status=self.P/'status.json';before=status.read_bytes()
+        cmd=[str(ROOT/'bin/status'),str(self.P)]
+        self.assertEqual(subprocess.run(cmd,capture_output=True).returncode,0)
+        self.assertEqual(before,status.read_bytes())
+        self.assertEqual(subprocess.run(cmd+['--approve','A'],capture_output=True).returncode,0)
+        self.assertNotIn('pending',json.loads(status.read_text()))
+        oslib.update_status(self.P,'corte-en-papel',pending='otra tarea')
+        subprocess.run(cmd+['--approve','A'],capture_output=True,check=True)
+        self.assertEqual(json.loads(status.read_text())['pending'],'otra tarea')
+        oslib.update_status(self.P,'subtitulos')
+        self.assertNotIn('pending',json.loads(status.read_text()))
+        oslib.update_status(self.P,'composicion',pending='revisión B')
+        self.assertEqual(json.loads(status.read_text())['pending'],'revisión B')
+
     def tearDown(self):
         self.tmp.cleanup()
 

@@ -11,11 +11,11 @@
 | 7. Derivados | Versión corta, clips, portadas y copy automáticos; X | ⏳ |
 | 8. Datos reales | Formatos que animan resultados reales | ⏳ |
 | 9. YouTube | Shorts y video horizontal largo | ⏳ |
-| 10. Público | Repo abierto (Apache-2.0), instalación y demo en inglés y español | ⏳ v0.9.0-alpha |
+| 10. Público | Repo abierto (Apache-2.0), instalación y demo en inglés y español | ✅ Repo abierto; versión actual v0.13.0-alpha |
 
 Cada fase de entrega se cierra cuando una pieza real la usa y pasa `verify.py`.
 
 La [dirección de animaciones v2](../animation-direction.md) está implementada en el motor compartido,
-sin nueva etiqueta de versión. Su validación técnica local está cerrada (36 formatos × 3 perfiles); el ensayo aislado
+incluida en v0.13.0-alpha. Su validación técnica local está cerrada (36 formatos × 3 perfiles); el ensayo aislado
 no requiere B ni constituye una entrega editorial. Quedan la ejecución nueva en WSL y los jobs
 remotos macOS/Ubuntu. Resultados y límites: [STATUS](STATUS.md).

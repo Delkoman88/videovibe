@@ -146,3 +146,21 @@ la suite y un render de prueba. Declara el sistema operativo real y conserva evi
 igual desde WSL. `.github/workflows/animation.yml` prepara instalaciones limpias macOS/Ubuntu; que exista
 el workflow no significa que sus jobs remotos ya hayan pasado. Una entrega histórica en WSL no valida
 esta versión nueva. Los resultados y pendientes de la sesión se registran en `docs/status/STATUS.md`.
+
+## Ventanas de lectura y avisos
+
+El compositor escribe `hf/reading-windows.json` como metadato interno. Tarjetas, subtítulos, efectos
+y escenas se evalúan por separado: una escena en movimiento no oculta problemas de otra tarjeta.
+Las máscaras de revelado conocidas y la entrada desde fuera del lienzo se permiten durante transición; el recorte persistente en
+lectura sigue siendo error. Una animación sin intervalo de lectura produce `no_reading_window`.
+Los avisos de zona segura durante movimiento son informativos; durante lectura siguen siendo
+advertencias. El informe agrupa por elemento, texto, causa y fase, conservando primera/última
+ocurrencia y cantidad. Se priorizan errores y advertencias sobre transitorios.
+Regresión pública: `python -m scripts.tools.reliability_scenarios` (revelados y recorte persistente).
+
+Los subtítulos de hasta 0.32 s aparecen sin fundido de línea: las animaciones habituales consumirían
+su intervalo de lectura. Se conservan palabras, marcas de tiempo y estilo; los grupos más largos
+mantienen sus entradas y salidas habituales. Esto se comparte entre compositor y medición.
+
+En `kinetic-title`, la ventana termina al empezar la salida interna del texto y kicker, aunque
+el fundido exterior de la escena empiece después. El recorte durante lectura permanece bloqueante.

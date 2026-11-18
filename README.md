@@ -2,15 +2,16 @@
 
 **Vertical video editing driven by AI coding agents.** · [Español](README.es.md)
 
-> **Status: alpha.** Validated with two real channels, including a delivery from Ubuntu/WSL. The new animation direction upgrade is locally validated on macOS; its WSL and remote CI checks remain pending. Expect rough edges.
+> **v0.13.0-alpha.** Real multi-channel deliveries, including Ubuntu/WSL, and 271 passing tests in the latest local validation. The current animation upgrade still needs WSL and remote CI validation. See [status and limitations](docs/status/STATUS.md) (Spanish).
 
-You record yourself talking to the camera. You ask your agent (Claude Code, Codex, Gemini CLI…) to
-edit it. VideoVibe does the rest with deterministic scripts, and stops twice for **your** approval:
+Bring your camera footage, B-roll or screen recordings. Ask your agent (Claude Code, Codex, Gemini CLI…) to
+edit a piece for your channel. VideoVibe does the rest with deterministic scripts, and stops twice for **your** approval:
 
 1. **Cut** — transcribes locally (whisper.cpp), removes retakes, fillers and silences, and shows you a
    paper cut to approve.
 2. **Visual plan** — subtitles word by word, animations that illustrate what you say, camera moves,
-   color correction, music and sound effects. You approve a draft.
+   color correction, music and sound effects. The agent checks the opening, visual choices and ending
+   before the preview. You approve a draft through a guided review with 3–5 concrete questions.
 3. **Delivery** — one render per platform (TikTok, Reels, ads…), copy and cover, and a technical check
    (resolution, codecs, −14 LUFS loudness) before anything is "done".
 
@@ -27,11 +28,26 @@ edit it. VideoVibe does the rest with deterministic scripts, and stops twice for
   effects on the footage (text behind you, background swap, glow, freeze), beat-synced hits and overlay
   transitions — all in your brand colors, deterministic, and loaded only when a scene uses them.
 - **Animation direction per piece.** Compare restrained, balanced and energetic profiles; reuse narrative objects and anchor animation to spoken words. Automated visual checks support the human review. Existing pieces keep their animation settings. See the [animation direction guide](docs/animation-direction.md) (Spanish).
+- **Storytelling grounded in your footage.** Skills help the agent propose a story from actual sources,
+  check context and continuity, and prepare platform copy. Creative judgment remains subject to your
+  cut and visual-plan approvals; the system does not promise retention gains. See [storytelling](docs/storytelling.md)
+  and [editorial guidance](docs/editorial.md) (Spanish).
+- **B-roll with its own sound.** Reframe supporting footage and screen recordings; optionally retain
+  synchronized source audio with gain, fades and ducking under speech. No separate SFX registration
+  or four-second SFX limit. Existing inserts stay silent unless explicitly enabled.
 - **Sound included.** Voice cleanup measured per recording, music with ducking under your voice,
   synthesized sound effects per channel (or your own recordings), and external-mic sync.
 - **Licensing taken seriously.** Every track and effect records its license; an "ad" version swaps to
   music cleared for paid ads.
 - **Local first.** Transcription, cutting, sound and rendering run on your machine.
+
+## Current limits
+
+The engine is still alpha. Gemini CLI and Muse Code end-to-end validation is pending. Screen-recording
+speech is not yet a source for the spoken cut, sentence reordering is unsupported, and subject cutouts
+can include nearby objects or lose details. Visual checks help identify technical problems; agents
+must inspect cutouts and use conservative alternatives when needed. Covers currently use a video frame.
+Real user feedback is still needed to assess editorial quality across different channels.
 
 ## Quick start
 
@@ -85,6 +101,7 @@ installs them; `bin/doctor` checks them.
 | `AGENTS.md` | Entry point for agents (rules, what to read for each task) |
 | `bin/` | `welcome` (onboarding), `setup`, `demo`, `new-channel`, `new-piece`, `edit` (orchestrator), `status`, `doctor`, `animation-style` (profile previews and proposal snapshots) |
 | `scripts/` | Pipeline: ingest, transcribe, paper cut, apply cut, voice, captions, compose, verify, sound tools |
+| `.agents/skills/` | Editing and storytelling instructions, backed by canonical guides |
 | `formats/` | Animation formats (generic + themed packs) |
 | `channels/` | `_template` (template) and `science-60` (fictional example) |
 | `docs/` | Pipeline, storyboard, sound, channels, decisions (ADRs), state and backlog |

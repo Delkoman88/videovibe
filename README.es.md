@@ -2,15 +2,16 @@
 
 **Edición de video vertical guiada por agentes de IA.** · [English](README.md)
 
-> **Estado: alfa.** Validado con dos canales reales, incluida una entrega desde Ubuntu/WSL. La nueva dirección de animaciones tiene validación local en macOS; sus pruebas nuevas en WSL y CI remoto siguen pendientes. Habrá asperezas.
+> **v0.13.0-alpha.** Entregas reales en varios canales, incluida Ubuntu/WSL, y 271 pruebas correctas en la última validación local. La dirección de animaciones actual aún requiere validación en WSL y CI remoto. Consulta el [estado y las limitaciones](docs/status/STATUS.md).
 
-Te grabas hablando a cámara. Le pides a tu agente (Claude Code, Codex, Gemini CLI…) que lo edite.
+Aportas tomas a cámara, B-roll o grabaciones de pantalla. Le pides a tu agente (Claude Code, Codex, Gemini CLI…) que edite una pieza para tu canal.
 VideoVibe hace el resto con scripts deterministas y se detiene dos veces para que **tú** apruebes:
 
 1. **Corte**: transcribe en local (whisper.cpp), quita retomas, muletillas y silencios, y te muestra un
    corte en papel para aprobar.
 2. **Plan visual**: subtítulos palabra por palabra, animaciones que ilustran lo que dices, movimientos de
-   cámara, corrección de color, música y efectos. Apruebas un borrador.
+   cámara, corrección de color, música y efectos. El agente revisa contexto inicial, recursos y cierre
+   antes del preview. Apruebas un borrador mediante una revisión guiada de 3–5 preguntas concretas.
 3. **Entrega**: un render por plataforma (TikTok, Reels, anuncio…), copy y portada, y una verificación
    técnica (resolución, códecs, volumen −14 LUFS) antes de darlo por terminado.
 
@@ -27,11 +28,26 @@ VideoVibe hace el resto con scripts deterministas y se detiene dos veces para qu
   CC0), efectos sobre la toma (texto detrás de ti, fondo cambiado, halo, congelado), golpes al ritmo de la
   música y transiciones — con los colores de tu marca, deterministas y cargados solo si una escena los usa.
 - **Dirección de animaciones por pieza.** Compara perfiles sobrio (`restrained`), equilibrado (`balanced`) y enérgico (`energetic`); reutiliza objetos narrativos y ancla movimientos a palabras. El control visual automático apoya la revisión humana. Las piezas existentes conservan su configuración. Consulta la [guía de dirección de animaciones](docs/animation-direction.md).
+- **Storytelling basado en tus tomas.** Las skills ayudan al agente a proponer una historia con fuentes
+  reales, revisar contexto y continuidad, y preparar el copy. El criterio creativo sigue sujeto a tus
+  aprobaciones del corte y del plan visual; no se promete mejorar la retención. Consulta las guías de
+  [storytelling](docs/storytelling.md) y [criterio editorial](docs/editorial.md).
+- **B-roll con sonido propio.** Reencuadra tomas de apoyo y capturas de pantalla; conserva opcionalmente
+  su audio sincronizado, con ganancia, fundidos y atenuación durante la voz. Sin registrarlo como SFX
+  ni heredar el límite de cuatro segundos del kit. Los insertos existentes permanecen mudos salvo activación explícita.
 - **Sonido incluido.** Limpieza de voz medida en cada grabación, música que baja sola bajo tu voz,
   efectos sintetizados por canal (o grabados por ti) y sincronía con micrófono externo.
 - **Licencias en serio.** Cada pista y efecto registra su licencia; la versión «anuncio» cambia a música
   apta para publicidad pagada.
 - **Local primero.** Transcripción, corte, sonido y render corren en tu máquina.
+
+## Límites actuales
+
+El motor sigue en alfa. Falta validar el flujo completo con Gemini CLI y Muse Code. La voz de una
+grabación de pantalla aún no alimenta el corte hablado y no se admite reordenar frases. El recorte de
+personas puede incluir objetos cercanos o perder detalles: el agente debe inspeccionarlo y usar
+alternativas conservadoras cuando corresponda. El QA visual comprueba problemas técnicos; las
+portadas actuales son cuadros del video. La calidad editorial requiere más evaluación real por canal.
 
 ## Inicio rápido
 
@@ -83,6 +99,7 @@ macOS o Linux · ffmpeg (con `zscale` para el HDR de los teléfonos) · whisper.
 | `AGENTS.md` | Entrada para agentes (reglas, qué leer según la tarea) |
 | `bin/` | `welcome` (primeros pasos), `setup`, `demo`, `new-channel`, `new-piece`, `edit` (orquestador), `status`, `doctor`, `animation-style` (comparación de perfiles y propuestas) |
 | `scripts/` | Pipeline: ingesta, transcripción, corte, voz, subtítulos, composición, verificación, sonido |
+| `.agents/skills/` | Instrucciones de edición y storytelling, apoyadas en guías canónicas |
 | `formats/` | Formatos de animación (genéricos + paquetes temáticos) |
 | `channels/` | `_template` y `science-60` (ejemplo ficticio) |
 | `docs/` | Pipeline, storyboard, sonido, canales, decisiones, estado y pendientes |

@@ -16,3 +16,5 @@ Una vez por pieza:
 - [ ] `assets.md` — fuente y licencia de todo lo usado
 - [ ] Guardarraíles de contenido del canal (`CHANNEL.md`) revisados en títulos, subtítulos y copy
 - [ ] `scripts/pipeline/verify.py` en verde y `bin/status` con aprobaciones A y B
+
+Criterio de títulos y copy: [guía editorial](../docs/editorial.md). `story-plan.md` y `script.md` son auxiliares de trabajo, no requisitos nuevos para entregar piezas existentes.

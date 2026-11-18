@@ -17,6 +17,10 @@ La pausa por defecto sale de presets/<platform>.json (pacing.pause_after_sentenc
 Salida JSON en stdout. Exit 0 ok, 2 error.
 """
 import argparse
+import json
+import math
+import os
+import tempfile
 import sys
 from pathlib import Path
 
@@ -30,15 +34,123 @@ def fmt(t):
     return f"{int(t // 60)}:{t % 60:05.2f}"
 
 
+def render_paper(P, out_lines, total_src, est, pause, sugerencias):
+    md = [f"# Corte en papel — {P.name}", "",
+          f"Duración original **{total_src:.1f} s** → corte estimado **{est:.1f} s** "
+          f"(−{100 * (1 - est / total_src):.0f} %). Pausa tras cada línea: {pause} s.", "",
+          "## Líneas", ""]
+    for ln in out_lines:
+        rng = f"`{ln['src']} {fmt(ln['start'])}–{fmt(ln['end'])}`"
+        if ln["status"] == "keep":
+            md.append(f"- **{ln['id']}** ✅ {rng} {ln['text']}")
+        else:
+            why = ln["reason"] + (f" (se conserva {ln['kept_as']})" if ln.get("kept_as") else "")
+            md.append(f"- **{ln['id']}** ❌ {rng} ~~{ln['text']}~~ — _{why}_")
+    md += ["", "## Sugerencias (no aplicadas)", ""]
+    md += [f"- {s}" for s in sugerencias] or ["- Ninguna."]
+    md += ["", "## Cómo responder", "",
+           "En lenguaje natural, por ejemplo: «conserva L2 en vez de L3», «quita L7», «deja más pausa después de L5»,",
+           "«corrige la transcripción de L4: dice BLAST». El agente edita `cut/cut-list.json` y corre `scripts/pipeline/apply_cut.py`.", ""]
+    return "\n".join(md)
+
+
+
+def refresh_from_cut(P):
+    """Regenera solo la vista legible; valida todas las entradas antes de escribir."""
+    def read(path):
+        return json.loads(path.read_text(encoding="utf-8"))
+
+    def number(value):
+        return type(value) in (int, float) and math.isfinite(value)
+
+    try:
+        cut = read(P / "cut/cut-list.json")
+        media = read(P / "media.json")["items"]
+        sources = cut["sources"]
+        lines = cut["lines"]
+        pause = cut["pause_s"]
+        if cut.get("version") != 1 or not isinstance(sources, list) or not sources:
+            raise ValueError("sources/version inválidos")
+        if any(not isinstance(src, str) or Path(src).name != src or src in (".", "..") for src in sources):
+            raise ValueError("id de fuente inválido")
+        if len(set(sources)) != len(sources) or not number(pause) or pause < 0:
+            raise ValueError("fuentes duplicadas o pausa inválida")
+        if not isinstance(lines, list) or not lines:
+            raise ValueError("no hay líneas")
+        durations, islands = {}, {}
+        for src in sources:
+            matches = [m for m in media if m["id"] == src]
+            if len(matches) != 1 or not number(matches[0]["duration_s"]) or matches[0]["duration_s"] <= 0:
+                raise ValueError(f"fuente ausente o duración inválida: {src}")
+            durations[src] = matches[0]["duration_s"]
+            spans = read(P / "transcript" / f"{src}.json")["islands"]
+            if not isinstance(spans, list):
+                raise ValueError(f"islands inválidas: {src}")
+            last = 0
+            for span in spans:
+                if (not isinstance(span, list) or len(span) != 2 or not all(number(n) for n in span)
+                        or not 0 <= last <= span[0] < span[1] <= durations[src]):
+                    raise ValueError(f"islands inválidas: {src}")
+                last = span[1]
+            islands[src] = spans
+        ids, previous = set(), (-1, -1)
+        for line in lines:
+            if (not isinstance(line["id"], str) or not line["id"] or line["id"] in ids
+                    or line["src"] not in sources or line["status"] not in ("keep", "drop")
+                    or not all(isinstance(line[k], str) for k in ("text", "reason"))
+                    or not all(number(line[k]) for k in ("start", "end"))
+                    or not 0 <= line["start"] < line["end"] <= durations[line["src"]]):
+                raise ValueError("línea inválida, duplicada o fuera de la fuente")
+            current = (sources.index(line["src"]), line["start"])
+            if current < previous:
+                raise ValueError("reordenamiento de líneas no soportado")
+            previous = current
+            ids.add(line["id"])
+        for line in lines:
+            if "kept_as" in line and line["kept_as"] not in ids:
+                raise ValueError("kept_as no referencia una línea existente")
+        if not any(line["status"] == "keep" for line in lines):
+            raise ValueError("ninguna línea conservada")
+        segments = cutlib.build_segments(lines, islands, pause)
+        estimate = sum(seg["out"] - seg["in"] for seg in segments)
+        content = render_paper(P, lines, sum(durations.values()), estimate, pause,
+                               ["Vista regenerada desde cut-list.json; no se reejecutaron heurísticas."])
+    except (OSError, ValueError, KeyError, TypeError) as exc:
+        raise ValueError(f"No se pudo actualizar el corte en papel: {exc}") from exc
+    target = P / "cut/PAPER-CUT.md"
+    temp = None
+    try:
+        with tempfile.NamedTemporaryFile(mode="w", encoding="utf-8", dir=target.parent,
+                                         prefix=".paper-cut-", delete=False) as stream:
+            temp = Path(stream.name)
+            stream.write(content)
+        os.replace(temp, target)
+    finally:
+        if temp is not None:
+            temp.unlink(missing_ok=True)
+    return {"ok": True, "review": str(target), "estimated_s": round(estimate, 2),
+            "next": "Reanuda bin/edit para presentar la revisión A vigente."}
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--project", required=True)
     ap.add_argument("--pause", type=float, help="silencio conservado tras cada línea (s)")
     ap.add_argument("--platform", help="toma la pausa del preset de esta plataforma")
     ap.add_argument("--kinds", default="camara", help="tipos de toma que entran al corte (coma)")
+    ap.add_argument("--refresh-from-cut", action="store_true", help="regenera PAPER-CUT.md sin alterar el JSON ni sus decisiones")
     args = ap.parse_args()
 
     P = oslib.project_dir(args.project)
+    if args.refresh_from_cut:
+        if args.pause is not None or args.platform or args.kinds != "camara":
+            ap.error("--refresh-from-cut usa las opciones del JSON; no admite opciones de generación")
+        try:
+            result = refresh_from_cut(P)
+        except ValueError as exc:
+            oslib.die(str(exc))
+        oslib.emit(result)
+        return
     ch = oslib.load_channel(P)
     lang = ch["lang"]
     suggest = {cutlib.norm(x) for x in lang["fillers_suggest"]}
@@ -95,23 +207,8 @@ def main():
            "lines": out_lines}
     oslib.write_json(P / "cut" / "cut-list.json", cut)
 
-    md = [f"# Corte en papel — {P.name}", "",
-          f"Duración original **{total_src:.1f} s** → corte estimado **{est:.1f} s** "
-          f"(−{100 * (1 - est / total_src):.0f} %). Pausa tras cada línea: {pause} s.", "",
-          "## Líneas", ""]
-    for ln in out_lines:
-        rng = f"`{ln['src']} {fmt(ln['start'])}–{fmt(ln['end'])}`"
-        if ln["status"] == "keep":
-            md.append(f"- **{ln['id']}** ✅ {rng} {ln['text']}")
-        else:
-            why = ln["reason"] + (f" (se conserva {ln['kept_as']})" if ln.get("kept_as") else "")
-            md.append(f"- **{ln['id']}** ❌ {rng} ~~{ln['text']}~~ — _{why}_")
-    md += ["", "## Sugerencias (no aplicadas)", ""]
-    md += [f"- {s}" for s in sugerencias] or ["- Ninguna."]
-    md += ["", "## Cómo responder", "",
-           "En lenguaje natural, por ejemplo: «conserva L2 en vez de L3», «quita L7», «deja más pausa después de L5»,",
-           "«corrige la transcripción de L4: dice BLAST». El agente edita `cut/cut-list.json` y corre `scripts/pipeline/apply_cut.py`.", ""]
-    (P / "cut" / "PAPER-CUT.md").write_text("\n".join(md), encoding="utf-8")
+    (P / "cut" / "PAPER-CUT.md").write_text(
+        render_paper(P, out_lines, total_src, est, pause, sugerencias), encoding="utf-8")
 
     oslib.update_status(P, "corte-en-papel", pending="aprobación A")
     oslib.emit({"ok": True, "lines": len(out_lines),

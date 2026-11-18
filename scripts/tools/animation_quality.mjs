@@ -14,6 +14,8 @@ const sb=JSON.parse(fs.readFileSync(storyboard,'utf8'));
 const options=optionsPath?JSON.parse(fs.readFileSync(optionsPath,'utf8')):{};
 const out=path.join(hf,'quality');fs.mkdirSync(out,{recursive:true});
 const total=options.duration ?? Math.max(0,...(sb.scenes||[]).map(s=>s.out));
+const windowFile=path.join(hf,'reading-windows.json');
+const windows=fs.existsSync(windowFile)?JSON.parse(fs.readFileSync(windowFile,'utf8')):{};
 const times=new Set();
 function sample(t){if(t>=0&&t<total)times.add(Math.round(t*1000)/1000);}
 for(let t=.05;t<total;t+=.5)sample(t);
@@ -21,6 +23,7 @@ for(const list of [sb.scenes,sb.overlays,sb.fx,sb.beat_fx,sb.transitions, option
  for(const s of list||[]) for(const t of [s.in,s.out,s.at]) if(typeof t==='number')for(const delta of [-.04,.04,.25])sample(t+delta);
 for(const s of sb.scenes||[])if(s.format==='narrative-sequence')
  for(const [i,step] of s.params.steps.entries())for(const delta of [.04,.6])sample(s.in+(step.at??i*(s.out-s.in)/s.params.steps.length)+delta);
+for(const w of Object.values(windows))for(const t of [w.read_start+.02,(w.read_start+w.read_end)/2,w.read_end-.02])sample(t);
 const failures=[],issues=[],frames=[],measurements=[];let sampleIndex=0;const capturedIssues=new Set();
 let browser,server;
 try {
@@ -39,14 +42,7 @@ try {
  const sorted=options.times||[...times].sort((a,b)=>a-b);
  for(const time of sorted){
   await seekCompositionTimeline(page,time,{waitForImagesMs:5000});
-  const active=(sb.scenes||[]).filter(s=>s.in<=time&&time<s.out);
-  const reading=active.every(s=>{
-   const enter=sb.motion?.enter_s??.5,leave=sb.motion?.exit_s??.25;
-   if(time<s.in+enter+Math.min(1.5,Math.max(.5,(s.out-s.in)*.2))||time>s.out-leave)return false;
-   if(s.format==='narrative-sequence')return s.params.steps.every((step,i)=>Math.abs(time-s.in-(step.at??i*(s.out-s.in)/s.params.steps.length))>.55);
-   return true;
-  });
-  const measured=await page.evaluate(({time,reading,safe})=>{
+  const measured=await page.evaluate(({time,windows,safe})=>{
    const result=[],texts=[], textNodes=[];
    const visible=el=>{for(let n=el;n;n=n.parentElement){const s=getComputedStyle(n);if(s.display==='none'||s.visibility==='hidden'||Number(s.opacity)<.15)return false;}return true;};
    const roots=[document];for(let i=0;i<roots.length;i++)for(const e of roots[i].querySelectorAll('*'))if(e.shadowRoot)roots.push(e.shadowRoot);
@@ -69,15 +65,23 @@ try {
     if(b.width<1||b.height<1)continue;
     const id=e.id||e.closest('[id]')?.id||e.tagName;
     const text=nodes.map(n=>n.textContent).join('').trim();
-    const add=(level,code,message)=>result.push({level,code,path:id,time,message,text:text.slice(0,100)});
-    const leaf={id,text,x:b.x,y:b.y,w:b.width,h:b.height,font:parseFloat(style.fontSize)};texts.push(leaf);textNodes.push({element:e,box:b,id,text});
-    if(!reading)continue;
-    if(b.left<-.5||b.right>1080.5||b.top<-.5||b.bottom>1920.5)add('error','canvas_clip','texto fuera del lienzo');
+    let owner=e, w; while(owner){if(windows[owner.id]){w=windows[owner.id];break;}owner=owner.parentElement || owner.getRootNode()?.host;}
+    const reading=!w || (time>=w.read_start && time<=w.read_end);
+    const phase=reading?'reading':time<w.read_start?'enter':'exit';
+    const add=(level,code,message)=>result.push({level,code,path:id,time,phase,message,text:text.slice(0,100)});
+    if(w && w.read_end<=w.read_start)add('error','no_reading_window','la animación no deja tiempo de lectura');
+    const leaf={id,text,x:b.x,y:b.y,w:b.width,h:b.height,font:parseFloat(style.fontSize)};texts.push(leaf);textNodes.push({element:e,box:b,id,text,reading});
+    if(reading && (b.left<-.5||b.right>1080.5||b.top<-.5||b.bottom>1920.5))add('error','canvas_clip','texto fuera del lienzo');
     for(let p=e.parentElement;p;p=p.parentElement){const ps=getComputedStyle(p);if(['hidden','clip'].includes(ps.overflow)||['hidden','clip'].includes(ps.overflowX)){
-      const r=p.getBoundingClientRect();if(b.left<r.left-1||b.right>r.right+1||b.top<r.top-1||b.bottom>r.bottom+1){add('error','container_clip','texto recortado por contenedor');break;}
+      // The composition canvas is already checked above during this element's reading window.
+      // Entering from outside it is intentional; arbitrary inner containers remain strict.
+      const r=p.getBoundingClientRect();
+      const canvasRoot=(p.hasAttribute('data-composition-id') || p.hasAttribute('data-hf-inner-root') || ['BODY','HTML'].includes(p.tagName)) && Math.abs(r.left)<.5 && Math.abs(r.top)<.5 && Math.abs(r.right-1080)<.5 && Math.abs(r.bottom-1920)<.5;
+      const intentional=Boolean(w && (canvasRoot || (w.mask && p.classList.contains('kw'))));
+      if((reading || !intentional) && (b.left<r.left-1||b.right>r.right+1||b.top<r.top-1||b.bottom>r.bottom+1)){add('error','container_clip','texto recortado por contenedor');break;}
     }}
     if(parseFloat(style.fontSize)<28)add('warning','phone_size','texto menor a 28px: revisar legibilidad en teléfono');
-    if(safe&&(b.left<safe.left-1||b.right>1080-safe.right+1||b.top<safe.top-1||b.bottom>1920-safe.bottom+1))add('warning','safe_zone','texto fuera de la zona segura de plataforma');
+    if(safe&&(b.left<safe.left-1||b.right>1080-safe.right+1||b.top<safe.top-1||b.bottom>1920-safe.bottom+1))add(reading?'warning':'info','safe_zone','texto fuera de la zona segura de plataforma');
     // Contrast only for measurable opaque backgrounds; video/transparent backgrounds remain manual.
     const rgb=s=>(s.match(/[\d.]+/g)||[]).map(Number);
     let bg;for(let p=e;p;p=p.parentElement){let c=rgb(getComputedStyle(p).backgroundColor);if(c.length===3||(c.length===4&&c[3]===1)){bg=c;break;}}
@@ -99,9 +103,9 @@ try {
       }
     }
    }
-   if(reading){
+   {
     const regions=els.filter(e=>e.matches?.('[data-vv-protected], .cap .line, .ov .panel')&&visible(e));
-    for(const t of textNodes)for(const region of regions){
+    for(const t of textNodes.filter(t=>t.reading))for(const region of regions){
      if(region.contains(t.element)||t.element.contains(region))continue;
      const r=region.getBoundingClientRect(),b=t.box;
      const area=Math.max(0,Math.min(b.right,r.right)-Math.max(b.left,r.left))*Math.max(0,Math.min(b.bottom,r.bottom)-Math.max(b.top,r.top));
@@ -109,8 +113,8 @@ try {
     }
    }
    return {issues:result,texts};
-  },{time,reading,safe:options.safe});
-  issues.push(...measured.issues);measurements.push({time,reading,texts:measured.texts});
+  },{time,windows,safe:options.safe});
+  issues.push(...measured.issues);measurements.push({time,texts:measured.texts});
   // Every sampled state has evidence; caller may render a compact subset for matrix jobs.
   const frame=path.resolve(out,`at-${time.toFixed(3)}.png`);
   const freshIssue=measured.issues.some(i=>i.level==='error'&&!capturedIssues.has(i.code+':'+i.path));
@@ -120,7 +124,9 @@ try {
   }
  }
  if(failures.length)throw new Error([...new Set(failures)].join('\n'));
- const unique=[...new Map(issues.map(i=>[`${i.code}:${i.path}:${i.text}`,i])).values()];
+ const grouped=new Map();
+ for(const i of issues){const key=`${i.code}:${i.path}:${i.text}:${i.phase}`;const old=grouped.get(key);if(old){old.last_time=i.time;old.occurrences++;}else grouped.set(key,{...i,first_time:i.time,last_time:i.time,occurrences:1});}
+ const unique=[...grouped.values()].sort((a,b)=>({error:0,warning:1,info:2}[a.level]-{error:0,warning:1,info:2}[b.level]));
  fs.writeFileSync(path.join(out,'measurements.json'),JSON.stringify(measurements));
  process.stdout.write(JSON.stringify({version:2,runtime:version,ok:!unique.some(i=>i.level==='error'),issues:unique,frames,
   visual_review:'pending',samples:sorted.length,coverage:['production runtime','scenes','captions','overlays','fx','beat_fx','transitions'],

@@ -11,7 +11,7 @@ import formats
 
 def fingerprint(P):
     h=hashlib.sha256()
-    files = [P/'storyboard.json', P/'hf/index.html', P/'hf/hyperframes.json',
+    files = [oslib.ROOT/'scripts/composer/timing.py', oslib.ROOT/'scripts/composer/reading.py', oslib.ROOT/'formats/text.py', P/'hf/reading-windows.json', P/'storyboard.json', P/'hf/index.html', P/'hf/hyperframes.json',
              *sorted((P/'hf/assets').rglob('*')), *sorted((P/'hf/compositions').rglob('*')),
              *sorted((P/'hf/variables').rglob('*')),
              *sorted((oslib.ROOT/'presets').glob('*.json')),

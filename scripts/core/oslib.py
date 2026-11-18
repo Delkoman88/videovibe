@@ -215,6 +215,11 @@ def update_status(P, stage, **info):
     f = Path(P) / "status.json"
     st = read_json(f) if f.exists() else {"stage": None, "history": [], "approvals": {}, "renders": {}}
     now = datetime.datetime.now().isoformat(timespec="seconds")
+    previous_stage = st.get("stage")
+    if "pending" in info:
+        st["pending"] = info["pending"]
+    elif previous_stage != stage:
+        st.pop("pending", None)
     st["stage"] = stage
     st["updated"] = now
     st["history"].append({"stage": stage, "at": now, **({"info": info} if info else {})})

@@ -29,6 +29,12 @@ def validate(sb, state):
             errs.append(f"{p}.in: los insertos deben ir en orden y no solaparse")
         if _num(clip.get("out")):
             previous_out = max(previous_out, clip["out"])
+        if "audio" in clip and _num(clip.get("in")) and _num(clip.get("out")):
+            from scripts.composer.broll_audio import settings
+            try:
+                settings(clip)
+            except ValueError as e:
+                errs.append(f"{p}: {e}")
         source_id = clip.get("source")
         source = ctx.get("media", {}).get(source_id) if isinstance(source_id, str) else None
         if not source or source.get("kind") not in ("broll", "pantalla") or not source.get("width"):

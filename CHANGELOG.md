@@ -1,8 +1,62 @@
 # Changelog
 
-## Próxima versión — dirección de animaciones
+## 0.13.0-alpha — 2026-11-17
 
-Actualización del código; todavía sin una nueva etiqueta de versión.
+### revisión editorial previa y audio nativo de B-roll
+
+- Procedimiento previo al preview con evidencia de promesa, desarrollo, recursos y cierre; sin gates nuevos.
+- Audio original opcional por inserto: intervalo sincronizado, ganancia, fundidos y atenuación durante voz.
+- Extracción sin kit SFX ni límite de cuatro segundos; caché y huellas por contenido. Compatibilidad muda por defecto.
+- ADR 0035; no modifica las entregas aprobadas ni habilita voz de pantalla como corte.
+- Validación: 271 tests correctos, sincronía audiovisual dentro de un cuadro y copia real verificada para TikTok/Reels.
+
+### extractos audiovisuales breves
+
+- Herramienta de extracción de video y audio con intervalo/fundidos compartidos, sin sobrescribir originales.
+- Cierre con B-roll y sonido aportado sincronizado mediante las capacidades existentes, hasta 4 s.
+- Guía y límites documentados; no habilita reordenamiento de diálogo ni voz de pantalla. ADR 0034.
+- Tercera propuesta del vlog aprobada explícitamente: contexto inicial, efectos temáticos y cierre
+  con sonido original y fundido. Se conservan el corte hablado y los subtítulos.
+- Entrega TikTok/Reels verificada, con portadas, textos y subtítulos; carpeta abierta para el usuario.
+
+### estado y evaluación editorial
+
+- Primera evaluación real del usuario: relato comprensible; solicita más contexto inicial, efectos
+  relacionados con el tema y cierre menos abrupto. Segunda propuesta presentada con esos ajustes;
+  corte y subtítulos conservados. El cierre se ajustó y aprobó en la tercera propuesta.
+
+- Limpieza de pendientes al aprobar o avanzar; consultas de estado sin escritura.
+- La ventana de lectura de kinetic-title respeta su salida interna, anterior al fundido de escena.
+- Preguntas específicas por pieza, incluidas en la huella de revisión y con decisión final obligatoria.
+- Planes narrativos remiten al estado canónico; mantenimiento de referencias sin reescribir propuestas.
+- Evaluación real con respuestas del usuario y ajustes registrados; aprobación explícita tras tres propuestas visuales. ADR 0033.
+
+### fiabilidad visual
+
+- QA con ventanas de lectura por elemento; permite revelados y entradas desde fuera del lienzo,
+  manteniendo el rechazo de texto truncado al asentarse. Agrupa avisos por causa y fase.
+- Subtítulos de hasta 0.32 s sin fundidos de línea, conservando palabras y tiempos.
+- `cutout_review` genera evidencia y sustituye efectos defectuosos/inciertos según el dictamen del
+  agente: tarjetas, etiquetas o toma original. Conserva A, invalida B y muestra los cambios en B.
+- Validación de huellas, archivo del plan previo, ejecución de prueba e idempotencia. Si falta el
+  modelo o la composición, mantiene el dictamen incierto; no certifica la calidad de la máscara.
+- Regresiones públicas sintéticas y ensayo aislado con material real. Sin nuevo modelo ni gate.
+  Guías de efectos, animaciones, storyboard, pipeline y skill reconciliadas; ADR 0032.
+
+### storytelling y criterio editorial
+
+- Skill storytelling para preproducción y material grabado; guías compartidas y copy integrado en edit-video.
+- Adaptaciones editoriales con commits de origen fijados, atribución y licencias conservadas.
+- paper_cut --refresh-from-cut regenera el documento desde decisiones existentes, sin repetir heurísticas ni alterar aprobaciones.
+- Sin reordenamiento de frases, nuevas aprobaciones ni migración de piezas existentes. ADR 0031.
+- Prueba técnica con material real: matriz de 108 combinaciones y suite de 252 pruebas correctas.
+  Documentados límites del recorte junto a objetos y posible falso positivo de QA durante el
+  revelado de letras. Fue evidencia previa a esta corrección; el cambio de modelo sigue pendiente.
+  Sin aprobación editorial implícita.
+
+### Dirección de animaciones
+
+La dirección de animaciones v2, previamente disponible en main, queda incluida en esta versión.
 
 - Documentación canónica reconciliada: README en ambos idiomas (36 formatos y estado multicanal),
   contrato de storyboard, pipeline, canales, instalación, recursos e índice completo de ADR.

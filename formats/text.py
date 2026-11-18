@@ -36,9 +36,19 @@ KINETIC_CSS = """
 """
 
 
+def kinetic_stagger(n_chars):
+    return float(f"{min(0.035, 0.9 / max(n_chars, 1)):.3f}")
+
+
+def kinetic_duration(variant, text):
+    n = len(plain(text))
+    if variant == "mask": return .6 + .07 * max(0, len(text.split())-1)
+    return {"wave": .55, "blur": .5, "rise": .62}[variant] + kinetic_stagger(n) * max(0, sum(len(w) for w in text.split())-1)
+
+
 def kinetic_in(sel, variant, t0, n_chars):
     """Tweens de entrada para el texto de `kinetic` (sel = contenedor)."""
-    st = min(0.035, 0.9 / max(n_chars, 1))
+    st = kinetic_stagger(n_chars)
     if variant == "wave":
         return (f'tl.fromTo("{sel} .ch", {{y: 70, rotation: 14, opacity: 0}}, {{y: 0, rotation: 0, opacity: 1, '
                 f'duration: .55, ease: "back.out(2.2)", stagger: {st:.3f}}}, {t0:.3f});')

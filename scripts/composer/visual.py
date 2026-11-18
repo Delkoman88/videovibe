@@ -1,3 +1,4 @@
+from scripts.composer.timing import caption_enter, caption_exit, CAPTION_IN, CAPTION_OUT, PANEL_IN, LIQUID_IN, LIQUID_SHAPE, OVERLAY_OUT
 """HTML de HyperFrames de una pieza: subtítulos, tarjetas, cámara, escenas e index.html (raíz)."""
 import html
 import json
@@ -64,11 +65,11 @@ def _captions_classic(caps, emphasis, brand, safe, ctx, zones=()):
                       f'data-track-index="0"><p class="line">{" ".join(spans)}</p></div>')
         sel = f'"#{g["id"]} .line"'
         tl.append(f'tl.fromTo({sel}, {{opacity: 0, y: 14, filter: "blur(6px)"}}, '
-                  f'{{opacity: 1, y: 0, filter: "blur(0px)", duration: 0.14, ease: "power3.out"}}, {g["in"]});')
+                  f'{{opacity: 1, y: 0, filter: "blur(0px)", duration: {caption_enter(dur)}, ease: "power3.out"}}, {g["in"]});')
         for wid in g["words"]:
             t = max(words[wid]["start"], g["in"])
             tl.append(f'tl.fromTo("#{wid}", {{opacity: 0.62}}, {{opacity: 1, duration: 0.06, ease: "none"}}, {t:.3f});')
-        tl.append(f'tl.to({sel}, {{opacity: 0, duration: 0.08, ease: "power2.in"}}, {max(g["out"] - 0.08, g["in"]):.3f});')
+        tl.append(f'tl.to({sel}, {{opacity: 0, duration: {caption_exit(dur)}, ease: "power2.in"}}, {max(g["out"] - caption_exit(dur), g["in"]):.3f});')
     role_css = "\n".join(
         f"    .r-{r} {{ color: {col}; text-shadow: 0 0 18px color-mix(in srgb, {col} 55%, transparent), "
         f"0 4px 18px rgba(0,0,0,.7); }}" for r, col in role_color.items())
@@ -117,7 +118,7 @@ def _captions_neon(caps, emphasis, brand, safe, ctx, zones=()):
             cls = f"w r-{role}" if role else "w"
             spans.append(f'<span id="{wid}" class="{cls}">{esc(words[wid]["w"])}</span>')
         dur = round(g["out"] - g["in"], 3)
-        line_in_duration = min(0.14, max(0.02, dur - 0.08))
+        line_in_duration = caption_enter(dur, 'neon')
         groups.append(f'    <div id="{g["id"]}" class="cap clip{zone_class}" data-start="{g["in"]}" data-duration="{dur}" '
                       f'data-track-index="0"><p class="line">{" ".join(spans)}</p></div>')
         sel = f'"#{g["id"]} .line"'
@@ -135,8 +136,8 @@ def _captions_neon(caps, emphasis, brand, safe, ctx, zones=()):
             tl.append(f'tl.to("#{wid}", {{opacity: 1, scale: 1, y: 0, color: "{text_color}", duration: 0.07, '
                       f'textShadow: "0 4px 18px rgba(0,0,0,.78)", overwrite: "auto", '
                       f'ease: "steps(2)"}}, {end:.3f});')
-        tl.append(f'tl.to({sel}, {{opacity: 0, duration: 0.08, overwrite: "auto", ease: "power2.in"}}, '
-                  f'{max(g["out"] - 0.08, g["in"]):.3f});')
+        tl.append(f'tl.to({sel}, {{opacity: 0, duration: {caption_exit(dur)}, overwrite: "auto", ease: "power2.in"}}, '
+                  f'{max(g["out"] - caption_exit(dur), g["in"]):.3f});')
     return f"""<template>
   <style>
     {ctx.font_faces}
@@ -271,23 +272,23 @@ def _overlay_block_liquid(o, indent="    "):
 def _overlay_tweens_panel(o):
     p = f'"#{o["id"]} .panel"'
     tw = [f'tl.fromTo({p}, {{opacity: 0, y: -16, filter: "blur(8px)"}}, '
-          f'{{opacity: 1, y: 0, filter: "blur(0px)", duration: 0.45, ease: "expo.out"}}, {o["in"]});',
+          f'{{opacity: 1, y: 0, filter: "blur(0px)", duration: {PANEL_IN}, ease: "expo.out"}}, {o["in"]});',
           f'tl.fromTo("#{o["id"]} .corner", {{scale: 0.4, opacity: 0}}, '
           f'{{scale: 1, opacity: 1, duration: 0.35, ease: "power3.out", stagger: 0.06}}, {o["in"] + 0.1:.3f});']
     if o["type"] != "cta":
         tw.append(f'tl.to({p}, {{opacity: 0, filter: "blur(6px)", duration: 0.25, ease: "power2.in"}}, '
-                  f'{o["out"] - 0.27:.3f});')
+                  f'{o["out"] - OVERLAY_OUT:.3f});')
     return tw
 
 
 def _overlay_tweens_liquid(o):
     p = f'"#{o["id"]} .panel"'
     tw = [f'tl.fromTo({p}, {{opacity: 0, scale: .82, filter: "blur(10px)"}}, '
-          f'{{opacity: 1, scale: 1, filter: "blur(0px)", duration: 0.48, ease: "expo.out"}}, {o["in"]});',
+          f'{{opacity: 1, scale: 1, filter: "blur(0px)", duration: {LIQUID_IN}, ease: "expo.out"}}, {o["in"]});',
           f'tl.fromTo("#{o["id"]} .orbit", {{rotation: -70, scale: .55}}, '
           f'{{rotation: 86, scale: 1, duration: .82, ease: "expo.out"}}, {o["in"] + .02:.3f});',
           f'tl.fromTo("#{o["id"]} .liquid-main", {{borderRadius: "68% 32% 62% 38% / 38% 64% 36% 62%"}}, '
-          f'{{borderRadius: "42% 58% 48% 52% / 58% 43% 57% 42%", duration: .78, ease: "sine.inOut"}}, {o["in"]:.3f});',
+          f'{{borderRadius: "42% 58% 48% 52% / 58% 43% 57% 42%", duration: {str(LIQUID_SHAPE).lstrip(chr(48))}, ease: "sine.inOut"}}, {o["in"]:.3f});',
           f'tl.fromTo("#{o["id"]} .mini-wave i", {{scaleY: .15, opacity: .2}}, '
           f'{{scaleY: 1, opacity: .85, duration: .22, ease: "steps(3)", stagger: .018}}, {o["in"] + .12:.3f});',
           f'tl.fromTo("#{o["id"]} .liquid-cable path", {{strokeDashoffset: 160}}, '
@@ -298,7 +299,7 @@ def _overlay_tweens_liquid(o):
           f'{{rotation:32,duration:.68,ease:"elastic.out(1,.35)"}}, {o["in"] + .1:.3f});']
     if o["type"] != "cta":
         tw.append(f'tl.to({p}, {{opacity: 0, filter: "blur(6px)", duration: 0.25, ease: "power2.in"}}, '
-                  f'{o["out"] - 0.27:.3f});')
+                  f'{o["out"] - OVERLAY_OUT:.3f});')
     return tw
 
 

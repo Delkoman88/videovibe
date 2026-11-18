@@ -29,11 +29,20 @@
   `storyboard.motion` v2; no bloquea el cierre de la prueba técnica del upgrade ni exige aprobarla.
 ## P2
 
+- [ ] Previews parciales de cambios y métricas automatizadas de revisión (fuera de ADR 0035).
+
+
+- [ ] Evaluar storytelling y criterio editorial con nuevas piezas reales; registrar correcciones por canal y comparar el esfuerzo de revisión. Primer caso real aprobado tras tres propuestas visuales: contexto, pertinencia de efectos y cierre. Continuar con más piezas; no hay medición de retención ni comparación controlada del esfuerzo. Los casos ficticios no sustituyen A/B.
+
 - [ ] **Revisar actualización de HyperFrames**: la versión fijada 0.9.32 arrastra `undici` con avisos de seguridad de npm; probar 0.9.58 y migrar solo si la suite, la demo y una pieza real conservan salida y revisiones.
 
 - [ ] **Transcripción más rápida y con progreso**: sin GPU (sandbox de Codex) 19 s de video tardaron 148 s porque se recarga el modelo en cada tramo; usar whisper-server (modelo cargado una vez) y que `bin/edit` muestre el avance («tramo 3/7»). En la prueba con Codex, el agente fue a leer `transcribe.py` porque no sabía si seguía trabajando.
 
 - [ ] **Recorte de video con memoria entre cuadros**: `u2net_human_seg` (HyperFrames) toma objetos pegados a la persona (respaldo de la silla) como persona en todo el tramo; el estabilizador no puede distinguirlos. Evaluar un modelo de matting de video con licencia compatible (RVM es GPL-3.0: descartado) y medir tiempo por segundo.
+  Confirmado con material exterior (2026-11-17): conserva partes de una moto y pierde zonas de ropa.
+  Fondo, halo y congelado pueden pasar el render y aun fallar visualmente; revisar las máscaras
+  sobre fondo contrastante y sobre la composición antes de recomendar esos efectos.
+  Ya hay inspección con evidencia y sustitución conservadora automática; cambiar el modelo sigue pendiente.
 - [ ] **Versión corta y clips** desde `clips.json` (render por segmentos del master compuesto).
 - [ ] **B-roll y grabaciones de pantalla**: insertos visuales y encuadre de detalle implementados; falta soportar audio/voz de pantalla como fuente del corte hablado.
 - [ ] **Formatos con datos reales**: animar salidas reales (BLAST, tablas, curvas de simulación) en lugar de ilustrativas.
@@ -53,6 +62,19 @@
 - [ ] Respaldo remoto del repo (GitHub privado o público).
 
 ## Hecho
+
+- [x] Revisión editorial previa con evidencia y audio nativo opcional de B-roll (ADR 0035); sin gates ni migración de piezas.
+
+
+- [x] Extractos audiovisuales breves (ADR 0034): fuente intacta, intervalo y fundidos comunes para video y audio; integración con B-roll y efectos aportados.
+
+- [x] Estado y preguntas editoriales (ADR 0033): pendientes coherentes, preguntas por pieza con huella y planes sin estados duplicados.
+
+- [x] **Fiabilidad visual (2026-11-17; ADR 0032):** lectura por elemento, revelados intencionales
+  diferenciados de recortes persistentes, avisos transitorios agrupados y subtítulos breves sin
+  fundido de línea. Evidencia de recortes, alternativas deterministas y resumen en la revisión B.
+
+- [x] Storytelling y criterio editorial (2026-11-17; ADR 0031): guiones, selección fiel, copy por canal, fuentes fijadas con licencias y refresco seguro de la vista del corte.
 
 - [x] **Documentación canónica de dirección v2 (2026-11-17):** README en ambos idiomas, storyboard,
   pipeline, canales, instalación e índice completo de ADR reconciliados con la guía y el estado.

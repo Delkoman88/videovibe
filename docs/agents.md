@@ -34,3 +34,7 @@ un atajo, no la fuente de verdad.
 - Las revisiones usan `bin/review` y `bin/open-review`: abren con el visor del sistema, muestran rutas
   absolutas y devuelven datos JSON cuando un agente necesita procesarlos.
 - Los conectores MCP se documentan una vez, con la config para cada agente.
+
+## Skills editoriales
+
+`storytelling` prepara guiones o estructuras fieles al material; `edit-video` ejecuta edición y copy. Las fuentes canónicas son [storytelling](storytelling.md) y [criterio editorial](editorial.md). Se pueden leer desde AGENTS sin cargar skills; no requieren herramientas exclusivas de un agente.

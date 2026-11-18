@@ -187,3 +187,29 @@ Tests (después de tocar cualquier script): `.venv/bin/python -m unittest discov
 Cada script registra su etapa en `<pieza>/status.json`. `bin/status` lista todas las piezas;
 `bin/status $P` muestra una (etapa, aprobaciones A/B, renders verificados). Un agente que retoma una
 pieza a medias empieza por ahí.
+
+## Preparación editorial
+
+Para piezas nuevas prepara A con [criterio editorial](editorial.md), deteniéndote en `--until-stage corte-en-papel`. Tras editar decisiones, `paper_cut.py --refresh-from-cut` actualiza la vista y `bin/edit` presenta A. Guiones previos a grabar: [storytelling](storytelling.md), sin ejecutar la edición hasta tener material.
+
+### Recortes durante la propuesta visual
+
+Cuando el storyboard use recortes, seguir la inspección y sustitución automática de
+[efectos](effects.md#inspección-y-alternativas-automáticas) antes de presentar B. El dictamen lo
+emite el agente tras inspeccionar evidencia; no lo infiere el modelo de segmentación. La revisión
+muestra las sustituciones vigentes sin crear otra aprobación. Los ensayos técnicos no registran B.
+
+## Preguntas específicas y pendientes
+
+Una pieza puede incluir `review-questions.json`: objeto opcional con claves `A` y/o `B`, cada una
+con 2–4 preguntas de contenido no vacías. Se añade siempre la pregunta estándar de decisión final,
+para un total de 3–5. Ejemplo: `{"B":["¿El inicio cumple su promesa?","¿Cambiarías algún efecto?"]}`.
+Sin archivo se mantienen las preguntas habituales. Cambiar las preguntas de una revisión invalida
+su presentación previa; hay que volver a presentarla antes de aprobar. No constituye otro gate.
+Al aprobar se limpia solo el pendiente de esa aprobación. El avance de etapa elimina pendientes
+anteriores si no declara otro; el historial se conserva. Consultar `bin/status` no escribe archivos.
+
+## Revisión previa y audio de insertos
+Antes de componer propuestas nuevas, aplicar la revisión con evidencia de docs/editorial.md.
+El compositor prepara B-roll visual y, si audio.enabled, extrae su sonido sincronizado; valida
+intervalo y conserva silencios. Véanse docs/audio.md y docs/storyboard.md. A/B no cambian.

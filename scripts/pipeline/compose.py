@@ -206,6 +206,14 @@ def main():
     default_cta = sb.get("platforms", {}).get(args.platform[0], {}).get("cta_text")
     shutil.rmtree(hf / "assets" / "audio", ignore_errors=True)
     plan = audio_markup(sb, ch, caps, total, hf)
+    from scripts.composer.broll_audio import markup as broll_audio_markup
+    try:
+        native_audio = broll_audio_markup(P, sb, media, caps, hf)
+    except ValueError as e:
+        oslib.die(str(e))
+    if native_audio:
+        plan.els += "\n" + native_audio
+        plan.used.append({"broll_audio": sum(bool(c.get('audio', {}).get('enabled')) for c in sb.get('broll', []))})
     update_assets_md(P, audio_credits_md(plan.credits))
     update_broll_credits(P, sb.get("broll", []), media)
     from formats import icons  # iconos de Health Icons y Bioicons: autor y licencia en assets.md

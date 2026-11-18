@@ -53,6 +53,7 @@ def hf_fingerprint(P):
              *sorted((hf / "variables").glob("*.json"))]
     base = fingerprint(files)
     brolls = sorted((hf / "assets").glob("broll-*.mp4"))
+    brolls += sorted((hf / "assets" / "broll-audio").glob("*.wav"))
     if not brolls:
         return base  # sin insertos, la misma huella de siempre: las piezas ya aprobadas siguen «al día»
     h = hashlib.sha1(base.encode())
@@ -280,7 +281,7 @@ def gate(name, P, st):
         ts = approval_ts(st, "A")
         if ts is None:
             return {"pending": "aprobación A", "reason": "El corte no está aprobado.",
-                    "next": "Muestra cut/PAPER-CUT.md a la persona del canal. Aplica sus notas en cut/cut-list.json "
+                    "next": "Consulta docs/editorial.md antes de presentar A. Muestra cut/PAPER-CUT.md vigente; tras editar decisiones, usa paper_cut.py --refresh-from-cut. Aplica sus notas en cut/cut-list.json "
                             "y, cuando apruebe: bin/status <pieza> --approve A; luego bin/edit <pieza>."}
         if mtime(cl) and mtime(cl) > ts + TOL:
             return {"pending": "aprobación A", "reason": "cut/cut-list.json cambió después de aprobarse el corte.",
@@ -288,7 +289,7 @@ def gate(name, P, st):
     if name == "storyboard":
         if not (P / "storyboard.json").exists():
             return {"pending": "storyboard", "reason": "Falta el plan visual (storyboard.json).",
-                    "next": "Escribe storyboard.json según docs/storyboard.md y docs/formats.md (estilo del canal en "
+                    "next": "Revisa docs/editorial.md y story-plan.md si existe. Escribe storyboard.json según docs/storyboard.md y docs/formats.md (estilo del canal en "
                             "style.md/rhythm.md/brand.json; palabras en captions/captions.json). Valídalo con "
                             "scripts/pipeline/storyboard.py --project <pieza> (todos los errores juntos). Luego bin/edit <pieza>."}
     if name == "B":

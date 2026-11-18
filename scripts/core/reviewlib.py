@@ -67,7 +67,12 @@ def fingerprint(P, gate):
         media = {m["id"]: m for m in oslib.read_json(P / "media.json")["items"]}
         sb = oslib.read_json(P / "storyboard.json")
         sources += [P / media[c["source"]]["file"] for c in sb.get("broll", []) if c.get("source") in media]
+    if gate == "B":
+        sources += sorted((P / "hf" / "assets" / "broll-audio").glob("*.wav"))
+    custom = custom_questions(P, gate)
     h = hashlib.sha256()
+    if custom is not None:
+        h.update(json.dumps(custom, ensure_ascii=False).encode())
     for p in sorted(set(sources)):
         h.update(str(p.relative_to(P)).encode())
         if not p.is_file():
@@ -126,6 +131,18 @@ def open_files(paths, *, no_open=False):
     return results
 
 
+def custom_questions(P, gate):
+    path = Path(P) / 'review-questions.json'
+    if not path.exists(): return None
+    data = oslib.read_json(path)
+    if not isinstance(data, dict) or set(data) - {'A', 'B'}:
+        raise ValueError('review-questions.json: solo claves A y B')
+    for prompts in data.values():
+        if not isinstance(prompts, list) or not 2 <= len(prompts) <= 4 or any(not isinstance(q, str) or not q.strip() for q in prompts):
+            raise ValueError('cada revisión requiere de 2 a 4 preguntas no vacías; la decisión final se añade automáticamente')
+    return data.get(gate)
+
+
 def packet(P, gate):
     P = Path(P)
     if gate == "A":
@@ -160,10 +177,18 @@ def packet(P, gate):
             summary += [f"{i.get('time',0):.1f} s: {i['message']}" for i in report.get('issues',[])[:5]]
             summary += [f"Movimiento: {sb['motion']['profile']}; revisión visual humana pendiente."]
             summary += [f"{i['time']:.1f} s: {i['message']}" for i in qa['issues'][:5]]
+        substitutions = P/'work/cutout-review/substitutions.json'
+        if substitutions.exists():
+            data = oslib.read_json(substitutions)
+            if data.get('storyboard_hash') == hashlib.sha256((P/'storyboard.json').read_bytes()).hexdigest():
+                summary += [f"Efecto {x['id']}: {x['action']} — {x['reason']}" for x in data['changes']]
         questions = ["¿Los visuales corresponden a lo que se dice en esos momentos?",
                      "¿Se leen los subtítulos y los detalles de pantalla en el teléfono?",
-                     "¿Moverías, acortarías o quitarías algún visual? Indica el segundo.",
+                     "¿Moverías, acortarías o quitarías algún visual o sustitución de efecto? Indica el segundo.",
                      "¿Apruebas el plan visual, pides ajustes puntuales o lo rechazas?"]
+    custom = custom_questions(P, gate)
+    if custom is not None:
+        questions = custom + [questions[-1]]
     return {"gate": gate, "fingerprint": fingerprint(P, gate), "summary": summary,
             "questions": questions, "files": [str(p.resolve()) for p in files_for(P, gate)]}
 

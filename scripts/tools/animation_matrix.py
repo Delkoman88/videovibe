@@ -72,7 +72,7 @@ def run(channel='science-60', profiles=('restrained','balanced','energetic'), na
             report['ok']=report['check_ok'] and all(c['ok'] for c in report['cells'])
         except (ValueError,subprocess.TimeoutExpired) as e:report['error']=str(e)
         report['elapsed_s']=round(time.monotonic()-start,2)
-        artifacts=[out/'check.json',out/'quality.json',out/'storyboard.json',hf/'index.html',
+        artifacts=[hf/'reading-windows.json',out/'check.json',out/'quality.json',out/'storyboard.json',hf/'index.html',
                    *out.glob('forward/*.png'),*hf.glob('quality/*.png'),
                    *hf.glob('compositions/*.html'),*hf.glob('assets/**/*')]
         report['artifacts']={str(f):digest([f]) for f in artifacts if f.is_file()}

@@ -1,7 +1,91 @@
 # Estado del sistema
 
 > Foto actual del motor. La actualiza el agente al cerrar cada sesión de desarrollo.
-> Última actualización: 2026-11-17 · versión `v0.12.0-alpha`.
+> Última actualización: 2026-11-17 · versión `v0.13.0-alpha`.
+
+La clasificación sigue siendo **alpha**: hay entregas reales verificadas y 271 pruebas correctas,
+pero faltan la validación de la dirección v2 actual en WSL/CI remoto, otros agentes y más evaluación
+editorial real. La cobertura técnica no equivale a calidad editorial garantizada.
+
+## Revisión editorial previa y audio nativo — v0.13.0-alpha
+
+Procedimiento del agente antes del preview: promesa inicial, desarrollo, función de recursos y cierre,
+con evidencia en work/editorial-evaluation.md. Sin gate nuevo ni migración de piezas aprobadas.
+B-roll con audio original optativo: intervalo compartido, ganancia, fundidos y atenuación durante voz;
+WAV estéreo 48 kHz, silencios intactos, sin normalización SFX ni límite de cuatro segundos del kit.
+Caché por contenido y audio en huellas de composición, revisión B y render. ADR 0035.
+Prueba sintética renderizada: imagen y sonido coinciden dentro de un cuadro a 30 fps; extracción
+superior a cuatro segundos, silencios, fundidos y automatización comprobados. Cuatro casos editoriales
+ficticios evaluados por el implementador; no equivalen a aceptación de usuarios ni medición de retención.
+Ensayo real en copia aislada: QA visual correcto; TikTok y Reels verificados
+(77.9 s, −14.2 LUFS, −1.1 dBTP). **271 tests en verde** (321.2 s), incluido guardián de datos personales. La entrega original permanece intacta
+y bin/edit --plan confirma que sigue entregable con A/B vigentes.
+
+## Storytelling y criterio editorial — v0.13.0-alpha
+
+Nueva skill `storytelling`: guiones antes de grabar y propuestas trazables al material existente.
+`edit-video` incorpora revisión editorial antes de A/B y copy adaptado al canal. Guías canónicas:
+[storytelling](../storytelling.md), [edición](../editorial.md) y [procedencia](../editorial-sources.md).
+`paper_cut.py --refresh-from-cut` regenera la vista sin reescribir decisiones ni aprobaciones;
+valida entradas y reemplaza el Markdown atómicamente. Sin migraciones, nuevos gates ni dependencias.
+Reordenar frases continúa fuera del alcance. Planes narrativos opcionales para piezas existentes.
+Seis casos ficticios revisados manualmente por el implementador (es/en); evidencia local en
+`work/editorial-evaluation/report.md`. No equivalen a evaluación independiente o mejora de retención.
+Validación: **252 tests en verde**, ambas skills válidas, catálogo vigente y 81 enlaces locales sin
+rutas rotas. Formato habitual del corte comparado byte a byte con la versión anterior en un caso
+keep/drop con retoma y sugerencias; sin diferencias.
+
+## Fiabilidad visual — v0.13.0-alpha
+
+QA con ventanas de lectura por elemento: distingue máscaras de revelado y movimiento de entrada
+al lienzo de recortes persistentes. Los avisos de zona segura se agrupan y separan entre lectura
+(advertencia) y transición (información). Los subtítulos de hasta 0.32 s omiten fundidos de línea,
+sin alterar palabras ni tiempos.
+`cutout_review` prepara originales, máscaras y composición para inspección del agente; aplica
+alternativas deterministas ante dictámenes defectuosos/inciertos. Conserva A, invalida B y presenta
+los cambios en la revisión habitual. Incluye huellas, archivo del storyboard y ejecución de prueba.
+No hay nuevo modelo ni detector semántico automático. Ver [efectos](../effects.md) y ADR 0032.
+Validación: **261 pruebas en verde** (327.1 s), incluido el guardián de datos personales.
+Ensayo real en copia aislada: mismo master, mapa de cortes y subtítulos; sustitución de texto detrás
+de la persona por tarjeta y preview técnico de 4 s. En ese ensayo, la pieza principal conservaba A sin B; aprobación posterior en la sección de extractos.
+QA real: **683 instantes, 0 errores**, 9 advertencias persistentes de zona segura y 77 avisos
+transitorios informativos. No equivale a una entrega verificada. Regresiones públicas: cuatro
+revelados, subtítulo breve, zonas seguras por fase y dos recortes persistentes rechazados.
+Pruebas focalizadas adicionales de restauración ante fallo de escritura y privacidad: 10 en verde.
+Matriz pública: **108/108 combinaciones** con QA actual en verde, 186 archivos compilados iguales
+a los medidos y cuadros actuales iguales a los de referencia. Se reutilizan el check y el
+determinismo inverso de esas mismas composiciones; el informe inicial conserva el fallo detectado
+en una entrada al lienzo. Cierre y evidencia: `work/reliability-scenarios/matrix-recheck/report.json`.
+
+## Estado y evaluación editorial — v0.13.0-alpha
+
+Pendientes coherentes al aprobar o avanzar de etapa; preguntas por pieza con decisión final fija
+y huella de presentación. Sin configuración se conservan preguntas y huellas anteriores.
+Los planes narrativos remiten al estado canónico en lugar de duplicar aprobaciones. ADR 0033.
+Evaluación real de vlog preparada: preview completo y revisión B de cuatro preguntas presentados,
+archivos abiertos. Gancho, claridad y fidelidad revisados contra fuentes; valoración audiovisual del
+usuario recibida: confirma comprensión, pide contexto inicial, recursos más pertinentes y cierre
+menos abrupto. Segunda propuesta visual de 76.9 s presentada y abierta: contexto inicial, ruta conceptual
+y cierre con 3 s de cola. QA: 712 instantes, cero errores, 11 advertencias y 81 avisos
+transitorios. Corte y subtítulos intactos. Esa segunda propuesta requirió ajustar el cierre; aprobación posterior en la sección de extractos. QA de la
+primera propuesta: 709 instantes: cero errores, diez advertencias
+de zona segura y 79 avisos transitorios. Corte y subtítulos conservados por comparación de huellas. No constituye una medición de retención ni una evaluación independiente.
+Validación final: **265 tests en verde** (302.2 s), incluido el guardián de datos personales.
+Primer preview de 73.9 s, 1080×1920, video H.264 y audio AAC. En esa ronda no hubo entrega ni aprobación B inferida.
+
+## Extractos audiovisuales breves — v0.13.0-alpha
+
+`media_excerpt` extrae video SDR y WAV desde el mismo intervalo, con fundidos comunes y protección
+contra sobrescritura de fuentes/salidas. Cierres de hasta 4 s mediante B-roll y efectos aportados,
+sin cambiar el contrato del corte hablado ni habilitar voz de pantalla (ADR 0034).
+Tercera propuesta real: prueba de sonido original tras la última frase, con salida a negro/audio.
+Inicio, efectos y cierre aprobados explícitamente por el usuario; B registrada el 2026-11-17. Corte y subtítulos
+idénticos por huella. QA: 708 muestras, cero errores, diez advertencias y 79 avisos transitorios.
+Audio del extracto y del kit: 4 s completos, correlación sin desplazamiento > 0.9999.
+Entrega real completada para TikTok y Reels: 77.9 s, 1080×1920, H.264/AAC;
+`verify.py` en verde para ambas plataformas. Portadas, copy y subtítulos incluidos; carpeta abierta.
+Aceptación editorial de un caso real; no demuestra mejora de retención ni valida todas las capacidades.
+Validación: 267 pruebas en verde (221.6 s), incluido el guardián de datos personales.
 
 ## Organización del motor
 
@@ -11,11 +95,12 @@ Las revisiones afectadas por la migración requieren aprobación explícita de n
 Validación anterior a dirección v2: 229 pruebas (15 omitidas cuando el entorno no puede generar audio de sistema).
 La suite actual y su evidencia se describen en la siguiente sección.
 
-## Dirección de animaciones v2 — sin nueva etiqueta de versión
+## Dirección de animaciones v2 — incluida en v0.13.0-alpha
 
 Perfiles optativos con controles internos, candidatos con límites y licencias, objetos narrativos y
 anclajes por palabra. Previews y producción comparten compositor; QA usa el runtime real y bloquea B
-ante errores objetivos o informes obsoletos. Compatibilidad exacta del HTML legado/v1.
+ante errores objetivos o informes obsoletos. Los formatos legado/v1 conservan su HTML; la corrección
+de subtítulos breves descrita arriba es independiente de esos formatos.
 
 Validación: matriz renderizada de **108/108** casos en verde (36 formatos × 3 perfiles),
 con check, QA y comparación inversa; 108 HTML actuales iguales a los medidos. Escenarios de dos marcas
@@ -34,6 +119,15 @@ WSL aún no se han realizado. Esto no reabre la entrega histórica del canal mus
 Ver [uso y límites](../animation-direction.md) y ADR 0030.
 
 ## Qué funciona hoy
+
+Ensayo técnico adicional con material real de vlog (2026-11-17): matriz de **108/108** combinaciones
+con una marca nueva y suite de **252 pruebas en verde** (541.8 s, con renders concurrentes).
+La matriz usa ejemplos del catálogo; no certifica todas las combinaciones sobre cualquier toma.
+La inspección real encontró objetos ajenos y huecos de ropa en el recorte, y un posible falso positivo
+de `container_clip` durante la entrada `text_fx: rise` de una tarjeta (texto completo al asentarse).
+El falso positivo y las alternativas conservadoras se atienden en la sección de fiabilidad visual;
+cambiar el modelo permanece en backlog. Los borradores técnicos no equivalen a entrega editorial
+ni aprobación B.
 
 | Etapa | Estado | Notas |
 |---|---|---|
@@ -57,7 +151,7 @@ Ver [uso y límites](../animation-direction.md) y ADR 0030.
 | Audios aportados | ✅ | Música (`music.py add --source usuario`, `fit`) y efectos (`sfx.py add`) con licencia; bloque de sonido de `assets.md` automático |
 | Tratamiento de voz | ✅ | `scripts/audio/voice.py` dentro de la composición; decide por medición; antes/después con `--compare` |
 | Música y efectos | ✅ | Guía `docs/audio.md`. Efectos: kit base + recetas por canal (`recipes.json`). Música: Epidemic vía MCP o propia con `musicgen.py` (identidad por canal en `brand.json → music`); versión `ads` (anuncio) con música apta para pauta; volumen por canal |
-| B-roll y grabaciones de pantalla | ⚠️ parcial | Insertos visuales mudos con cuadro completo, recorte o región de detalle; revisión B a 360×640 y aviso de legibilidad. Probado con una captura de Terminal sobre una toma vertical de 8 s y una pieza hablada real (revisión B aprobada; TikTok, Reels y anuncio verificados). El corte hablado sigue usando tomas a cámara |
+| B-roll y grabaciones de pantalla | ⚠️ parcial | Insertos visuales con sonido original opcional, cuadro completo, recorte o región de detalle; revisión B a 360×640 y aviso de legibilidad. Probado con una captura de Terminal sobre una toma vertical de 8 s y una pieza hablada real (revisión B aprobada; TikTok, Reels y anuncio verificados). El corte hablado sigue usando tomas a cámara |
 | Voz en off sin video | ❌ | No entra al corte |
 
 ## Canales

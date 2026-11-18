@@ -49,8 +49,10 @@ def update_broll_credits(P, clips, media):
     rows = []
     for source in dict.fromkeys(c["source"] for c in clips):
         c = next(c for c in clips if c["source"] == source)
+        sound = any(x["source"] == source and x.get("audio", {}).get("enabled") for x in clips)
         rows.append(f"| {media[source]['file']} | {c['origin']} | {c['license']}"
-                    f"{' · apto para anuncios' if c.get('ads') else ''} |")
+                    f"{' · apto para anuncios' if c.get('ads') else ''}"
+                    f"{' · incluye sonido original' if sound else ''} |")
     block = (f"{begin}\n## Video de apoyo (automático: lo actualiza compose.py)\n\n"
              "| Archivo | Origen | Licencia |\n|---|---|---|\n" + "\n".join(rows) + f"\n{end}") if rows else ""
     if begin in txt and end in txt:

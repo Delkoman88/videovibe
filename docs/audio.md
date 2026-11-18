@@ -231,3 +231,40 @@ intocable: ante la duda, el sistema no usa el micrófono.
 - **Efectos:** −18 a −26 dB, solo cuando algo en pantalla los justifica.
 - **Comprobación:** `verify.py` mide −14 LUFS ±1 y pico ≤ −1 dB. Lo demás, que la música no tape la
   voz, lo juzga la persona al escuchar el borrador.
+
+## Extractos audiovisuales breves de material propio
+
+`python -m scripts.tools.media_excerpt --source /ruta/original.mp4 --start 10 --duration 4
+--video /ruta/nueva.mp4 --audio /ruta/nueva.wav --fade-in 0.08 --fade-out 1.2` (una sola línea).
+Genera video SDR 1080×1920/30 y audio WAV estéreo 48 kHz desde el mismo intervalo y con los mismos
+fundidos. Rechaza HDR, intervalos inválidos y salidas existentes o iguales a la fuente. No altera originales.
+
+Para un cierre breve, registrar el video derivado en media.json como B-roll, conservar procedencia
+y licencia y colocar su audio mediante `sfx.py add` y `audio.sfx` en el mismo segundo. El kit de efectos
+admite hasta 4 s, normaliza pico y recorta silencios: comprobar duración y sincronía tras registrarlo.
+No utilizar este recorrido para diálogo ni extractos más largos. Para insertos más largos o control directo, usar el audio nativo descrito abajo.
+Un inserto durante `tail_s` permite terminar con imagen en movimiento; la voz y el corte aprobados
+permanecen intactos. La propuesta audiovisual se vuelve a presentar en B.
+
+## Sonido original del B-roll
+
+Cada inserto admite `audio: {"enabled": true, "gain_db": -8, "fade_in": 0.08,
+"fade_out": 1.2, "duck_db": -12}`. Omitir audio o enabled conserva el comportamiento mudo.
+Al activarlo, defaults: −8 dB de ganancia, fundidos 0.08/0.25 s y −12 dB adicionales durante
+voz del corte (duck_db: 0 desactiva atenuación). Es ganancia relativa a la fuente, no LUFS objetivo.
+Se extrae el primer flujo de audio con el mismo source_in y duración de la imagen, a WAV estéreo
+48 kHz, sin recortar silencios ni normalizar como SFX. No requiere kit ni tiene límite de 4 s.
+El video permanece mudo internamente para no duplicar sonido; el compositor incorpora su pista.
+No reemplaza diálogo, cambia palabras o habilita voz de pantalla como fuente del corte.
+
+Ganancia: −60 a +12 dB; atenuación: −60 a 0 dB; números finitos. Fundidos explícitos no negativos
+cuya suma no exceda el inserto; defaults se reducen al espacio disponible. Una fuente sin audio o
+con intervalo insuficiente detiene la composición. La música conserva sus controles actuales:
+ajustarla explícitamente si se quiere destacar el sonido de cierre. Los fundidos se aplican una sola
+vez; si el archivo ya los trae, configurar ambos a cero. Derechos registrados en assets.md.
+
+Cambiar fuente, intervalo o ajustes exige recomposición y revisión B vigente. Caché por contenido;
+el audio generado participa en huellas de revisión y render. No se migran automáticamente SFX existentes.
+
+La automatización de atenuación rechaza más de 120 intervalos de voz por inserto para no truncar
+la envolvente del renderer; dividir un inserto tan largo en tramos si se alcanza ese límite.

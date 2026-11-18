@@ -112,3 +112,35 @@ Reglas:
   otro punto solo tapa la toma sin esconder nada.
 - Al menos 1.5 s entre transiciones; 2–4 por pieza. Para cambios de tema o de bloque, no en cada corte.
 - `word-wall` es decoración (la palabra se repite): elige una que ya se escuche en la voz.
+
+## Inspección y alternativas automáticas
+
+Antes de presentar una propuesta con recortes, el agente prepara y examina la evidencia:
+
+```sh
+.venv/bin/python -m scripts.tools.cutout_review --project <canal>/<pieza> --prepare
+```
+
+Genera `work/cutout-review/report.json`, originales, máscaras sobre fondo contrastante y cuadros
+compuestos al principio, centro y final (un cuadro para congelados). Recompone para evitar comparar
+una composición obsoleta. El agente inspecciona identidad, manos, ropa, objetos ajenos y estabilidad;
+modifica únicamente `verdict` (`usable`, `defective`, `uncertain`) y `reason` de cada efecto.
+Si el modelo no está disponible, genera originales y conserva el dictamen incierto; si falla la
+composición, conserva la evidencia disponible. `usable` exige máscara y cuadros compuestos.
+No deduce calidad semántica de la transparencia o del éxito del render. Sin inspección fiable:
+`uncertain`. Abre la evidencia necesaria con `bin/open-review`.
+
+```sh
+.venv/bin/python -m scripts.tools.cutout_review --project <canal>/<pieza> --apply-fallbacks --dry-run
+.venv/bin/python -m scripts.tools.cutout_review --project <canal>/<pieza> --apply-fallbacks
+```
+
+Los dictámenes defectuosos o inciertos se sustituyen automáticamente: texto/fondo con texto → tarjeta;
+congelado con etiqueta → etiqueta sin congelar; halo y efectos sin texto → toma original. Si hay
+conflicto con otra tarjeta o escena completa, se omite el efecto. No se desplazan voz ni tiempos.
+Se validan propuesta y huellas, se archiva el storyboard, se conserva A y se invalida B. Después:
+recomponer, repetir QA y presentar las sustituciones dentro de la revisión habitual. No hay otro gate.
+Una pieza aprobada requiere reproceso expresamente solicitado y `--reprocess-approved`.
+
+Las huellas incluyen fuente, máscara, composición y versión. No reutilizar dictámenes tras cambiar
+esas entradas. No editar hashes para forzar un resultado; repetir `--prepare`.
